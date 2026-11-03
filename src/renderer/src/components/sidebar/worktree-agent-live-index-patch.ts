@@ -6,6 +6,7 @@ import {
 import type { AppState } from '@/store/types'
 import type { AgentStatusEntry } from '../../../../shared/agent-status-types'
 import { isWebTerminalSurfaceTabId } from '../../../../shared/terminal-surface-id'
+import { PI_WEB_PANE_TAB_ID } from '../../../../shared/pi-web/pi-web-pane-tab-id'
 
 export type LiveEntriesByWorktreeCache = {
   tabsByWorktree: AppState['tabsByWorktree']
@@ -33,6 +34,10 @@ export function liveEntryWorktreeId(
   const parsed = parseAgentStatusPaneIdentity(paneKey, representedTabs?.get(paneKey))
   if (!parsed) {
     return undefined
+  }
+  // pi-web rows have no tab; their own feed retracts them, so done rows stay listed.
+  if (parsed.tabId === PI_WEB_PANE_TAB_ID) {
+    return entry.worktreeId
   }
   const tabWorktreeId = tabIdToWorktreeId.get(parsed.tabId)
   const remote = Boolean(entry.connectionId) || isWebTerminalSurfaceTabId(parsed.tabId)

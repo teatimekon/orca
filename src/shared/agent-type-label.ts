@@ -18,6 +18,7 @@ const WELL_KNOWN_LABELS: Record<string, string> = {
   cursor: 'Cursor',
   aider: 'Aider',
   pi: 'Pi',
+  'pi-web': 'pi-web',
   omp: 'OMP',
   'prime-agent': 'Prime Agent',
   droid: 'Droid',

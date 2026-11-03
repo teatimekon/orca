@@ -1,0 +1,139 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { piWebPaneKey } from '../../../../shared/pi-web/pi-web-pane-key'
+import type {
+  PiWebAttentionEvent,
+  PiWebRow,
+  PiWebStatusDelta
+} from '../../../../shared/pi-web/pi-web-status-types'
+import { createTestStore } from '../../store/slices/store-test-helpers'
+
+type TestStore = ReturnType<typeof createTestStore>
+
+const { storeHolder, dispatchPiWebAttention, openPiWebSession } = vi.hoisted(() => {
+  const holder: { current: TestStore | null } = { current: null }
+  return {
+    storeHolder: holder,
+    dispatchPiWebAttention: vi.fn(),
+    openPiWebSession: vi.fn((_worktreeId: string, _sessionId: string) => Promise.resolve())
+  }
+})
+
+vi.mock('../../store', () => ({
+  useAppStore: { getState: () => storeHolder.current?.getState() }
+}))
+vi.mock('@/lib/pi-web/pi-web-attention-dispatch', () => ({ dispatchPiWebAttention }))
+vi.mock('@/lib/pi-web/open-pi-web', () => ({ openPiWebSession }))
+
+import { registerPiWebIpcBridge } from './pi-web-ipc-bridge'
+
+function makeRow(overrides: Partial<PiWebRow> = {}): PiWebRow {
+  return {
+    sessionId: 'session-1',
+    worktreeId: 'wt-1',
+    cwd: '/repo/wt-1',
+    name: 'Refactor parser',
+    state: 'working',
+    stateStartedAt: 1000,
+    updatedAt: 1000,
+    ...overrides
+  }
+}
+
+function liveRow(sessionId: string) {
+  return storeHolder.current?.getState().agentStatusByPaneKey[piWebPaneKey(sessionId)]
+}
+
+// session-2 appears only from the snapshot, so its arrival proves the snapshot was applied.
+async function snapshotApplied(): Promise<void> {
+  await vi.waitFor(() => expect(liveRow('session-2')).toBeDefined())
+}
+
+describe('registerPiWebIpcBridge', () => {
+  const calls: string[] = []
+  let emitDelta: (delta: PiWebStatusDelta) => void = () => {}
+  let emitOpen: (payload: { worktreeId: string; sessionId: string }) => void = () => {}
+  let resolveSnapshot: (rows: PiWebRow[]) => void = () => {}
+  let snapshot: Promise<PiWebRow[]> = Promise.resolve([])
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    calls.length = 0
+    dispatchPiWebAttention.mockClear()
+    openPiWebSession.mockClear()
+    storeHolder.current = createTestStore()
+    snapshot = new Promise((resolve) => {
+      resolveSnapshot = resolve
+    })
+    vi.stubGlobal('window', {
+      api: {
+        piWeb: {
+          getSnapshot: () => {
+            calls.push('getSnapshot')
+            return snapshot
+          },
+          onStatusChanged: (callback: (delta: PiWebStatusDelta) => void) => {
+            calls.push('onStatusChanged')
+            emitDelta = callback
+            return () => calls.push('unsubscribeStatus')
+          },
+          onOpenSession: (
+            callback: (payload: { worktreeId: string; sessionId: string }) => void
+          ) => {
+            emitOpen = callback
+            return () => calls.push('unsubscribeOpen')
+          }
+        }
+      }
+    })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
+
+  it('subscribes before the snapshot and keeps a delta row newer than the snapshot', async () => {
+    registerPiWebIpcBridge([])
+    expect(calls).toEqual(['onStatusChanged', 'getSnapshot'])
+
+    emitDelta({ upserts: [makeRow({ state: 'done', updatedAt: 2000 })], removals: [], events: [] })
+    resolveSnapshot([
+      makeRow({ state: 'working', updatedAt: 1500 }),
+      makeRow({ sessionId: 'session-2', updatedAt: 1200 })
+    ])
+    await snapshotApplied()
+
+    expect(liveRow('session-1')).toMatchObject({ state: 'done', updatedAt: 2000 })
+    expect(liveRow('session-2')).toMatchObject({ state: 'working', worktreeId: 'wt-1' })
+  })
+
+  it('does not let the snapshot resurrect a row a delta removed', async () => {
+    registerPiWebIpcBridge([])
+
+    emitDelta({ upserts: [], removals: ['session-1'], events: [] })
+    resolveSnapshot([makeRow(), makeRow({ sessionId: 'session-2' })])
+    await snapshotApplied()
+
+    expect(liveRow('session-1')).toBeUndefined()
+  })
+
+  it('routes attention events and open requests to their seams and unsubscribes', async () => {
+    const unsubs: (() => void)[] = []
+    registerPiWebIpcBridge(unsubs)
+    const event: PiWebAttentionEvent = {
+      sessionId: 'session-1',
+      worktreeId: 'wt-1',
+      name: null,
+      kind: 'completed'
+    }
+
+    emitDelta({ upserts: [makeRow({ state: 'done' })], removals: [], events: [event] })
+    emitOpen({ worktreeId: 'wt-1', sessionId: 'session-1' })
+
+    expect(dispatchPiWebAttention.mock.calls).toEqual([[event]])
+    expect(openPiWebSession.mock.calls).toEqual([['wt-1', 'session-1']])
+    unsubs.forEach((unsubscribe) => unsubscribe())
+    expect(calls).toContain('unsubscribeStatus')
+    expect(calls).toContain('unsubscribeOpen')
+  })
+})

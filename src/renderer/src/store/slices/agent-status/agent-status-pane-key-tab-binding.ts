@@ -9,6 +9,7 @@ import type { TerminalTab } from '../../../../../shared/terminal-tab-types'
 import { tabHasProtectedTitle } from '../../../../../shared/agent-generated-tab-title-rules'
 import type { DropAgentStatusByWorktreeOptions, RetainedAgentEntry } from './agent-status-contract'
 import type { AgentStatusTabPrefixDropState } from './agent-status-drop-reducer'
+import { PI_WEB_PANE_TAB_ID } from '../../../../../shared/pi-web/pi-web-pane-tab-id'
 
 export function paneKeyMatchesAnyTabPrefix(paneKey: string, tabPrefixes: string[]): boolean {
   for (const prefix of tabPrefixes) {
@@ -90,6 +91,8 @@ export function findCompletedOrphanPaneKeysForTabClose(
   for (const tab of state.tabsByWorktree[worktreeId] ?? []) {
     openTabIds.add(tab.id)
   }
+  // pi-web rows never had a tab; closing a terminal must not sweep them.
+  openTabIds.add(PI_WEB_PANE_TAB_ID)
   const paneKeys: string[] = []
   for (const [paneKey, entry] of Object.entries(state.agentStatusByPaneKey)) {
     if (paneKey.startsWith(prefix) || entry.state !== 'done' || entry.worktreeId !== worktreeId) {

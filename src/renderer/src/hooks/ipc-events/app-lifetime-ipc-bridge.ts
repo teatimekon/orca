@@ -23,6 +23,7 @@ import { registerOrcaProfileAuthIpcBridge } from './orca-profile-auth-ipc-bridge
 import { registerPluginViewIpcBridge } from './plugin-view-ipc-bridge'
 import { registerPreflightWslRetryIpcBridge } from './preflight-wsl-retry-ipc-bridge'
 import { registerOsMarkdownFileOpenBridge } from './os-markdown-file-open-bridge'
+import { registerPiWebIpcBridge } from './pi-web-ipc-bridge'
 import { registerProjectCatalogIpcBridge } from './project-catalog-ipc-bridge'
 import { registerRateLimitIpcBridge } from './rate-limit-ipc-bridge'
 import { registerClaudeAccountSwitchIpcBridge } from './claude-account-switch-ipc-bridge'
@@ -138,6 +139,7 @@ export function installAppLifetimeIpcEvents(): () => void {
   registerBrowserTabActivateIpcBridge(unsubs)
   registerTabLifecycleIpcBridge(unsubs)
   registerRateLimitIpcBridge(unsubs)
+  registerPiWebIpcBridge(unsubs)
   registerPluginViewIpcBridge(unsubs)
   registerClaudeAccountSwitchIpcBridge(unsubs)
   const stopDirectSshStateBridge = registerDirectSshStateIpcBridge(unsubs)

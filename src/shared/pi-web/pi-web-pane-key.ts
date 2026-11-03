@@ -1,12 +1,8 @@
 import { structuredAgentSessionPaneKey } from '../agent-session/view/structured-agent-session-projection'
-import { parsePaneKey } from '../stable-pane-id'
+import { PI_WEB_PANE_TAB_ID } from './pi-web-pane-tab-id'
 
-export const PI_WEB_PANE_TAB_ID = '7f1c2d4e-0000-4a1b-9c3d-5e6f70819aab'
+export { PI_WEB_PANE_TAB_ID, isPiWebPaneKey } from './pi-web-pane-tab-id'
 
 export function piWebPaneKey(sessionId: string): string {
   return structuredAgentSessionPaneKey(PI_WEB_PANE_TAB_ID, sessionId)
-}
-
-export function isPiWebPaneKey(paneKey: string): boolean {
-  return parsePaneKey(paneKey)?.tabId === PI_WEB_PANE_TAB_ID
 }

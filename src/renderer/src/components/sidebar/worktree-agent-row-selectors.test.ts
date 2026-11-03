@@ -7,6 +7,7 @@ import type { Tab } from '../../../../shared/tab-types'
 import type { TerminalTab } from '../../../../shared/terminal-tab-types'
 import type { RetainedAgentEntry } from '@/store/slices/agent-status/agent-status-contract'
 import { makePaneKey } from '../../../../shared/stable-pane-id'
+import { PI_WEB_PANE_TAB_ID, piWebPaneKey } from '../../../../shared/pi-web/pi-web-pane-key'
 import { getLiveEntriesFullRebuildCountForTests } from './worktree-agent-live-index-patch'
 import {
   EMPTY_LIVE_ENTRIES,
@@ -326,6 +327,28 @@ describe('selectLiveAgentStatusEntriesForWorktree', () => {
     }
 
     expect(selectLiveAgentStatusEntriesForWorktree(state, 'wt-1')).toEqual([])
+  })
+
+  it('done pi-web row without a tab stays under its worktree', () => {
+    const paneKey = piWebPaneKey('pi-session-1')
+    const working = makeEntry(paneKey, 1000, {
+      state: 'working',
+      worktreeId: 'wt-1',
+      tabId: PI_WEB_PANE_TAB_ID,
+      agentType: 'pi-web'
+    })
+    const state = {
+      tabsByWorktree: { 'wt-1': [makeTab('tab-live')] },
+      agentStatusByPaneKey: { [paneKey]: working },
+      migrationUnsupportedByPtyId: {},
+      retainedAgentsByPaneKey: {}
+    }
+    expect(selectLiveAgentStatusEntriesForWorktree(state, 'wt-1')).toEqual([working])
+
+    const done = { ...working, state: 'done' as const, updatedAt: 2000 }
+    const doneState = { ...state, agentStatusByPaneKey: { [paneKey]: done } }
+
+    expect(selectLiveAgentStatusEntriesForWorktree(doneState, 'wt-1')).toEqual([done])
   })
 })
 

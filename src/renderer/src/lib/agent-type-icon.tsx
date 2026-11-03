@@ -1,7 +1,7 @@
 import type React from 'react'
 import type { AgentType } from '../../../shared/agent-status-types'
 import { AgentIcon } from './agent-catalog'
-import { AgentLetterIcon } from './agent-icon-glyphs'
+import { AgentLetterIcon, PiIcon } from './agent-icon-glyphs'
 import { agentTypeToIconAgent } from './agent-status'
 
 /** Status-row icon: known agents get their brand icon, any other OSC 7501 program its first letter. */
@@ -14,6 +14,9 @@ export function AgentTypeIcon({
   size?: number
   className?: string
 }): React.JSX.Element {
+  if (agentType === 'pi-web') {
+    return <PiIcon size={size} />
+  }
   const iconAgent = agentTypeToIconAgent(agentType)
   if (iconAgent) {
     return <AgentIcon agent={iconAgent} size={size} className={className} />

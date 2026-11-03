@@ -1,4 +1,5 @@
 import type { AgentStatusEntry } from './agent-status-types'
+import { isPiWebPaneKey } from './pi-web/pi-web-pane-tab-id'
 
 /** Retain explicit status past this threshold so silent hook streams decay working dots back to active. */
 export const AGENT_STATUS_STALE_AFTER_MS = 30 * 60 * 1000
@@ -67,13 +68,16 @@ export function isAgentStatusFresh(
     | 'mirroredEvidenceReceivedAt'
     | 'restoredUnconfirmed'
     | 'structuredHostOwned'
-  >,
+  > &
+    Partial<Pick<AgentStatusEntry, 'paneKey'>>,
   now = Date.now(),
   staleAfterMs = AGENT_STATUS_STALE_AFTER_MS
 ): boolean {
   return (
     entry.restoredUnconfirmed !== true &&
     (entry.structuredHostOwned === true ||
-      now - agentStatusEvidenceObservedAt(entry) <= staleAfterMs)
+      now - agentStatusEvidenceObservedAt(entry) <= staleAfterMs ||
+      // pi-web rows are owned by pi-web's own status feed, like host-owned structured rows.
+      (entry.paneKey !== undefined && isPiWebPaneKey(entry.paneKey)))
   )
 }
