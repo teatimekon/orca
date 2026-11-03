@@ -4,14 +4,27 @@ import { join } from 'node:path'
 import { getTrustedUIRendererWindow } from '../ipc/ui'
 import type { Store } from '../persistence/loading-store/store'
 import { PiWebBridge } from './pi-web-bridge'
-import { resolvePiWebConfig } from './pi-web-config'
+import { resolvePiWebEffectiveConfig } from './pi-web-config'
 import { registerPiWebIpcHandlers } from './pi-web-ipc'
 import { listPiWebWorktreePaths } from './pi-web-worktree-paths'
 
-export function startPiWebBridge(store: Store): PiWebBridge {
+/** Starts the status bridge; on failure logs and returns null, since pi-web must never stop Orca starting. */
+export function startPiWebBridge(store: Store): PiWebBridge | null {
+  try {
+    return createAndStartPiWebBridge(store)
+  } catch (error) {
+    console.error('[pi-web] status bridge failed to start', error)
+    return null
+  }
+}
+
+function createAndStartPiWebBridge(store: Store): PiWebBridge {
+  const effectiveConfig = () =>
+    resolvePiWebEffectiveConfig(store.getSettings().piWeb, process.env, homedir())
   const bridge = new PiWebBridge({
     rowsFilePath: join(app.getPath('userData'), 'pi-web', 'rows.json'),
-    getConfig: () => resolvePiWebConfig(store.getSettings().piWeb, process.env, homedir()),
+    getConfig: () => effectiveConfig().config,
+    getEnvOverrides: () => effectiveConfig().envOverrides,
     listWorktreePaths: () => listPiWebWorktreePaths(store),
     // Why: with no window yet the delta is dropped; the renderer hydrates through getSnapshot.
     sendToRenderer: (channel, payload) => {

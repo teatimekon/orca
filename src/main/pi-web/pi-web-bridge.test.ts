@@ -374,3 +374,26 @@ describe('PiWebBridge', () => {
     ])
   })
 })
+
+describe('PiWebBridge effective config', () => {
+  it('reports the resolved config and the env variables behind it', () => {
+    const bridge = new PiWebBridge({
+      rowsFilePath: rowsFile(),
+      getConfig: () => BASE_CONFIG,
+      getEnvOverrides: () => ({ agentDir: 'ORCA_PI_WEB_AGENT_DIR' }),
+      listWorktreePaths: () => [],
+      sendToRenderer: () => {}
+    })
+    expect(bridge.getEffectiveConfig()).toEqual({
+      config: BASE_CONFIG,
+      envOverrides: { agentDir: 'ORCA_PI_WEB_AGENT_DIR' }
+    })
+    const plain = new PiWebBridge({
+      rowsFilePath: rowsFile(),
+      getConfig: () => BASE_CONFIG,
+      listWorktreePaths: () => [],
+      sendToRenderer: () => {}
+    })
+    expect(plain.getEffectiveConfig()).toEqual({ config: BASE_CONFIG, envOverrides: {} })
+  })
+})

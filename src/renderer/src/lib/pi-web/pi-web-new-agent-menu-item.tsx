@@ -3,6 +3,7 @@ import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { PiIcon } from '@/lib/agent-icon-glyphs'
 import { useAppStore } from '@/store'
 import { openPiWebNew } from './open-pi-web'
+import { isPiWebEnabled, usePiWebEffectiveConfig } from './pi-web-effective-config'
 import { isPiWebLocalWorkspace } from './pi-web-local-workspace'
 import { translate } from '@/i18n/i18n'
 
@@ -13,7 +14,10 @@ export function PiWebNewAgentMenuItem({
   worktreeId: string
 }): React.JSX.Element | null {
   const local = useAppStore((state) => isPiWebLocalWorkspace(state, worktreeId))
-  if (!local) {
+  const stored = useAppStore((state) => state.settings?.piWeb)
+  const effective = usePiWebEffectiveConfig(stored)
+  // Why hidden when off: the open would only fail with "integration is disabled".
+  if (!local || !isPiWebEnabled(stored, effective)) {
     return null
   }
   return (

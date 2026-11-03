@@ -39,7 +39,8 @@ describe('openPiWebStatusStream', () => {
             'data: {"type":"heart',
             'beat"}\n\ndata: nope\n\n',
             'data: {"type":"removed","id":"a"}\r\n\r\n'
-          ])
+          ]),
+          { headers: { 'Content-Type': 'text/event-stream; charset=utf-8' } }
         )
     ) as unknown as typeof fetch
     const onFrame = vi.fn()
@@ -61,6 +62,59 @@ describe('openPiWebStatusStream', () => {
     openPiWebStatusStream('http://h:1', { onFrame: vi.fn(), onClose }, fetchImpl)
     await closed
     expect(onClose).toHaveBeenCalledWith('incompatible', expect.any(String))
+  })
+
+  it('200 JSON body is incompatible', async () => {
+    // An unmodified pi-web routes the path to /api/agent/[id], which answers {"running":false}.
+    const body = bodyOf(['{"running":false}'])
+    const cancel = vi.spyOn(body, 'cancel')
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the stub implements the fetch surface the stream reads.
+    const fetchImpl = (async () =>
+      new Response(body, {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })) as unknown as typeof fetch
+    const onFrame = vi.fn()
+    const { onClose, closed } = closeSignal()
+    openPiWebStatusStream('http://h:1', { onFrame, onClose }, fetchImpl)
+    await closed
+    expect(onClose).toHaveBeenCalledWith(
+      'incompatible',
+      expect.stringContaining('application/json')
+    )
+    expect(onFrame).not.toHaveBeenCalled()
+    expect(cancel).toHaveBeenCalled()
+  })
+
+  it('logs a throwing frame handler once per stream and keeps reading', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the stub implements the fetch surface the stream reads.
+      const fetchImpl = (async () =>
+        new Response(
+          bodyOf([
+            'data: {"type":"heartbeat"}\n\n',
+            'data: {"type":"removed","id":"a"}\n\n',
+            'data: {"type":"removed","id":"b"}\n\n'
+          ]),
+          { headers: { 'Content-Type': 'text/event-stream' } }
+        )) as unknown as typeof fetch
+      const onFrame = vi.fn((frame: { type: string }) => {
+        if (frame.type === 'removed') {
+          throw new Error('reducer bug')
+        }
+      })
+      const { onClose, closed } = closeSignal()
+      openPiWebStatusStream('http://h:1', { onFrame, onClose }, fetchImpl)
+      await closed
+      expect(onFrame).toHaveBeenCalledTimes(3)
+      expect(onClose).toHaveBeenCalledWith('ended', undefined)
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(String(warn.mock.calls[0]?.[0])).toMatch(/^\[pi-web\] /)
+      expect(warn.mock.calls[0]).toContainEqual(expect.objectContaining({ message: 'reducer bug' }))
+    } finally {
+      warn.mockRestore()
+    }
   })
 
   it('reports error on fetch failure and stays silent after close()', async () => {

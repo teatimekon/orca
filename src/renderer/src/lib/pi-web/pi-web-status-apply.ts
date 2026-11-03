@@ -2,12 +2,13 @@ import { PI_WEB_PANE_TAB_ID, piWebPaneKey } from '../../../../shared/pi-web/pi-w
 import type { PiWebRow, PiWebStatusDelta } from '../../../../shared/pi-web/pi-web-status-types'
 import type { AppState } from '@/store/types'
 import { forgetPiWebRow, rememberPiWebRow } from './pi-web-row-registry'
+import { piWebRowTitle } from './pi-web-row-title'
 
 type PiWebStatusStore = Pick<AppState, 'setAgentStatus' | 'removeAgentStatus'>
 
 function applyPiWebRow(row: PiWebRow, store: PiWebStatusStore): void {
   const paneKey = rememberPiWebRow(row)
-  const title = row.name ?? 'pi-web'
+  const title = piWebRowTitle(row)
   store.setAgentStatus(
     paneKey,
     {

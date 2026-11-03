@@ -1,5 +1,6 @@
 import { openPiWebSession } from '@/lib/pi-web/open-pi-web'
 import { dispatchPiWebAttention } from '@/lib/pi-web/pi-web-attention-dispatch'
+import { acknowledgeViewedPiWebRow } from '@/lib/pi-web/pi-web-attention-surface'
 import { forgetPiWebRowsAbsentFrom } from '@/lib/pi-web/pi-web-row-registry'
 import { applyPiWebDelta, applyPiWebSnapshot } from '@/lib/pi-web/pi-web-status-apply'
 import type { PiWebRow } from '../../../../shared/pi-web/pi-web-status-types'
@@ -40,6 +41,8 @@ export function registerPiWebIpcBridge(unsubs: (() => void)[]): void {
       if (state.agentStatusByPaneKey !== previous.agentStatusByPaneKey) {
         forgetPiWebRowsAbsentFrom(state.agentStatusByPaneKey)
       }
+      // A new turn of the conversation on screen, or arriving at its page, reads it (as a visible pane).
+      acknowledgeViewedPiWebRow(state)
     })
   )
   unsubs.push(() => {

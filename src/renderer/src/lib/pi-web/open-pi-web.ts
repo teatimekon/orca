@@ -4,8 +4,10 @@ import { activateAndRevealWorkspace } from '@/lib/worktree-activation'
 import { useAppStore } from '@/store'
 import type { AppState } from '@/store/types'
 import { isPiWebLocalWorkspace } from './pi-web-local-workspace'
+import { piWebUrlSessionId } from './pi-web-url'
 import type { BrowserPage, BrowserWorkspace } from '../../../../shared/browser-workspace-types'
 import type { Tab } from '../../../../shared/tab-types'
+import { piWebPaneKey } from '../../../../shared/pi-web/pi-web-pane-key'
 import { translate } from '@/i18n/i18n'
 
 export type PiWebBrowserTarget = { workspaceId: string; pageId: string }
@@ -100,7 +102,7 @@ function pageSessionId(
   target: PiWebBrowserTarget
 ): string | null {
   const page = pagesByWorkspace[target.workspaceId]?.find((entry) => entry.id === target.pageId)
-  return page ? (parseUrl(page.url)?.searchParams.get('session') ?? null) : null
+  return page ? piWebUrlSessionId(page.url) : null
 }
 
 function navigatePiWebPage(pageId: string, url: string): void {
@@ -179,12 +181,14 @@ export function openPiWebSession(worktreeId: string, sessionId: string): Promise
     })
     if (!target) {
       createPiWebTab(worktreeId, url)
-      return
+    } else {
+      if (pageSessionId(state.browserPagesByWorkspace, target) !== sessionId) {
+        navigatePiWebPage(target.pageId, url)
+      }
+      activatePiWebPage(worktreeId, target)
     }
-    if (pageSessionId(state.browserPagesByWorkspace, target) !== sessionId) {
-      navigatePiWebPage(target.pageId, url)
-    }
-    activatePiWebPage(worktreeId, target)
+    // Why: no terminal or chat tab shows a pi-web row, so auto-ack never reaches it; opening it is the read.
+    useAppStore.getState().acknowledgeAgents([piWebPaneKey(sessionId)])
   })
 }
 

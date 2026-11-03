@@ -1,6 +1,8 @@
 import {
   PI_WEB_IPC,
+  type PiWebEffectiveConfig,
   type PiWebEnsureResult,
+  type PiWebEnvOverrides,
   type PiWebRow,
   type PiWebSettings,
   type PiWebStatusDelta,
@@ -32,6 +34,8 @@ type CloseReason = Parameters<PiWebStreamHandlers['onClose']>[0]
 export type PiWebBridgeDeps = {
   rowsFilePath: string
   getConfig(): PiWebSettings
+  /** The fields an ORCA_PI_WEB_* variable sets this session; the settings UI shows them read-only. */
+  getEnvOverrides?(): PiWebEnvOverrides
   listWorktreePaths(): PiWebWorktreePathEntry[]
   sendToRenderer(channel: string, payload: unknown): void
   now?(): number
@@ -99,6 +103,10 @@ export class PiWebBridge {
 
   getSnapshot(): PiWebRow[] {
     return [...this.rows.values()]
+  }
+
+  getEffectiveConfig(): PiWebEffectiveConfig {
+    return { config: this.deps.getConfig(), envOverrides: this.deps.getEnvOverrides?.() ?? {} }
   }
 
   ensureServer(): Promise<PiWebEnsureResult> {
@@ -176,9 +184,9 @@ export class PiWebBridge {
             this.handleFrame(frame)
           }
         },
-        onClose: (reason) => {
+        onClose: (reason, detail) => {
           if (generation === this.generation) {
-            this.handleClose(reason)
+            this.handleClose(reason, detail)
           }
         }
       })
@@ -209,12 +217,13 @@ export class PiWebBridge {
     }, delayMs)
   }
 
-  private handleClose(reason: CloseReason): void {
+  private handleClose(reason: CloseReason, detail?: string): void {
     this.disconnect()
     if (reason === 'incompatible') {
       if (!this.warnedIncompatible) {
         this.warnedIncompatible = true
-        console.warn('[pi-web] server lacks /api/agent/status-events')
+        const why = detail ? ` (${detail})` : ''
+        console.warn(`[pi-web] server lacks /api/agent/status-events${why}`)
       }
       this.scheduleRetry(INCOMPATIBLE_RETRY_MS)
       return

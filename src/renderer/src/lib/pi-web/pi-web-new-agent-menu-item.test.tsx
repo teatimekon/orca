@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { WorktreeOperationRouteState } from '@/lib/worktree-operation-route'
 import type { ExecutionHostId } from '../../../../shared/execution-host'
@@ -59,6 +59,36 @@ describe('PiWebNewAgentMenuItem', () => {
     expect(row).not.toBeNull()
     fireEvent.click(row!)
     expect(openPiWebNew).toHaveBeenCalledWith(WORKTREE_ID)
+  })
+
+  it('menu item hidden when the integration is off', async () => {
+    workspaceOn('local', { executionHostId: 'local' })
+    store.state = { ...store.state, settings: { piWeb: { enabled: false } } }
+    renderItem()
+    expect(piWebRow()).toBeNull()
+    cleanup()
+
+    // ORCA_PI_WEB_ENABLED=0 wins over a stored "on", once main reports the effective config.
+    store.state = { ...store.state, settings: { piWeb: { enabled: true } } }
+    vi.stubGlobal(
+      'window',
+      Object.assign(window, {
+        api: {
+          piWeb: {
+            getEffectiveConfig: vi.fn(async () => ({
+              config: { enabled: false },
+              envOverrides: { enabled: 'ORCA_PI_WEB_ENABLED' }
+            }))
+          }
+        }
+      })
+    )
+    try {
+      renderItem()
+      await waitFor(() => expect(piWebRow()).toBeNull())
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('menu item hidden for ssh workspace', () => {

@@ -53,12 +53,12 @@ describe('applyPiWebDelta', () => {
         piWebPaneKey('session-2'),
         {
           state: 'done',
-          prompt: 'pi-web',
+          prompt: 'wt-1',
           agentType: 'pi-web',
           interrupted: false,
           sessionBoundary: false
         },
-        'pi-web',
+        'wt-1',
         { updatedAt: 2000, stateStartedAt: 1000, allowOlderTimestamp: true },
         { tabId: PI_WEB_PANE_TAB_ID, worktreeId: 'wt-1' },
         { terminalResumeEligible: false }
@@ -69,6 +69,30 @@ describe('applyPiWebDelta', () => {
       worktreeId: 'wt-1'
     })
     expect(store.removeAgentStatus).not.toHaveBeenCalled()
+  })
+
+  it('an unnamed row is titled by its cwd basename, never "pi-web"', () => {
+    const store = makeStore()
+
+    applyPiWebDelta(
+      {
+        upserts: [
+          makeRow({ sessionId: 'a', name: null, cwd: '/x/hw_experiment/' }),
+          makeRow({ sessionId: 'b', name: '  ', cwd: '/x/hw_experiment/docs' }),
+          makeRow({ sessionId: 'c', name: null, cwd: '/' })
+        ],
+        removals: [],
+        events: []
+      },
+      store
+    )
+
+    const titles = store.setAgentStatus.mock.calls.map((call) => [call[1].prompt, call[2]])
+    expect(titles).toEqual([
+      ['hw_experiment', 'hw_experiment'],
+      ['docs', 'docs'],
+      ['pi-web', 'pi-web']
+    ])
   })
 
   it('removal forgets registry and removes status', () => {

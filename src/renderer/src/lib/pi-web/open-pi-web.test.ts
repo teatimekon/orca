@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BrowserPage, BrowserWorkspace } from '../../../../shared/browser-workspace-types'
 import type { PiWebEnsureResult } from '../../../../shared/pi-web/pi-web-status-types'
 import type { Tab } from '../../../../shared/tab-types'
+import { piWebPaneKey } from '../../../../shared/pi-web/pi-web-pane-key'
 
 const { state, activateAndRevealWorkspace, toastError, webviewRegistry, isLocal } = vi.hoisted(
   () => {
@@ -160,7 +161,8 @@ describe('opening pi-web', () => {
     activateTab: vi.fn(),
     setActiveBrowserPage: vi.fn(),
     setActiveBrowserTab: vi.fn(),
-    setActiveTabType: vi.fn()
+    setActiveTabType: vi.fn(),
+    acknowledgeAgents: vi.fn()
   }
 
   function seed(pages: BrowserPage[], unifiedTabs: Partial<Tab>[] = []): void {
@@ -268,6 +270,33 @@ describe('opening pi-web', () => {
     expect(window.api.piWeb.ensureServer).not.toHaveBeenCalled()
     expect(activateAndRevealWorkspace).not.toHaveBeenCalled()
     expect(actions.createBrowserTab).not.toHaveBeenCalled()
+  })
+
+  it('opening a pi-web session acknowledges its row', async () => {
+    await openPiWebSession(WT, 's1')
+    expect(actions.acknowledgeAgents).toHaveBeenCalledWith([piWebPaneKey('s1')])
+
+    // Reusing a pi-web page that already shows it acknowledges it too.
+    actions.acknowledgeAgents.mockClear()
+    seed([page('a', `${BASE}/?session=s1`)])
+    await openPiWebSession(WT, 's1')
+    expect(actions.acknowledgeAgents).toHaveBeenCalledWith([piWebPaneKey('s1')])
+  })
+
+  it('a session that does not open stays unacknowledged', async () => {
+    ensureResult = { ok: false, reason: 'launch command failed' }
+    await openPiWebSession(WT, 's1')
+    isLocal.mockReturnValue(false)
+    await openPiWebSession(WT, 's1')
+    isLocal.mockReturnValue(true)
+    ensureResult = { ok: true, url: BASE }
+    actions.createBrowserTab.mockImplementationOnce(() => {
+      throw new Error('browser unavailable')
+    })
+    await openPiWebSession(WT, 's1')
+    // The new-conversation composer has no row to acknowledge.
+    await openPiWebNew(WT)
+    expect(actions.acknowledgeAgents).not.toHaveBeenCalled()
   })
 
   it('reports a tab that cannot be created instead of rejecting', async () => {

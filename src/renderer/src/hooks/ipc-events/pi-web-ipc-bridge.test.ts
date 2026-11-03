@@ -10,14 +10,16 @@ import { createTestStore } from '../../store/slices/store-test-helpers'
 
 type TestStore = ReturnType<typeof createTestStore>
 
-const { storeHolder, dispatchPiWebAttention, openPiWebSession } = vi.hoisted(() => {
-  const holder: { current: TestStore | null } = { current: null }
-  return {
-    storeHolder: holder,
-    dispatchPiWebAttention: vi.fn(),
-    openPiWebSession: vi.fn((_worktreeId: string, _sessionId: string) => Promise.resolve())
-  }
-})
+const { storeHolder, dispatchPiWebAttention, openPiWebSession, acknowledgeViewedPiWebRow } =
+  vi.hoisted(() => {
+    const holder: { current: TestStore | null } = { current: null }
+    return {
+      storeHolder: holder,
+      dispatchPiWebAttention: vi.fn(),
+      openPiWebSession: vi.fn((_worktreeId: string, _sessionId: string) => Promise.resolve()),
+      acknowledgeViewedPiWebRow: vi.fn()
+    }
+  })
 
 vi.mock('../../store', () => ({
   useAppStore: {
@@ -28,6 +30,7 @@ vi.mock('../../store', () => ({
 }))
 vi.mock('@/lib/pi-web/pi-web-attention-dispatch', () => ({ dispatchPiWebAttention }))
 vi.mock('@/lib/pi-web/open-pi-web', () => ({ openPiWebSession }))
+vi.mock('@/lib/pi-web/pi-web-attention-surface', () => ({ acknowledgeViewedPiWebRow }))
 
 import { registerPiWebIpcBridge } from './pi-web-ipc-bridge'
 
@@ -140,6 +143,24 @@ describe('registerPiWebIpcBridge', () => {
     unsubs.forEach((unsubscribe) => unsubscribe())
     expect(calls).toContain('unsubscribeStatus')
     expect(calls).toContain('unsubscribeOpen')
+  })
+
+  it('reads the viewed pi-web row on each store change, until unsubscribed', () => {
+    const unsubs: (() => void)[] = []
+    registerPiWebIpcBridge(unsubs)
+    acknowledgeViewedPiWebRow.mockClear()
+
+    emitDelta({ upserts: [makeRow({ state: 'done' })], removals: [], events: [] })
+    expect(acknowledgeViewedPiWebRow).toHaveBeenCalledWith(storeHolder.current?.getState())
+
+    unsubs.forEach((unsubscribe) => unsubscribe())
+    acknowledgeViewedPiWebRow.mockClear()
+    emitDelta({
+      upserts: [makeRow({ state: 'working', updatedAt: 3000 })],
+      removals: [],
+      events: []
+    })
+    expect(acknowledgeViewedPiWebRow).not.toHaveBeenCalled()
   })
 
   it('forgets a registry row once worktree removal drops it, but not on sleep', () => {

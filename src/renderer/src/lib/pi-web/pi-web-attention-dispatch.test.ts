@@ -119,6 +119,8 @@ describe('dispatchPiWebAttention', () => {
         paneKey: piWebPaneKey(SESSION),
         worktreeId: WORKSPACE,
         terminalTitle: 'Fix the flaky test',
+        // The rich body (agentType is set) reads this, so the banner names the conversation.
+        agentLastAssistantMessage: 'Fix the flaky test',
         // pi-web pushes its own phones; Orca must not fan the same alert out again.
         mobileDeliveredByHost: true,
         attentionKey: expect.stringMatching(/^pi-web:session-1:completed:\d+$/),
@@ -146,6 +148,14 @@ describe('dispatchPiWebAttention', () => {
       terminalTitle: 'pi-web',
       mobileDeliveredByHost: true
     })
+  })
+
+  it('names the conversation in the body source, and leaves an unlabelled body generic', () => {
+    dispatchPiWebAttention(event({ kind: 'needs-input', name: 'Fix the flaky test' }))
+    dispatchPiWebAttention(event({ name: null }))
+
+    expect(dispatched[0]?.agentLastAssistantMessage).toBe('Fix the flaky test')
+    expect(dispatched[1]).not.toHaveProperty('agentLastAssistantMessage')
   })
 
   it('needs-input marks the workspace unread', () => {

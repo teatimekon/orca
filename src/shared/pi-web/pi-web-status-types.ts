@@ -53,7 +53,8 @@ export const PI_WEB_IPC = {
   getSnapshot: 'piWeb:getSnapshot',
   ensureServer: 'piWeb:ensureServer',
   dismiss: 'piWeb:dismiss',
-  openSession: 'piWeb:openSession'
+  openSession: 'piWeb:openSession',
+  getEffectiveConfig: 'piWeb:getEffectiveConfig'
 } as const
 
 export type PiWebSettings = {
@@ -71,3 +72,9 @@ export const DEFAULT_PI_WEB_SETTINGS: PiWebSettings = {
   launchCwd: '~/Documents/code/pi-web',
   launchCommand: 'node bin/pi-web.js --no-open --port 30141 --hostname 0.0.0.0'
 }
+
+/** Each field an ORCA_PI_WEB_* variable sets for this session, with that variable's name. */
+export type PiWebEnvOverrides = Partial<Record<keyof PiWebSettings, string>>
+
+/** What the bridge actually uses: stored settings, defaults and env overrides resolved. */
+export type PiWebEffectiveConfig = { config: PiWebSettings; envOverrides: PiWebEnvOverrides }

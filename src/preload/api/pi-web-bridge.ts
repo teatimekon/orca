@@ -1,6 +1,7 @@
 import { ipcRenderer } from 'electron'
 import {
   PI_WEB_IPC,
+  type PiWebEffectiveConfig,
   type PiWebEnsureResult,
   type PiWebRow,
   type PiWebStatusDelta
@@ -10,6 +11,8 @@ import type { PreloadApi } from '../api-types'
 export const piWebApi = {
   getSnapshot: (): Promise<PiWebRow[]> => ipcRenderer.invoke(PI_WEB_IPC.getSnapshot),
   ensureServer: (): Promise<PiWebEnsureResult> => ipcRenderer.invoke(PI_WEB_IPC.ensureServer),
+  getEffectiveConfig: (): Promise<PiWebEffectiveConfig> =>
+    ipcRenderer.invoke(PI_WEB_IPC.getEffectiveConfig),
   dismiss: (sessionId: string): Promise<void> => ipcRenderer.invoke(PI_WEB_IPC.dismiss, sessionId),
   onStatusChanged: (callback: (delta: PiWebStatusDelta) => void): (() => void) => {
     const listener = (_event: Electron.IpcRendererEvent, delta: PiWebStatusDelta): void =>

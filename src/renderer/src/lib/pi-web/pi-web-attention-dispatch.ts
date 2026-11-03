@@ -44,6 +44,8 @@ export function dispatchPiWebAttention(event: PiWebAttentionEvent): void {
           paneKey,
           worktreeId,
           terminalTitle: title,
+          // Why: agentType selects the rich copy, whose body ignores terminalTitle and reads this field.
+          ...(event.name ? { agentLastAssistantMessage: event.name } : {}),
           // pi-web already web-pushes its phones; a second fan-out from Orca would duplicate it.
           mobileDeliveredByHost: true,
           attentionKey: `pi-web:${event.sessionId}:${event.kind}:${attentionSequence}`,

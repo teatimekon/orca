@@ -25,6 +25,7 @@ export function openPiWebStatusStream(
   // Why: only the `type` tag is checked here; consumers ignore frame types they do not know.
   const isStatusFrame = (value: unknown): value is PiWebStatusFrame =>
     typeof value === 'object' && value !== null && 'type' in value && typeof value.type === 'string'
+  let warnedHandlerError = false
   const dispatch = (event: string): void => {
     const data = event
       .split(/\r?\n/)
@@ -34,13 +35,24 @@ export function openPiWebStatusStream(
     if (!data) {
       return
     }
+    let frame: unknown
     try {
-      const frame: unknown = JSON.parse(data)
-      if (isStatusFrame(frame)) {
-        handlers.onFrame(frame)
-      }
+      frame = JSON.parse(data)
     } catch {
       // Why: one malformed frame must not tear down the stream.
+      return
+    }
+    if (!isStatusFrame(frame)) {
+      return
+    }
+    try {
+      handlers.onFrame(frame)
+    } catch (error) {
+      // Why once: a handler bug fails every frame; the stream keeps going so later frames still land.
+      if (!warnedHandlerError) {
+        warnedHandlerError = true
+        console.warn('[pi-web] status frame handler failed', error)
+      }
     }
   }
 
@@ -53,6 +65,13 @@ export function openPiWebStatusStream(
       if (res.status === 404) {
         await res.body?.cancel().catch(() => {})
         finish('incompatible', 'status-events route not found')
+        return
+      }
+      // Why: an unmodified pi-web routes the path to /api/agent/[id], which answers 200 JSON.
+      const contentType = res.headers.get('content-type') ?? ''
+      if (res.ok && contentType.split(';')[0]?.trim().toLowerCase() !== 'text/event-stream') {
+        await res.body?.cancel().catch(() => {})
+        finish('incompatible', `status-events answered ${contentType || 'no content type'}`)
         return
       }
       if (!res.ok || !res.body) {
