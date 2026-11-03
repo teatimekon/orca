@@ -18,6 +18,7 @@ import type { DesktopRelayServiceInstaller } from '../runtime/mobile-cloud-relay
 import type { DesktopPushService } from '../runtime/push/desktop-push-service'
 import type { StarNagService } from '../star-nag/service'
 import type { AgentAwakeService } from '../power/agent-awake-service'
+import type { PiWebBridge } from '../pi-web/pi-web-bridge'
 import type { CrashReportStore } from '../crash-reporting/crash-report-store'
 import type { AutomationService } from '../automations/service'
 import type { PluginService } from '../plugins/plugin-service'
@@ -103,6 +104,8 @@ export const mainProcessState = {
   // Advertise headless browser panes only when offscreen display initialization succeeds.
   headlessBrowserDisplayAvailable: false,
   starNag: null as StarNagService | null,
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: widens the null slot to the bridge assigned by main-process-ready-runtime.
+  piWebBridge: null as PiWebBridge | null,
   agentAwakeService: null as AgentAwakeService | null,
   uninstallRepoMaintenanceIdleGate: null as (() => Promise<void>) | null,
   repoMaintenanceShutdown: Promise.resolve() as Promise<void>,

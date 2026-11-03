@@ -10,6 +10,7 @@ import type {
 import type { HooksApi } from './api/agent-hook-api'
 import type { SkillsApi } from './api/agent-skill-api'
 import type { AgentAwakeApi, AgentStatusApi } from './api/agent-status-api'
+import type { PiWebApi } from './api/pi-web-api'
 import type {
   ClaudeUsageApi,
   CodexUsageApi,
@@ -108,6 +109,7 @@ export type PreloadApi = {
   telemetryAcknowledgeBanner: TelemetryApi['telemetryAcknowledgeBanner']
   settings: SettingsApi
   agentAwake: AgentAwakeApi
+  piWeb: PiWebApi
   localhostWorktreeLabels: LocalhostWorktreeLabelsApi
   keybindings: KeybindingsApi
   codexAccounts: CodexAccountsApi

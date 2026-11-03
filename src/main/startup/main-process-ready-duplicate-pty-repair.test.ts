@@ -79,6 +79,8 @@ vi.mock('../star-nag/service', () => ({
     registerIpcHandlers = vi.fn()
   }
 }))
+// Why: the real bridge would read ~/.pi/agent and probe a live pi-web server.
+vi.mock('../pi-web/pi-web-startup', () => ({ startPiWebBridge: vi.fn() }))
 vi.mock('../browser/agent-browser/agent-browser-bridge', () => ({
   AgentBrowserBridge: class {
     sweepOrphanedSessions = vi.fn()

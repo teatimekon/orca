@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
 import { StarNagService } from '../star-nag/service'
 import { AgentBrowserBridge } from '../browser/agent-browser/agent-browser-bridge'
+import { startPiWebBridge } from '../pi-web/pi-web-startup'
 import { EmulatorBridge } from '../emulator/emulator-bridge'
 import { RpcDispatcher } from '../runtime/rpc/dispatcher'
 import { browserManager } from '../browser/browser-manager'
@@ -65,6 +66,7 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
   state.starNag = new StarNagService(store, state.stats!)
   state.starNag.start()
   state.starNag.registerIpcHandlers()
+  state.piWebBridge = startPiWebBridge(store)
   state.agentBrowserBridge = new AgentBrowserBridge(browserManager, {
     onTabsChanged: (worktreeId) => runtime.notifyMobileSessionTabsChanged(worktreeId)
   })
