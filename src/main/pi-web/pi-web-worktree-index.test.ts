@@ -17,4 +17,16 @@ describe('pi-web worktree index', () => {
     expect(resolvePiWebWorktreeId(index, '/x/code/hw/a')).toBe('hw')
     expect(resolvePiWebWorktreeId(index, '/x/code/other')).toBe('code')
   })
+
+  it('matches windows paths with backslashes', () => {
+    const index = buildPiWebWorktreeIndex([{ worktreeId: 'w', path: 'C:\\code\\hw' }])
+    expect(resolvePiWebWorktreeId(index, 'C:\\code\\hw\\docs')).toBe('w')
+    expect(resolvePiWebWorktreeId(index, 'C:\\code\\hw\\')).toBe('w')
+    expect(resolvePiWebWorktreeId(index, 'C:\\code\\hw2')).toBeNull()
+  })
+
+  it('windows drive letters compare case-insensitively', () => {
+    const index = buildPiWebWorktreeIndex([{ worktreeId: 'w', path: 'c:\\Code\\HW' }])
+    expect(resolvePiWebWorktreeId(index, 'C:\\code\\hw\\a')).toBe('w')
+  })
 })
