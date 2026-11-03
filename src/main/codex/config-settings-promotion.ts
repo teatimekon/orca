@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { observeAgentStateFile } from './codex-path-observation'
@@ -99,6 +100,9 @@ function getHostPromotionHomes(): CodexSettingsPromotionHomes {
 export function promoteCodexRuntimeSettingsToSystem(
   homes?: CodexSettingsPromotionHomes
 ): CodexSettingsPromotionPlan | null {
+  if (skipGlobalHookWrite('codex system config.toml settings promotion')) {
+    return null
+  }
   try {
     return promoteCodexRuntimeSettingsToSystemUnsafe(homes ?? getHostPromotionHomes())
   } catch (error) {

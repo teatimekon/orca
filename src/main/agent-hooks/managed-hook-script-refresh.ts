@@ -3,6 +3,7 @@ import { chmod, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { grantDirAclAsync } from '../windows/windows-directory-acl'
 import { isPermissionError } from '../filesystem/permission-errors'
+import { skipGlobalHookWrite } from './dev-global-hook-guard'
 import { renameOverLockedTargetAsync } from './locked-executable-rename'
 
 type ExistingScript = { exists: false } | { exists: true; content: Buffer | null }
@@ -78,6 +79,9 @@ export async function refreshManagedScriptIfPresent(
 
 // Callers must establish ownership from a surviving managed script or registration first.
 export async function restoreManagedScript(scriptPath: string, content: string): Promise<void> {
+  if (skipGlobalHookWrite(scriptPath)) {
+    return
+  }
   await mkdir(dirname(scriptPath), { recursive: true })
   await writeManagedScriptAtomically(scriptPath, content, true)
 }
@@ -88,6 +92,9 @@ async function writeManagedScriptAtomically(
   allowMissing: boolean,
   moveLockedTargetAside = false
 ): Promise<boolean> {
+  if (skipGlobalHookWrite(scriptPath)) {
+    return false
+  }
   const existing = await readExistingScript(scriptPath)
   if (!existing.exists && !allowMissing) {
     return false

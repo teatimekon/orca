@@ -12,12 +12,16 @@ import {
   rm
 } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import { skipGlobalHookWrite } from './dev-global-hook-guard'
 
 export async function writeHooksJsonAsync(
   configPath: string,
   config: Record<string, unknown>,
   options?: { serialized?: string }
 ): Promise<void> {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   const link = await lstat(configPath).catch((error: unknown) => {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
       return null

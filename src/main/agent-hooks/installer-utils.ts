@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- Why: the dev global-hook guard early return pushed this file just over the limit; splitting would scatter one write path. */
 import {
   existsSync,
   mkdirSync,
@@ -16,6 +17,7 @@ import { grantDirAcl } from '../windows/windows-directory-acl'
 import { isPermissionError } from '../filesystem/permission-errors'
 import { resolveHooksJsonWritePath } from './hook-config-write-path'
 import { writeRollingFileBackup } from '../filesystem/rolling-file-backup'
+import { skipGlobalHookWrite } from './dev-global-hook-guard'
 import { renameOverLockedTarget } from './locked-executable-rename'
 import {
   getWindowsNativeHookAgent,
@@ -248,6 +250,9 @@ export function writeManagedScript(
   content: string | Buffer,
   options: { moveLockedTargetAside?: boolean } = {}
 ): void {
+  if (skipGlobalHookWrite(scriptPath)) {
+    return
+  }
   const dir = dirname(scriptPath)
   mkdirSync(dir, { recursive: true })
 
@@ -308,6 +313,9 @@ export function writeHooksJson(
   // JSONC callers supply edited text while retaining atomic writes and backups.
   options?: { preserveMode?: boolean; defaultMode?: number; serialized?: string }
 ): void {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   const writePath = resolveHooksJsonWritePath(configPath)
   const dir = dirname(writePath)
   mkdirSync(dir, { recursive: true })

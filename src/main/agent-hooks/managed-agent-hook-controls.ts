@@ -10,6 +10,7 @@ import {
   isAgentStatusHooksEnabledForAgent
 } from '../../shared/agent-status-hooks-setting'
 import { probeClaudeCliVersion } from '../claude/claude-hook-event-versions'
+import { globalHookWritesDisabled, skipGlobalHookWrite } from './dev-global-hook-guard'
 import { detectLocalManagedAgentCliPresence } from './local-agent-cli-presence'
 import {
   MANAGED_AGENT_HOOK_ASYNC_REMOVERS,
@@ -120,6 +121,9 @@ async function runInstaller(
 
 // Refresh owned scripts before CLI presence gating; user-wide configs may still invoke them.
 async function refreshExistingManagedScripts(options: InstallOptions): Promise<void> {
+  if (skipGlobalHookWrite('managed hook scripts')) {
+    return
+  }
   const allowed = options.agents ? new Set(options.agents) : null
   for (const [agent, refresh] of MANAGED_AGENT_HOOK_SCRIPT_REFRESHERS) {
     if (allowed !== null && !allowed.has(agent)) {
@@ -139,6 +143,15 @@ export async function installManagedAgentHooks(
 ): Promise<AgentHookInstallStatus[]> {
   await refreshExistingManagedScripts(options)
   const installers = selectedInstallers(options)
+  if (globalHookWritesDisabled()) {
+    return installers.map(([agent]) =>
+      skippedStatus(
+        agent,
+        'hooks_disabled',
+        'Global hook writes disabled for this dev instance (ORCA_DEV_NO_GLOBAL_HOOKS=1).'
+      )
+    )
+  }
   const disabled = new Set(normalizeDisabledTuiAgents(settings?.disabledTuiAgents))
   const enabledInstallers = installers.filter(([agent]) => !disabled.has(agent))
   const targets = enabledInstallers.flatMap(([agent]) => {

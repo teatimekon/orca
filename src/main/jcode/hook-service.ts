@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import type { SFTPWrapper } from 'ssh2'
@@ -270,6 +271,9 @@ function readConfigContent(configPath: string): string {
 }
 
 function writeConfigContent(configPath: string, content: string): void {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   if (readConfigContent(configPath) === content) {
     return
   }

@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import {
   copyFileSync,
   chmodSync,
@@ -127,6 +128,9 @@ function readConfigToml(configPath: string): string | null {
 
 // Atomic replacement protects interrupted writes; a rolling backup permits recovery.
 function writeConfigToml(configPath: string, text: string): void {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   const dir = dirname(configPath)
   mkdirSync(dir, { recursive: true })
   // Atomic rename gives the config the temp file's mode.

@@ -9,10 +9,14 @@ import {
   writeFileSync
 } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { renameFileWithWindowsRetry } from '../codex-accounts/fs-utils'
 import { writeRollingFileBackup } from '../filesystem/rolling-file-backup'
 
 export function writeTomlConfigAtomically(configPath: string, contents: string): void {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   const writePath = resolveTomlWritePath(configPath)
   const directory = dirname(writePath)
   mkdirSync(directory, { recursive: true })

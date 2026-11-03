@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- Why: the dev global-hook guard early return pushed this file just over the limit; splitting would scatter one write path. */
 import { randomUUID } from 'node:crypto'
 import {
   chmodSync,
@@ -13,6 +14,7 @@ import { dirname, join, posix, resolve, win32 } from 'node:path'
 import { homedir } from 'node:os'
 import { lock } from 'proper-lockfile'
 import { renameFileWithWindowsRetry } from '../codex-accounts/fs-utils'
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { runKeyedSerializedOperation } from '../cli/keyed-promise-queue'
 import { parseWslUncPath } from '../../shared/wsl-paths'
 import { runWslProcess } from '../wsl/execution/wsl-runner'
@@ -210,6 +212,9 @@ async function updateClaudeGlobalConfigNow(args: {
   configFile: string
   change: (config: Record<string, unknown>) => ClaudeGlobalConfigChange
 }): Promise<ClaudeGlobalConfigUpdateOutcome> {
+  if (skipGlobalHookWrite(args.configFile)) {
+    return 'unchanged'
+  }
   const probe = readConfigAt(resolveConfigTarget(args.configFile))
   if (typeof probe === 'string') {
     return probe

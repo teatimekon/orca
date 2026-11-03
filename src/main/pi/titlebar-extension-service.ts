@@ -17,6 +17,7 @@ import {
   isSafeDescendCandidate as sharedIsSafeDescendCandidate,
   safeRemoveOverlay
 } from '../pty/scrollback/overlay-mirror'
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { migrateLegacyOmpOverlayState } from './legacy-omp-overlay-migration'
 import type { PiAgentKind } from '../../shared/pi-agent-kind'
 
@@ -128,6 +129,9 @@ export class PiTitlebarExtensionService {
     kind: PiAgentKind
   ): PiManagedExtensionEnv {
     const extensionsDir = join(sourceAgentDir, 'extensions')
+    if (skipGlobalHookWrite(extensionsDir)) {
+      return { sourceAgentDir }
+    }
     try {
       mkdirSync(extensionsDir, { recursive: true })
     } catch {

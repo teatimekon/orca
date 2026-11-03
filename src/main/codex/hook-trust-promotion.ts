@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { isDefinitiveAbsence } from '../../shared/definitive-filesystem-absence'
@@ -120,6 +121,9 @@ export function snapshotCodexRuntimeHookTrustProvenance(
 export function promoteCodexRuntimeHookApprovalsToSystem(
   runtimeHomePath: string = getOrcaManagedCodexHomePath()
 ): void {
+  if (skipGlobalHookWrite('codex system hook approvals promotion')) {
+    return
+  }
   try {
     promoteCodexRuntimeHookApprovalsToSystemUnsafe(runtimeHomePath)
   } catch (error) {
