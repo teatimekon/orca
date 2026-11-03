@@ -17,6 +17,17 @@ export function forgetPiWebRow(sessionId: string): string | null {
   return rowsByPaneKey.delete(paneKey) ? paneKey : null
 }
 
+/** Drop entries whose status row left the store by any path (e.g. worktree removal), so lookups never go stale. */
+export function forgetPiWebRowsAbsentFrom(
+  agentStatusByPaneKey: Readonly<Record<string, unknown>>
+): void {
+  for (const paneKey of rowsByPaneKey.keys()) {
+    if (!(paneKey in agentStatusByPaneKey)) {
+      rowsByPaneKey.delete(paneKey)
+    }
+  }
+}
+
 export function lookupPiWebRow(paneKey: string): PiWebRowIdentity | null {
   return rowsByPaneKey.get(paneKey) ?? null
 }

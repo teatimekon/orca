@@ -5,6 +5,7 @@ import type {
   PiWebRow,
   PiWebStatusDelta
 } from '../../../../shared/pi-web/pi-web-status-types'
+import { lookupPiWebRow } from '@/lib/pi-web/pi-web-row-registry'
 import { createTestStore } from '../../store/slices/store-test-helpers'
 
 type TestStore = ReturnType<typeof createTestStore>
@@ -19,7 +20,11 @@ const { storeHolder, dispatchPiWebAttention, openPiWebSession } = vi.hoisted(() 
 })
 
 vi.mock('../../store', () => ({
-  useAppStore: { getState: () => storeHolder.current?.getState() }
+  useAppStore: {
+    getState: () => storeHolder.current?.getState(),
+    subscribe: (listener: Parameters<TestStore['subscribe']>[0]) =>
+      storeHolder.current?.subscribe(listener) ?? (() => {})
+  }
 }))
 vi.mock('@/lib/pi-web/pi-web-attention-dispatch', () => ({ dispatchPiWebAttention }))
 vi.mock('@/lib/pi-web/open-pi-web', () => ({ openPiWebSession }))
@@ -135,5 +140,26 @@ describe('registerPiWebIpcBridge', () => {
     unsubs.forEach((unsubscribe) => unsubscribe())
     expect(calls).toContain('unsubscribeStatus')
     expect(calls).toContain('unsubscribeOpen')
+  })
+
+  it('forgets a registry row once worktree removal drops it, but not on sleep', () => {
+    registerPiWebIpcBridge([])
+    const paneKey = piWebPaneKey('session-registry-drop')
+    emitDelta({
+      upserts: [makeRow({ sessionId: 'session-registry-drop', state: 'done' })],
+      removals: [],
+      events: []
+    })
+    const drop = storeHolder.current?.getState().dropAgentStatusByWorktree
+
+    drop?.('wt-1', { shutdownReason: 'manual-sleep' })
+    expect(lookupPiWebRow(paneKey)).toEqual({
+      sessionId: 'session-registry-drop',
+      worktreeId: 'wt-1'
+    })
+
+    drop?.('wt-1', { shutdownReason: 'remove-worktree' })
+    expect(liveRow('session-registry-drop')).toBeUndefined()
+    expect(lookupPiWebRow(paneKey)).toBeNull()
   })
 })

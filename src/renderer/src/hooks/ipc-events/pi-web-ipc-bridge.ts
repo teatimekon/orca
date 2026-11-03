@@ -1,5 +1,6 @@
 import { openPiWebSession } from '@/lib/pi-web/open-pi-web'
 import { dispatchPiWebAttention } from '@/lib/pi-web/pi-web-attention-dispatch'
+import { forgetPiWebRowsAbsentFrom } from '@/lib/pi-web/pi-web-row-registry'
 import { applyPiWebDelta, applyPiWebSnapshot } from '@/lib/pi-web/pi-web-status-apply'
 import type { PiWebRow } from '../../../../shared/pi-web/pi-web-status-types'
 import { useAppStore } from '../../store'
@@ -32,6 +33,13 @@ export function registerPiWebIpcBridge(unsubs: (() => void)[]): void {
       openPiWebSession(worktreeId, sessionId).catch((error: unknown) => {
         console.error('[pi-web] failed to open session', error)
       })
+    })
+  )
+  unsubs.push(
+    useAppStore.subscribe((state, previous) => {
+      if (state.agentStatusByPaneKey !== previous.agentStatusByPaneKey) {
+        forgetPiWebRowsAbsentFrom(state.agentStatusByPaneKey)
+      }
     })
   )
   unsubs.push(() => {

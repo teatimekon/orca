@@ -12,6 +12,7 @@ import {
 } from './agent-status-pane-key-tab-binding'
 import { removePaneKeys } from './agent-status-pane-keyed-records'
 import { agentTurnEndedOnPurpose } from '../../../../../shared/agent-main-agent-verdict'
+import { isPiWebPaneKey } from '../../../../../shared/pi-web/pi-web-pane-tab-id'
 
 export function createAgentStatusWorktreeDropActions(
   runtime: AgentStatusRuntime
@@ -26,6 +27,8 @@ export function createAgentStatusWorktreeDropActions(
         const chatTabIds = openNonTerminalTabIds(s, worktreeId)
         const ownedByWorktree = (paneKey: string, entryWorktreeId: string | undefined): boolean =>
           !chatTabIds.has(getTabIdFromPaneKey(paneKey) ?? '') &&
+          // pi-web conversations live on in pi-web across sleep; only worktree removal retires their rows.
+          (opts?.shutdownReason === 'remove-worktree' || !isPiWebPaneKey(paneKey)) &&
           (entryWorktreeId === worktreeId || paneKeyMatchesAnyTabPrefix(paneKey, tabPrefixes))
         const liveEntries = Object.entries(s.agentStatusByPaneKey).filter(([paneKey, entry]) =>
           ownedByWorktree(paneKey, entry.worktreeId)
