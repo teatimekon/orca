@@ -26,12 +26,14 @@ describe('pi-web launcher', () => {
     try {
       await launchPiWebServer(
         { ...DEFAULT_PI_WEB_SETTINGS, agentDir: '/a', launchCwd: '/c', launchCommand: 'go' },
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the fake spawn implements only the child surface the launcher uses.
         spawnImpl as never
       )
     } finally {
       delete process.env.ORCA_TEST_LEAK
     }
     expect(spawnImpl).toHaveBeenCalledTimes(1)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: mock.calls entries are the three spawn arguments asserted below.
     const [cmd, args, opts] = spawnImpl.mock.calls[0] as unknown as [
       string,
       string[],
@@ -49,6 +51,7 @@ describe('pi-web launcher', () => {
 
   it('launcher resolves ok on spawn event', async () => {
     const child = fakeChild()
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the fake spawn implements only the child surface the launcher uses.
     const p = launchPiWebServer(DEFAULT_PI_WEB_SETTINGS, (() => {
       queueMicrotask(() => child.emit('spawn'))
       return child
@@ -58,6 +61,7 @@ describe('pi-web launcher', () => {
 
   it('launcher resolves failure on error event without throwing', async () => {
     const child = fakeChild()
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the fake spawn implements only the child surface the launcher uses.
     const p = launchPiWebServer(DEFAULT_PI_WEB_SETTINGS, (() => {
       queueMicrotask(() => child.emit('error', new Error('spawn /bin/zsh ENOENT')))
       return child
@@ -67,6 +71,7 @@ describe('pi-web launcher', () => {
   })
 
   it('launcher resolves failure when spawn throws', async () => {
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the fake spawn implements only the child surface the launcher uses.
     const p = launchPiWebServer(DEFAULT_PI_WEB_SETTINGS, (() => {
       throw new Error('bad spawn')
     }) as never)

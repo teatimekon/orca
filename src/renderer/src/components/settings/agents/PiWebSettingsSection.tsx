@@ -6,6 +6,7 @@ import {
 } from '../../../../../shared/pi-web/pi-web-status-types'
 import { Input } from '../../ui/input'
 import { SettingsRow, SettingsSubsectionHeader, SettingsSwitchRow } from '../form-controls/SettingsFormControls'
+import { translate } from '@/i18n/i18n'
 
 type PiWebSettingsSectionProps = {
   settings: GlobalSettings
@@ -89,46 +90,58 @@ export function PiWebSettingsSection({
       write({ serverUrl: trimmed === '' ? null : trimmed })
       return
     }
-    write({ [field]: raw } as Partial<PiWebSettings>)
+    if (field === 'agentDir') {
+      write({ agentDir: raw })
+    } else if (field === 'launchCwd') {
+      write({ launchCwd: raw })
+    } else {
+      write({ launchCommand: raw })
+    }
   }
 
   return (
     <section className="space-y-3">
-      <SettingsSubsectionHeader title="pi-web" />
+      <SettingsSubsectionHeader title={translate('piWeb.settings.title', 'pi-web')} />
       <SettingsSwitchRow
-        label="Track pi-web conversations"
+        label={translate('piWeb.settings.track', 'Track pi-web conversations')}
         checked={piWeb.enabled}
         onChange={() => write({ enabled: !piWeb.enabled })}
-        ariaLabel="Track pi-web conversations"
+        ariaLabel={translate('piWeb.settings.track', 'Track pi-web conversations')}
       />
       <PiWebTextRow
         id="settings-pi-web-server-url"
-        label="Server URL"
-        description="Leave empty to auto-discover a running pi-web server."
+        label={translate('piWeb.settings.serverUrl', 'Server URL')}
+        description={translate(
+          'piWeb.settings.serverUrlDescription',
+          'Leave empty to auto-discover a running pi-web server.'
+        )}
         value={piWeb.serverUrl ?? ''}
-        placeholder="Auto-discover"
+        placeholder={translate('piWeb.settings.autoDiscover', 'Auto-discover')}
         onCommit={(v) => commitText('serverUrl', v)}
       />
       <PiWebTextRow
         id="settings-pi-web-agent-dir"
-        label="Agent directory"
+        label={translate('piWeb.settings.agentDir', 'Agent directory')}
         value={piWeb.agentDir}
         onCommit={(v) => commitText('agentDir', v)}
       />
       <PiWebTextRow
         id="settings-pi-web-launch-cwd"
-        label="Launch directory"
+        label={translate('piWeb.settings.launchCwd', 'Launch directory')}
         value={piWeb.launchCwd}
         onCommit={(v) => commitText('launchCwd', v)}
       />
       <PiWebTextRow
         id="settings-pi-web-launch-command"
-        label="Launch command"
+        label={translate('piWeb.settings.launchCommand', 'Launch command')}
         value={piWeb.launchCommand}
         onCommit={(v) => commitText('launchCommand', v)}
       />
       <p className="select-text text-xs text-muted-foreground">
-        Environment variables ORCA_PI_WEB_* override these (used by dev builds).
+        {translate(
+          'piWeb.settings.envOverride',
+          'Environment variables ORCA_PI_WEB_* override these (used by dev builds).'
+        )}
       </p>
     </section>
   )

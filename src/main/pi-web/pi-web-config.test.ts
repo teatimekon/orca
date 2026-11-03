@@ -29,6 +29,7 @@ describe('resolvePiWebConfig', () => {
     expect(cfg.enabled).toBe(true)
     expect(cfg.agentDir).toBe('/home/u/.pi/agent')
     expect(cfg.launchCwd).toBe('/home/u/Documents/code/pi-web')
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: exercises a persisted settings object that lacks most fields.
     const partial = resolvePiWebConfig({ serverUrl: 'http://y' } as never, {}, '/h')
     expect(partial.serverUrl).toBe('http://y')
     expect(partial.launchCommand).toBe(DEFAULT_PI_WEB_SETTINGS.launchCommand)

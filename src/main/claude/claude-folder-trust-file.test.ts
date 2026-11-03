@@ -21,9 +21,9 @@ import {
   grantClaudeFolderTrust,
   grantClaudeWorkspaceTrust,
   resolveClaudeGlobalConfigFile,
-  resolveLocalClaudeTrustConfig,
   toClaudeTrustKey
 } from './claude-folder-trust-file'
+import { resolveLocalClaudeTrustConfig } from './claude-trust-config-target'
 import type { ClaudeRuntimeAuthPreparation } from '../claude-accounts/runtime-auth/runtime-auth-types'
 
 let root: string

@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process'
+import { spawnProcess } from '@orca/process-host'
 import type { PiWebSettings } from '../../shared/pi-web/pi-web-status-types'
 
 export function stripOrcaEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
@@ -11,11 +11,23 @@ export function stripOrcaEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return out
 }
 
+type PiWebSpawnOptions = {
+  cwd: string
+  detached: boolean
+  stdio: 'ignore'
+  env: NodeJS.ProcessEnv
+}
+type PiWebChild = ReturnType<typeof spawnProcess>
+type PiWebSpawner = (file: string, args: string[], options: PiWebSpawnOptions) => PiWebChild | null
+
+const defaultSpawn: PiWebSpawner = (program, args, options) =>
+  spawnProcess({ program, args, ...options })
+
 export type PiWebLaunchResult = { ok: true } | { ok: false; reason: string }
 
 export function launchPiWebServer(
   config: PiWebSettings,
-  spawnImpl: typeof spawn = spawn
+  spawnImpl: PiWebSpawner = defaultSpawn
 ): Promise<PiWebLaunchResult> {
   return new Promise((resolve) => {
     try {

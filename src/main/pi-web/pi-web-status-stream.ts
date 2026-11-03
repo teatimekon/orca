@@ -22,6 +22,9 @@ export function openPiWebStatusStream(
     handlers.onClose(reason, detail)
   }
 
+  // Why: only the `type` tag is checked here; consumers ignore frame types they do not know.
+  const isStatusFrame = (value: unknown): value is PiWebStatusFrame =>
+    typeof value === 'object' && value !== null && 'type' in value && typeof value.type === 'string'
   const dispatch = (event: string): void => {
     const data = event
       .split(/\r?\n/)
@@ -32,8 +35,8 @@ export function openPiWebStatusStream(
       return
     }
     try {
-      const frame = JSON.parse(data) as PiWebStatusFrame
-      if (frame && typeof frame === 'object' && typeof frame.type === 'string') {
+      const frame: unknown = JSON.parse(data)
+      if (isStatusFrame(frame)) {
         handlers.onFrame(frame)
       }
     } catch {

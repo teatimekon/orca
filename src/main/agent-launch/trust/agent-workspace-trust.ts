@@ -4,7 +4,7 @@ import {
   SHORT_AGENT_TRUST_WRITE_DEADLINE_MS
 } from './agent-trust-write-deadline'
 import type { AgentTrustPreset } from './agent-trust-presets'
-import { resolveLocalClaudeTrustConfig } from '../../claude/claude-folder-trust-file'
+import { resolveLocalClaudeTrustConfig } from '../../claude/claude-trust-config-target'
 import type { ClaudeRuntimeAuthPreparation } from '../../claude-accounts/runtime-auth/runtime-auth-types'
 import type { AgentWorkspaceTrustSpawnRequest } from '../../../shared/agent-workspace-trust-spawn-request'
 import { parseWslUncPath } from '../../../shared/wsl-paths'

@@ -6,6 +6,7 @@ import type { AppState } from '@/store/types'
 import { isPiWebLocalWorkspace } from './pi-web-local-workspace'
 import type { BrowserPage, BrowserWorkspace } from '../../../../shared/browser-workspace-types'
 import type { Tab } from '../../../../shared/tab-types'
+import { translate } from '@/i18n/i18n'
 
 export type PiWebBrowserTarget = { workspaceId: string; pageId: string }
 
@@ -144,12 +145,12 @@ function createPiWebTab(worktreeId: string, url: string): void {
 async function openPiWeb(worktreeId: string, open: (baseUrl: string) => void): Promise<void> {
   try {
     if (!isPiWebLocalWorkspace(useAppStore.getState(), worktreeId)) {
-      toast.error('pi-web: only local workspaces are supported')
+      toast.error(translate('piWeb.open.localOnly', 'pi-web: only local workspaces are supported'))
       return
     }
     const server = await window.api.piWeb.ensureServer()
     if (!server.ok) {
-      toast.error(`pi-web: ${server.reason}`)
+      toast.error(translate('piWeb.open.failed', 'pi-web: {{reason}}', { reason: server.reason }))
       return
     }
     // Why the workspace dispatcher: folder ids (notification clicks) get its path guards; the tab is the surface, so no shell.
@@ -158,7 +159,9 @@ async function openPiWeb(worktreeId: string, open: (baseUrl: string) => void): P
     }
     open(server.url)
   } catch (error) {
-    toast.error(`pi-web: ${errorReason(error)}`)
+    toast.error(
+      translate('piWeb.open.failed', 'pi-web: {{reason}}', { reason: errorReason(error) })
+    )
   }
 }
 

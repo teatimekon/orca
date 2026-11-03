@@ -23658,5 +23658,25 @@
       "message": "{{plugin}} wants to open {{host}}",
       "alwaysAllow": "Always allow {{host}} for this plugin"
     }
+  },
+  "piWeb": {
+    "settings": {
+      "title": "pi-web",
+      "serverUrl": "Server URL",
+      "serverUrlDescription": "Leave empty to auto-discover a running pi-web server.",
+      "autoDiscover": "Auto-discover",
+      "agentDir": "Agent directory",
+      "launchCwd": "Launch directory",
+      "launchCommand": "Launch command",
+      "envOverride": "Environment variables ORCA_PI_WEB_* override these (used by dev builds).",
+      "track": "Track pi-web conversations"
+    },
+    "open": {
+      "localOnly": "pi-web: only local workspaces are supported",
+      "failed": "pi-web: {{reason}}"
+    },
+    "newAgent": {
+      "label": "pi-web"
+    }
   }
 }

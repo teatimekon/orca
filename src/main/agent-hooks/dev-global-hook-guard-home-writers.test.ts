@@ -12,6 +12,7 @@ const fakeHome = await vi.hoisted(async () => {
 vi.mock('node:os', async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>()
   const homedir = (): string => fakeHome
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the mocked module spreads node:os's real exports, which is an object.
   return { ...actual, default: { ...(actual as object), homedir }, homedir }
 })
 

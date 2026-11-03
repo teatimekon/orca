@@ -49,6 +49,7 @@ function trustedWindowSend(): ReturnType<typeof vi.fn> {
 }
 
 function registerHandlers(): void {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the handlers read only getSettings().notifications in these tests.
   registerNotificationHandlers({
     getSettings: () => ({
       notifications: {

@@ -50,12 +50,15 @@ export async function discoverPiWebServer(
       continue
     }
     try {
-      const rec = JSON.parse(await read(join(dir, name))) as { url?: unknown; startedAt?: unknown }
-      if (typeof rec.url !== 'string' || !rec.url) {
+      const parsed: unknown = JSON.parse(await read(join(dir, name)))
+      const rec = typeof parsed === 'object' && parsed !== null ? parsed : {}
+      const url: unknown = 'url' in rec ? rec.url : undefined
+      const startedAt: unknown = 'startedAt' in rec ? rec.startedAt : undefined
+      if (typeof url !== 'string' || !url) {
         continue
       }
-      const t = typeof rec.startedAt === 'string' ? Date.parse(rec.startedAt) : Number.NaN
-      records.push({ url: stripSlash(rec.url), startedAt: Number.isNaN(t) ? 0 : t })
+      const t = typeof startedAt === 'string' ? Date.parse(startedAt) : Number.NaN
+      records.push({ url: stripSlash(url), startedAt: Number.isNaN(t) ? 0 : t })
     } catch {
       // Why: stale or half-written records must never block discovery.
     }

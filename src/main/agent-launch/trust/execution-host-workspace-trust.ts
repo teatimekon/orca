@@ -11,10 +11,8 @@ import {
   markKimiWorkspaceTrusted
 } from './agent-trust-presets'
 import { awaitAgentTrustWriteWithinDeadline } from './agent-trust-write-deadline'
-import {
-  type ClaudeTrustConfigTarget,
-  grantClaudeWorkspaceTrust
-} from '../../claude/claude-folder-trust-file'
+import { grantClaudeWorkspaceTrust } from '../../claude/claude-folder-trust-file'
+import type { ClaudeTrustConfigTarget } from '../../claude/claude-trust-config-target'
 import { isTooBroadToPreTrust } from '../../../shared/home-or-filesystem-root'
 
 /** Resolve trust on the agent’s execution host, including WSL guests and SSH relays. */

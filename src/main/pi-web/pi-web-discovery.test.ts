@@ -8,6 +8,7 @@ function fakeFs(files: Record<string, string>) {
   return {
     readDir: async () => Object.keys(files),
     readFile: async (p: string) => {
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: readFile receives a path that always has a last segment.
       const name = p.split('/').pop() as string
       return files[name]
     }
