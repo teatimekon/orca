@@ -121,6 +121,7 @@ describe('dispatchPiWebAttention', () => {
         terminalTitle: 'Fix the flaky test',
         // pi-web pushes its own phones; Orca must not fan the same alert out again.
         mobileDeliveredByHost: true,
+        attentionKey: expect.stringMatching(/^pi-web:session-1:completed:\d+$/),
         isActiveWorktree: false,
         notificationSourceId: 'local',
         repoLabel: 'Repo 1',
@@ -147,6 +148,39 @@ describe('dispatchPiWebAttention', () => {
     })
   })
 
+  it('needs-input marks the workspace unread', () => {
+    dispatchPiWebAttention(event({ kind: 'needs-input' }))
+
+    expect(workspaceBold()).toBe(true)
+    expect(store.getState().unreadAgentCompletionPanes[piWebPaneKey(SESSION)]).toBe(
+      'agent-completion'
+    )
+  })
+
+  it('two completions in one worktree yield two deliveries with distinct attention keys', () => {
+    rememberPiWebRow({
+      sessionId: 'session-2',
+      worktreeId: WORKSPACE,
+      cwd: '/tmp/wt',
+      name: null,
+      state: 'done',
+      stateStartedAt: 1000,
+      updatedAt: 2000
+    })
+    try {
+      dispatchPiWebAttention(event())
+      dispatchPiWebAttention(event({ sessionId: 'session-2', name: null }))
+    } finally {
+      forgetPiWebRow('session-2')
+    }
+
+    expect(dispatched.map((request) => request.piWebSessionId)).toEqual([SESSION, 'session-2'])
+    const keys = dispatched.map((request) => request.attentionKey)
+    expect(keys[0]).toMatch(/^pi-web:session-1:completed:\d+$/)
+    expect(keys[1]).toMatch(/^pi-web:session-2:completed:\d+$/)
+    expect(new Set(keys).size).toBe(2)
+  })
+
   it('muted workspace requests no delivery', () => {
     seed({ cliCreated: true, notifyHiddenWorkspaces: false })
 
@@ -161,6 +195,15 @@ describe('dispatchPiWebAttention', () => {
     forgetPiWebRow(SESSION)
 
     dispatchPiWebAttention(event())
+
+    expect(dispatched).toEqual([])
+    expect(workspaceBold()).toBe(false)
+  })
+
+  it('needs-input for an unknown row delivers nothing', () => {
+    forgetPiWebRow(SESSION)
+
+    dispatchPiWebAttention(event({ kind: 'needs-input' }))
 
     expect(dispatched).toEqual([])
     expect(workspaceBold()).toBe(false)

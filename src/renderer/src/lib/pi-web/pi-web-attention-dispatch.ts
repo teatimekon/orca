@@ -11,6 +11,9 @@ import { piWebPaneKey } from '../../../../shared/pi-web/pi-web-pane-key'
 import type { PiWebAttentionEvent } from '../../../../shared/pi-web/pi-web-status-types'
 import { createPiWebAttentionSurface } from './pi-web-attention-surface'
 
+// Main's reducer already dedupes repeats, so each forwarded event is distinct news that must bypass worktree burst dedupe.
+let attentionSequence = 0
+
 export function dispatchPiWebAttention(event: PiWebAttentionEvent): void {
   const state = useAppStore.getState()
   const paneKey = piWebPaneKey(event.sessionId)
@@ -20,7 +23,8 @@ export function dispatchPiWebAttention(event: PiWebAttentionEvent): void {
     {
       subject: { workspaceId: worktreeId, surfaceKey: paneKey },
       reason: 'agent-completion',
-      settlesTurn: event.kind === 'completed',
+      // A prompt earns unread like a settled turn, as native chat's does.
+      settlesTurn: true,
       // Main raises each event from a live pi-web status frame, never from a snapshot.
       hasFreshActivityEvidence: true
     },
@@ -29,6 +33,7 @@ export function dispatchPiWebAttention(event: PiWebAttentionEvent): void {
   applyAgentAttention(decision, {
     unread: state.markAgentAttentionUnread,
     requestDelivery: (request) => {
+      attentionSequence += 1
       deliverAgentAttentionNotification(
         {
           source: 'agent-task-complete',
@@ -41,6 +46,7 @@ export function dispatchPiWebAttention(event: PiWebAttentionEvent): void {
           terminalTitle: title,
           // pi-web already web-pushes its phones; a second fan-out from Orca would duplicate it.
           mobileDeliveredByHost: true,
+          attentionKey: `pi-web:${event.sessionId}:${event.kind}:${attentionSequence}`,
           isActiveWorktree: request.workspaceIsActive,
           // pi-web runs beside this desktop, so the "this machine" notification mute covers it.
           notificationSourceId: LOCAL_EXECUTION_HOST_ID,
