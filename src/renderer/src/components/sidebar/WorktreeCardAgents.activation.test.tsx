@@ -10,6 +10,8 @@ import type * as ActivateTabAndFocusPaneModule from '@/lib/activate-tab-and-focu
 import type { Tab } from '../../../../shared/tab-types'
 import type { TerminalLayoutSnapshot } from '../../../../shared/terminal-tab-types'
 import { makePaneKey } from '../../../../shared/stable-pane-id'
+import { PI_WEB_PANE_TAB_ID, piWebPaneKey } from '../../../../shared/pi-web/pi-web-pane-key'
+import { forgetPiWebRow, rememberPiWebRow } from '@/lib/pi-web/pi-web-row-registry'
 
 const LEAF_A = '11111111-1111-4111-8111-111111111111'
 const LEAF_B = '22222222-2222-4222-8222-222222222222'
@@ -69,7 +71,9 @@ const mockSetActiveTabType = vi.fn((tabType: string) => {
 let capturedRowActivations: {
   paneKey: string
   onActivate: (tabId: string, paneKey: string) => void
+  onDismiss?: (paneKey: string) => void
 }[] = []
+const mockDropAgentStatus = vi.fn()
 
 function buildMockStoreState(): Record<string, unknown> {
   return {
@@ -77,7 +81,7 @@ function buildMockStoreState(): Record<string, unknown> {
     acknowledgedAgentsByPaneKey: {},
     retainedAgentsByPaneKey: {},
     cacheTimerByKey: {},
-    dropAgentStatus: vi.fn(),
+    dropAgentStatus: mockDropAgentStatus,
     dismissRetainedAgent: vi.fn(),
     acknowledgeAgents: vi.fn(),
     agentSendPopoverTargetMode: null,
@@ -118,6 +122,10 @@ const structuredActivationMocks = vi.hoisted(() => ({
   activateStructuredAgentSessionTab: vi.fn()
 }))
 
+const piWebMocks = vi.hoisted(() => ({
+  openPiWebSession: vi.fn((_worktreeId: string, _sessionId: string) => Promise.resolve())
+}))
+
 vi.mock('@/store', () => ({
   useAppStore: Object.assign(
     (selector: (state: unknown) => unknown) => selector(buildMockStoreState()),
@@ -148,6 +156,8 @@ vi.mock('@/lib/agent-session/structured-agent-session-tab-activation', () => ({
   activateStructuredAgentSessionTab: structuredActivationMocks.activateStructuredAgentSessionTab
 }))
 
+vi.mock('@/lib/pi-web/open-pi-web', () => ({ openPiWebSession: piWebMocks.openPiWebSession }))
+
 vi.mock('./useWorktreeAgentRows', () => ({
   useWorktreeAgentRows: vi.fn(() => mockAgents)
 }))
@@ -159,12 +169,14 @@ vi.mock('@/hooks/use-now', () => ({
 vi.mock('@/components/dashboard/DashboardAgentRow', () => ({
   default: ({
     agent,
-    onActivate
+    onActivate,
+    onDismiss
   }: {
     agent: DashboardAgentRowData
     onActivate: (tabId: string, paneKey: string) => void
+    onDismiss?: (paneKey: string) => void
   }) => {
-    capturedRowActivations.push({ paneKey: agent.paneKey, onActivate })
+    capturedRowActivations.push({ paneKey: agent.paneKey, onActivate, onDismiss })
     return <div data-testid="agent-row" data-pane-key={agent.paneKey} />
   }
 }))
@@ -696,5 +708,69 @@ describe('WorktreeCardAgents activation', () => {
     })
     act(() => root.unmount())
     host.remove()
+  })
+
+  function piWebRow(sessionId: string): string {
+    const paneKey = rememberPiWebRow({
+      sessionId,
+      worktreeId: 'wt-1',
+      cwd: '/wt-1',
+      name: 'pi chat',
+      state: 'working',
+      updatedAt: 1000,
+      stateStartedAt: 1000
+    })
+    mockAgentActivityDisplayMode = 'full'
+    mockAgents = [
+      mockAgent({
+        paneKey,
+        tabId: PI_WEB_PANE_TAB_ID,
+        agentType: 'pi-web',
+        prompt: 'pi chat',
+        worktreeId: 'wt-1'
+      })
+    ]
+    return paneKey
+  }
+
+  it('opens a pi-web row in pi-web instead of treating its placeholder tab as stale', async () => {
+    const paneKey = piWebRow('pi-session-1')
+    try {
+      const { default: WorktreeCardAgents } = await import('./WorktreeCardAgents')
+      renderToStaticMarkup(<WorktreeCardAgents worktreeId="wt-1" />)
+      capturedRowActivations[0].onActivate(PI_WEB_PANE_TAB_ID, paneKey)
+
+      expect(piWebMocks.openPiWebSession).toHaveBeenCalledWith('wt-1', 'pi-session-1')
+      expect(staleAgentRowMocks.dismissStaleAgentRowByKey).not.toHaveBeenCalled()
+      expect(ownerActivationMocks.activateTerminalTabOnOwner).not.toHaveBeenCalled()
+      expect(activationMocks.activateAndRevealWorktree).not.toHaveBeenCalled()
+    } finally {
+      forgetPiWebRow('pi-session-1')
+    }
+  })
+
+  it('tells main to forget a dismissed pi-web row before the store drop forgets its session', async () => {
+    const paneKey = piWebRow('pi-session-2')
+    const dismiss = vi.fn(() => Promise.resolve())
+    const originalApi = Object.getOwnPropertyDescriptor(window, 'api')
+    Object.defineProperty(window, 'api', { configurable: true, value: { piWeb: { dismiss } } })
+    // The renderer IPC bridge forgets registry rows as soon as their status leaves the store.
+    mockDropAgentStatus.mockImplementation(() => forgetPiWebRow('pi-session-2'))
+    try {
+      const { default: WorktreeCardAgents } = await import('./WorktreeCardAgents')
+      renderToStaticMarkup(<WorktreeCardAgents worktreeId="wt-1" />)
+      capturedRowActivations[0].onDismiss?.(paneKey)
+
+      expect(dismiss).toHaveBeenCalledWith('pi-session-2')
+      expect(mockDropAgentStatus).toHaveBeenCalledWith(piWebPaneKey('pi-session-2'))
+    } finally {
+      mockDropAgentStatus.mockReset()
+      if (originalApi) {
+        Object.defineProperty(window, 'api', originalApi)
+      } else {
+        Reflect.deleteProperty(window, 'api')
+      }
+      forgetPiWebRow('pi-session-2')
+    }
   })
 })

@@ -6,10 +6,23 @@ import { activateTerminalTabOnOwner } from '@/lib/terminal-tab-owner-activation'
 import { parsePaneKey } from '../../../../shared/stable-pane-id'
 import { dismissStaleAgentRowByKey } from '../terminal-pane/stale-agent-row'
 import { activateStructuredAgentSessionTab } from '@/lib/agent-session/structured-agent-session-tab-activation'
+import { openPiWebSession } from '@/lib/pi-web/open-pi-web'
+import { lookupPiWebRow } from '@/lib/pi-web/pi-web-row-registry'
+import { isPiWebPaneKey } from '../../../../shared/pi-web/pi-web-pane-tab-id'
 
 export function useWorktreeAgentActivation(worktreeId: string) {
   return useCallback(
-    (tabId: string, paneKey: string) => activateWorktreeAgentPane(worktreeId, tabId, paneKey),
+    (tabId: string, paneKey: string) => {
+      // pi-web rows have no terminal tab; they open in a pi-web browser tab and are never stale.
+      if (isPiWebPaneKey(paneKey)) {
+        const row = lookupPiWebRow(paneKey)
+        if (row) {
+          void openPiWebSession(worktreeId, row.sessionId)
+        }
+        return
+      }
+      activateWorktreeAgentPane(worktreeId, tabId, paneKey)
+    },
     [worktreeId]
   )
 }

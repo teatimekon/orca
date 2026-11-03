@@ -65,6 +65,8 @@ vi.mock('@/runtime/structured-chat-name-observation', () => ({
   getStructuredChatTabNames: () => new Map()
 }))
 vi.mock('@/hooks/use-now', () => ({ useNow: () => 0 }))
+const openPiWebNew = vi.hoisted(() => vi.fn(async (_worktreeId: string) => {}))
+vi.mock('@/lib/pi-web/open-pi-web', () => ({ openPiWebNew }))
 
 import {
   DropdownMenu,
@@ -728,4 +730,20 @@ it('forwards configured choices and retains matching Terminal Arguments for eith
     sessionOptions: { model: 'astra', effort: 'low', permissionMode: 'ask' }
   })
   expect(launchMock.mock.calls[1][0].agentArgs).toBe('--add-dir docs')
+})
+
+it('offers pi-web only where the menu names its workspace, and opens it there', () => {
+  const { unmount } = render(
+    <ProjectedAgentMenuItems
+      runLaunch={vi.fn()}
+      model={choiceModel('cli')}
+      piWebWorktreeId={WORKTREE_ID}
+    />
+  )
+  fireEvent.click(screen.getByRole('menuitem', { name: 'pi-web' }))
+  expect(openPiWebNew).toHaveBeenCalledWith(WORKTREE_ID)
+  unmount()
+
+  render(<ProjectedAgentMenuItems runLaunch={vi.fn()} model={choiceModel('cli')} />)
+  expect(screen.queryByRole('menuitem', { name: 'pi-web' })).toBeNull()
 })

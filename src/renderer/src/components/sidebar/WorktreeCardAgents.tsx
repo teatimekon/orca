@@ -26,6 +26,7 @@ import { translate } from '@/i18n/i18n'
 import { agentSendDisabledReasonLabel } from '@/lib/agent-send-disabled-reason-label'
 import { useUiLanguageRevision } from '@/i18n/use-ui-language-revision'
 import { activateRetainedAgentRow } from './activate-retained-agent-row'
+import { dismissPiWebRow } from '@/lib/pi-web/pi-web-row-dismiss'
 import { selectAgentRowsUnread } from './worktree-card-agent-ack-inputs'
 import { opensClaudeParentConversation } from '@/lib/claude-agent-row-view'
 import { lineageAncestorPaneKeys } from './worktree-card-agent-lineage-disclosure'
@@ -97,6 +98,7 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
 
   const handleDismissAgent = useCallback(
     (paneKey: string) => {
+      dismissPiWebRow(paneKey)
       dropAgentStatus(paneKey)
       dismissRetainedAgent(paneKey)
     },
