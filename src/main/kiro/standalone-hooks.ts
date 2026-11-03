@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { unlinkSync } from 'node:fs'
 import type { SFTPWrapper } from 'ssh2'
 import type { AgentHookInstallState, AgentHookInstallStatus } from '../../shared/agent-hook-types'
@@ -88,6 +89,9 @@ export async function installKiroStandaloneHooksRemote(
 
 export function removeKiroStandaloneHooks(): AgentHookInstallStatus {
   const configPath = getKiroStandaloneHooksFilePath()
+  if (skipGlobalHookWrite(configPath)) {
+    return getKiroStandaloneHooksStatus()
+  }
   const { config } = readHooksJsonWithRaw(configPath)
   if (config && readManagedKiroStandaloneTriggers(config).size > 0) {
     if (getKiroStandaloneHooksFileConflict(config) === null) {

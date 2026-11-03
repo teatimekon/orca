@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { randomUUID } from 'node:crypto'
 import { constants } from 'node:fs'
 import { copyFile, lstat, open, readFile, realpath, rename, rm, stat } from 'node:fs/promises'
@@ -52,6 +53,9 @@ async function mutateGrokHookConfigIfUnchanged(
   contents: string | null,
   options?: GrokHookConfigMutationOptions
 ): Promise<boolean> {
+  if (skipGlobalHookWrite(targetPath)) {
+    return false
+  }
   if (options?.beforeHold && !(await options.beforeHold())) {
     return false
   }

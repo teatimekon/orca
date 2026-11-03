@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { rmSync } from 'node:fs'
 import type { SFTPWrapper } from 'ssh2'
 
@@ -247,6 +248,9 @@ export class HermesHookService {
       writeConfigFile(configPath, next.content)
     }
     const pluginDir = getPluginDir()
+    if (skipGlobalHookWrite(pluginDir)) {
+      return this.getStatus()
+    }
     if (getPluginFilesState(pluginDir).managed) {
       rmSync(pluginDir, { recursive: true, force: true })
     }

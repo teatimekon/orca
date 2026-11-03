@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { lstatSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { SFTPWrapper } from 'ssh2'
@@ -174,6 +175,9 @@ export class GrokHookService {
       getGrokManagedScriptFileName()
     )
     writeManagedScript(scriptPath, getGrokManagedScript())
+    if (skipGlobalHookWrite(configPath)) {
+      return this.getStatus()
+    }
     mkdirSync(dirname(configPath), { recursive: true })
     if (readGrokHookConfigRawSync(configPath) !== snapshot.raw) {
       return notInstalledStatus(configPath, 'Grok hook config changed during installation')
@@ -211,6 +215,9 @@ export class GrokHookService {
 
   remove(): AgentHookInstallStatus {
     const configPath = getConfigPath()
+    if (skipGlobalHookWrite(configPath)) {
+      return this.getStatus()
+    }
     if (process.platform === 'win32') {
       unregisterGrokHookOwnerSync()
     }
@@ -242,6 +249,9 @@ export class GrokHookService {
 
   async removeAsync(): Promise<AgentHookInstallStatus> {
     const configPath = getConfigPath()
+    if (skipGlobalHookWrite(configPath)) {
+      return this.getStatus()
+    }
     const ownsWindowsHook = process.platform === 'win32'
     let peerOwnsWindowsHook = false
     const releaseOwner = async (): Promise<boolean> => {

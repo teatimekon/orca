@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { rmSync } from 'node:fs'
 import { getAppEnvironment } from '../../shared/app-environment'
 import {
@@ -316,7 +317,10 @@ export class ClaudeHookService {
       }
       try {
         // Explicit uninstall resets opt-out memory for a future re-enable.
-        rmSync(getStatusLineInstallMarkerPath(this.options.settings), { force: true })
+        const markerPath = getStatusLineInstallMarkerPath(this.options.settings)
+        if (!skipGlobalHookWrite(markerPath)) {
+          rmSync(markerPath, { force: true })
+        }
       } catch {
         // Marker cleanup is best-effort.
       }

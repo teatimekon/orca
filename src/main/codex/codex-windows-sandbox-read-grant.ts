@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync } from 'node:fs'
 import { hostname } from 'node:os'
 import { join } from 'node:path'
@@ -72,6 +73,9 @@ function pollForSetupMarker(codexHome: string): void {
 }
 
 async function grantEntries(codexHome: string): Promise<void> {
+  if (skipGlobalHookWrite(codexHome)) {
+    return
+  }
   try {
     // Created before Codex writes images so they inherit the grant.
     mkdirSync(join(codexHome, 'generated_images'), { recursive: true })

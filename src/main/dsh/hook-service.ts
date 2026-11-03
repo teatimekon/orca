@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { dirname } from 'node:path'
 import type { SFTPWrapper } from 'ssh2'
@@ -102,6 +103,9 @@ function parseJsonOrNull(text: string): unknown {
 }
 
 function writePatchText(configPath: string, text: string): void {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   mkdirSync(dirname(configPath), { recursive: true })
   // Reuse atomic replacement and backups while preserving owner-only permissions.
   writeHooksJson(configPath, {}, { serialized: text, preserveMode: true })
@@ -236,7 +240,9 @@ export class DshHookService {
     if (changed) {
       writePatchText(configPath, nextText)
     }
-    rmSync(getDshManagedHooksPath(), { force: true })
+    if (!skipGlobalHookWrite(getDshManagedHooksPath())) {
+      rmSync(getDshManagedHooksPath(), { force: true })
+    }
     return this.getStatus()
   }
 }

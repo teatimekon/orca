@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { randomUUID } from 'node:crypto'
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { readdir, readFile, rm } from 'node:fs/promises'
@@ -19,6 +20,9 @@ function ownerPath(directory = ownerDirectory()): string {
 
 export function registerGrokHookOwner(): void {
   const directory = ownerDirectory()
+  if (skipGlobalHookWrite(directory)) {
+    return
+  }
   mkdirSync(directory, { recursive: true })
   try {
     writeFileSync(
@@ -34,12 +38,17 @@ export function registerGrokHookOwner(): void {
 }
 
 export function unregisterGrokHookOwnerSync(): void {
+  if (skipGlobalHookWrite(ownerDirectory())) {
+    return
+  }
   rmSync(ownerPath(), { force: true })
 }
 
 export async function releaseGrokHookOwnerAndCheckForPeers(): Promise<boolean> {
   const directory = ownerDirectory()
-  await rm(ownerPath(directory), { force: true })
+  if (!skipGlobalHookWrite(directory)) {
+    await rm(ownerPath(directory), { force: true })
+  }
   return await hasLivePeer(directory, ownerToken, probeProcess)
 }
 

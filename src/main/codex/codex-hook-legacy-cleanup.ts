@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { existsSync, readFileSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
 import {
@@ -137,7 +138,7 @@ export function stripLegacyManagedProfileBlock(content: string): string {
 
 function cleanupLegacyCodexProfileHooks(): void {
   const profilePath = getLegacyCodexProfileTomlPath()
-  if (!existsSync(profilePath)) {
+  if (skipGlobalHookWrite(profilePath) || !existsSync(profilePath)) {
     return
   }
 

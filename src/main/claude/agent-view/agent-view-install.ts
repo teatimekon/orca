@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../../agent-hooks/dev-global-hook-guard'
 import { serializeClaudeAgentViewConfig } from './agent-view-config-lock'
 import {
   ownership,
@@ -33,6 +34,9 @@ import { CLAUDE_AGENT_VIEW_PLUGIN } from '../../../shared/claude-agent-view'
 
 // Called only after the user opts in; a surviving marker remembers deletions and edited chords.
 export function installClaudeAgentView(configPath: string): boolean {
+  if (skipGlobalHookWrite(configPath)) {
+    return false
+  }
   const configDir = dirname(configPath)
   const keybindings = join(configDir, 'keybindings.json')
   const { raw } = readHooksJsonWithRaw(keybindings)
@@ -60,6 +64,9 @@ export function installClaudeAgentView(configPath: string): boolean {
 }
 
 export function removeClaudeAgentView(configPath: string): void {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   const configDir = dirname(configPath)
   const root = join(configDir, 'skills', CLAUDE_AGENT_VIEW_PLUGIN)
   const legacy = readHooksJson(join(root, '.claude-plugin', 'orca-managed.json'))
@@ -97,6 +104,9 @@ function retirementMarker(
 }
 
 export function refreshClaudeAgentView(configPath: string): Promise<void> {
+  if (skipGlobalHookWrite(configPath)) {
+    return Promise.resolve()
+  }
   return serializeClaudeAgentViewConfig(configPath, () => retireLegacyClaudeAgentView(configPath))
 }
 

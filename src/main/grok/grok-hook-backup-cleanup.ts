@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { lstatSync, rmSync, writeFileSync } from 'node:fs'
 import { lstat, rm, writeFile } from 'node:fs/promises'
 import { readHooksJsonWithRaw, type HooksConfig } from '../agent-hooks/installer-utils'
@@ -30,6 +31,9 @@ function warnUnlessMissing(error: unknown): void {
 }
 
 export function removeGrokHookBackupEntries(configPath: string): void {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   const backup = `${configPath}.bak`
   try {
     if (lstatSync(backup).isSymbolicLink()) {
@@ -49,6 +53,9 @@ export function removeGrokHookBackupEntries(configPath: string): void {
 
 /** The quit path's variant: no synchronous fs calls. */
 export async function removeGrokHookBackupEntriesAsync(configPath: string): Promise<void> {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   const backup = `${configPath}.bak`
   try {
     if ((await lstat(backup)).isSymbolicLink()) {

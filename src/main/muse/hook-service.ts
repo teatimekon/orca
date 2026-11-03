@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { existsSync, readFileSync, unlinkSync } from 'node:fs'
 import type { SFTPWrapper } from 'ssh2'
 
@@ -299,7 +300,7 @@ export class MuseHookService {
       }
     }
     try {
-      if (existsSync(managedHooksPath)) {
+      if (!skipGlobalHookWrite(managedHooksPath) && existsSync(managedHooksPath)) {
         unlinkSync(managedHooksPath)
       }
     } catch {}

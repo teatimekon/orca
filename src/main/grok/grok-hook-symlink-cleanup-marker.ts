@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { createHash } from 'node:crypto'
 import { readFileSync, realpathSync, rmSync, statSync } from 'node:fs'
 import { realpath, stat, writeFile } from 'node:fs/promises'
@@ -21,6 +22,9 @@ export async function recordGrokSymlinkCleanup(
   configPath: string,
   contents: string
 ): Promise<void> {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   const realPath = await realpath(configPath)
   const stats = await stat(realPath)
   const marker: SymlinkCleanupMarker = {
@@ -54,5 +58,8 @@ export function matchesRecordedGrokSymlinkCleanup(configPath: string, contents: 
 }
 
 export function clearGrokSymlinkCleanupMarker(configPath: string): void {
+  if (skipGlobalHookWrite(configPath)) {
+    return
+  }
   rmSync(markerPath(configPath), { force: true })
 }

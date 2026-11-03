@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { existsSync, rmSync, writeFileSync } from 'node:fs'
 import { writeManagedScript, type HooksConfig } from '../agent-hooks/installer-utils'
 import { getManagedStatusLineCommand, getManagedStatusLineScript } from './statusline-script'
@@ -18,6 +19,9 @@ export function installClaudeManagedStatusLine(
 ): HooksConfig {
   const scriptFileName = getStatusLineScriptFileName(settings)
   const markerPath = getStatusLineInstallMarkerPath(settings)
+  if (skipGlobalHookWrite(markerPath)) {
+    return config
+  }
   const slot = getStatusLineSlotState(config, scriptFileName)
   if (slot === 'user' || (slot === 'empty' && existsSync(markerPath))) {
     return config
@@ -48,7 +52,10 @@ export function retireClaudeManagedStatusLine(
   )
   if (changed) {
     try {
-      rmSync(getStatusLineInstallMarkerPath(settings), { force: true })
+      const markerPath = getStatusLineInstallMarkerPath(settings)
+      if (!skipGlobalHookWrite(markerPath)) {
+        rmSync(markerPath, { force: true })
+      }
     } catch {
       // A stale marker can suppress reinstall after an upgrade.
     }

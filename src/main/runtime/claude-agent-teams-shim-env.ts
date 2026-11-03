@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { chmod, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { accessSync, constants, existsSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -20,6 +21,9 @@ export type ClaudeAgentTeamsLaunchPlan = {
 }
 
 export async function ensureClaudeAgentTeamsShimDir(root = defaultShimRoot()): Promise<string> {
+  if (skipGlobalHookWrite(root)) {
+    return root
+  }
   await mkdir(root, { recursive: true })
   await writeIfChanged(join(root, 'tmux'), unixShimScript())
   if (process.platform === 'win32') {

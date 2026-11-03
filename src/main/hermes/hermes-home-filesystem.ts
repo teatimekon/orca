@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -87,6 +88,9 @@ export function getPluginFilesState(pluginDir = getPluginDir()): {
 }
 
 export function writePluginFiles(pluginDir = getPluginDir()): void {
+  if (skipGlobalHookWrite(pluginDir)) {
+    return
+  }
   mkdirSync(pluginDir, { recursive: true })
   writeFileSync(getManifestPath(pluginDir), getPluginManifest(), 'utf-8')
   writeFileSync(getInitPath(pluginDir), getPluginInitSource(), 'utf-8')

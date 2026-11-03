@@ -1,3 +1,4 @@
+import { skipGlobalHookWrite } from '../agent-hooks/dev-global-hook-guard'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import {
@@ -21,6 +22,9 @@ export function writeOpenCodePluginConfig(options: {
   tuiOnlyDirectory: string | undefined
   ownership: 'canonical' | 'overlay'
 }): void {
+  if (options.ownership === 'canonical' && skipGlobalHookWrite(options.configDir)) {
+    return
+  }
   const pluginsDir = join(options.configDir, 'plugins')
   mkdirSync(pluginsDir, { recursive: true })
   const pluginPath = join(pluginsDir, options.pluginFileName)
