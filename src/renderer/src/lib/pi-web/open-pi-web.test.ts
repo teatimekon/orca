@@ -3,22 +3,26 @@ import type { BrowserPage, BrowserWorkspace } from '../../../../shared/browser-w
 import type { PiWebEnsureResult } from '../../../../shared/pi-web/pi-web-status-types'
 import type { Tab } from '../../../../shared/tab-types'
 
-const { state, activateAndRevealWorkspace, toastError, webviewRegistry } = vi.hoisted(() => {
-  const fakeState: Record<string, unknown> = {}
-  return {
-    state: fakeState,
-    activateAndRevealWorkspace: vi.fn((_workspaceId: string, _opts?: unknown): unknown => ({
-      primaryTabId: null
-    })),
-    toastError: vi.fn(),
-    webviewRegistry: new Map<string, { loadURL: (url: string) => Promise<void> }>()
+const { state, activateAndRevealWorkspace, toastError, webviewRegistry, isLocal } = vi.hoisted(
+  () => {
+    const fakeState: Record<string, unknown> = {}
+    return {
+      state: fakeState,
+      isLocal: vi.fn((_state: unknown, _worktreeId: string) => true),
+      activateAndRevealWorkspace: vi.fn((_workspaceId: string, _opts?: unknown): unknown => ({
+        primaryTabId: null
+      })),
+      toastError: vi.fn(),
+      webviewRegistry: new Map<string, { loadURL: (url: string) => Promise<void> }>()
+    }
   }
-})
+)
 
 vi.mock('@/store', () => ({ useAppStore: { getState: () => state } }))
 vi.mock('@/lib/worktree-activation', () => ({ activateAndRevealWorkspace }))
 vi.mock('sonner', () => ({ toast: { error: toastError } }))
 vi.mock('@/components/browser-pane/host-guest/webview-registry', () => ({ webviewRegistry }))
+vi.mock('./pi-web-local-workspace', () => ({ isPiWebLocalWorkspace: isLocal }))
 
 const {
   buildPiWebNewUrl,
@@ -173,6 +177,7 @@ describe('opening pi-web', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    isLocal.mockReturnValue(true)
     webviewRegistry.clear()
     ensureResult = { ok: true, url: BASE }
     vi.stubGlobal('window', {
@@ -210,7 +215,7 @@ describe('opening pi-web', () => {
     expect(actions.createBrowserTab).toHaveBeenCalledWith(
       folder,
       `${BASE}/?session=s1&orcaEmbed=1`,
-      { activate: true, title: 'pi-web' }
+      { activate: true, title: 'pi-web', browserRuntimeEnvironmentId: null }
     )
   })
 
@@ -245,14 +250,24 @@ describe('opening pi-web', () => {
     expect(actions.setActiveBrowserTab).toHaveBeenCalledWith('a')
   })
 
-  it('new opens a fresh tab on the workspace path even beside a pi-web page', async () => {
+  it('created tab pins local runtime', async () => {
     seed([page('a', `${BASE}/?session=other`)])
     await openPiWebNew(WT)
     expect(actions.createBrowserTab).toHaveBeenCalledWith(
       WT,
       `${BASE}/?cwd=%2Fwork%2Fapp&orcaEmbed=1`,
-      { activate: true, title: 'pi-web' }
+      { activate: true, title: 'pi-web', browserRuntimeEnvironmentId: null }
     )
+  })
+
+  it('openPiWebSession refuses remote worktree', async () => {
+    isLocal.mockReturnValue(false)
+    await openPiWebSession(WT, 's1')
+    expect(isLocal).toHaveBeenCalledWith(state, WT)
+    expect(toastError).toHaveBeenCalledWith('pi-web: only local workspaces are supported')
+    expect(window.api.piWeb.ensureServer).not.toHaveBeenCalled()
+    expect(activateAndRevealWorkspace).not.toHaveBeenCalled()
+    expect(actions.createBrowserTab).not.toHaveBeenCalled()
   })
 
   it('reports a tab that cannot be created instead of rejecting', async () => {

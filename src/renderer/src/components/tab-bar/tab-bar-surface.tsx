@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ProjectedAgentMenuItems } from './QuickLaunchButton'
+import { PiWebNewAgentMenuItem } from '@/lib/pi-web/pi-web-new-agent-menu-item'
 import { TabBarAgentPickerEntry } from './TabBarAgentPickerEntry'
 import { TabStripScrollIndicator } from './TabStripScrollIndicator'
 import { TabStripTooltipProvider } from './TabStripTooltipProvider'
@@ -288,8 +289,8 @@ export function renderTabBarSurface({
                 onSelectPickerAgent={selectPickerAgent}
                 hidePickerSearch={!terminalOnly && Boolean(onOpenEntry)}
                 runLaunch={launchAgentRow}
-                piWebWorktreeId={worktreeId}
               />
+              <PiWebNewAgentMenuItem worktreeId={worktreeId} />
             </>
           ) : null}
         </DropdownMenuContent>

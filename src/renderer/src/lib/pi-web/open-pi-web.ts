@@ -3,6 +3,7 @@ import { webviewRegistry } from '@/components/browser-pane/host-guest/webview-re
 import { activateAndRevealWorkspace } from '@/lib/worktree-activation'
 import { useAppStore } from '@/store'
 import type { AppState } from '@/store/types'
+import { isPiWebLocalWorkspace } from './pi-web-local-workspace'
 import type { BrowserPage, BrowserWorkspace } from '../../../../shared/browser-workspace-types'
 import type { Tab } from '../../../../shared/tab-types'
 
@@ -134,12 +135,18 @@ function activatePiWebPage(worktreeId: string, target: PiWebBrowserTarget): void
 function createPiWebTab(worktreeId: string, url: string): void {
   useAppStore.getState().createBrowserTab(worktreeId, url, {
     activate: true,
-    title: PI_WEB_TAB_TITLE
+    title: PI_WEB_TAB_TITLE,
+    // The pi-web server runs on this desktop, so no paired runtime may adopt or stream the page.
+    browserRuntimeEnvironmentId: null
   })
 }
 
 async function openPiWeb(worktreeId: string, open: (baseUrl: string) => void): Promise<void> {
   try {
+    if (!isPiWebLocalWorkspace(useAppStore.getState(), worktreeId)) {
+      toast.error('pi-web: only local workspaces are supported')
+      return
+    }
     const server = await window.api.piWeb.ensureServer()
     if (!server.ok) {
       toast.error(`pi-web: ${server.reason}`)

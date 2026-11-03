@@ -1,4 +1,3 @@
-/* eslint-disable max-lines -- Why: the pi-web new-agent row pushed this file just over the limit; its body lives in lib/pi-web. */
 import { SubscribedAgentLaunchPickerMenu } from '@/components/agent/AgentLaunchPickerMenu'
 import {
   agentPickerLaunchInputs,
@@ -20,7 +19,6 @@ import {
   DropdownMenuShortcut
 } from '@/components/ui/dropdown-menu'
 import { getAgentCatalog, AgentIcon } from '@/lib/agent-catalog'
-import { PiWebNewAgentMenuItem } from '@/lib/pi-web/pi-web-new-agent-menu-item'
 import { useAppStore } from '@/store'
 import { useOptionalShortcutLabel } from '@/hooks/useShortcutLabel'
 import { useAgentMenuShortcutLabels } from './agent-menu-shortcut-labels'
@@ -180,8 +178,7 @@ export function ProjectedAgentMenuItems({
   runLaunch,
   pickerInventory,
   onSelectPickerAgent,
-  hidePickerSearch,
-  piWebWorktreeId
+  hidePickerSearch
 }: {
   disabled?: boolean
   model: NewTabAgentMenuModel
@@ -189,8 +186,6 @@ export function ProjectedAgentMenuItems({
   pickerInventory?: AgentPickerInventorySource
   onSelectPickerAgent?: (agent: AgentPickerEntry['agent']) => void
   hidePickerSearch?: boolean
-  /** Workspace the pi-web row opens a new conversation in; menus that launch with a prompt omit it. */
-  piWebWorktreeId?: string
 }): React.JSX.Element {
   const desktopDefaultAgent = useAppStore((s) => s.settings?.defaultTuiAgent)
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
@@ -321,7 +316,6 @@ export function ProjectedAgentMenuItems({
           )
         })
       )}
-      {piWebWorktreeId ? <PiWebNewAgentMenuItem worktreeId={piWebWorktreeId} /> : null}
       <AgentSettingsMenuItem onSelect={openAgentSettings} />
     </>
   )
