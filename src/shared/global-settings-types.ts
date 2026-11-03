@@ -1,3 +1,4 @@
+import type { PiWebSettings } from './pi-web/pi-web-status-types'
 import type { AgentLaunchChoices } from './agent-launch-choices'
 import type { TelemetrySettings } from './telemetry-settings-types'
 import type { BrowserProfileScope } from './browser-profile-scope'
@@ -52,6 +53,8 @@ export type MiniMaxEndpoint = 'overseas' | 'cn'
 
 export type GlobalSettings = GlobalSettingsBase & {
   workspaceDir: string
+  /** pi-web integration; absent in older profiles (resolved against defaults at use). */
+  piWeb?: PiWebSettings
   /** Host-owned defaults used when a repository has no explicit visibility override. */
   worktreeVisibilityDefaults?: WorktreeVisibilityDefaults
   /** Per-host value is host override ?? client default, keyed by ExecutionHostId. */

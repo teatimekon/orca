@@ -1,0 +1,91 @@
+import type { PiWebStatusFrame } from '../../shared/pi-web/pi-web-status-types'
+
+export type PiWebStreamHandlers = {
+  onFrame(frame: PiWebStatusFrame): void
+  onClose(reason: 'incompatible' | 'ended' | 'error', detail?: string): void
+}
+
+// Why main-process only: pi-web rejects cross-site Origin, and Node fetch sends none.
+export function openPiWebStatusStream(
+  baseUrl: string,
+  handlers: PiWebStreamHandlers,
+  fetchImpl: typeof fetch = fetch
+): { close(): void } {
+  const controller = new AbortController()
+  let closed = false
+
+  const finish = (reason: 'incompatible' | 'ended' | 'error', detail?: string): void => {
+    if (closed) {
+      return
+    }
+    closed = true
+    handlers.onClose(reason, detail)
+  }
+
+  const dispatch = (event: string): void => {
+    const data = event
+      .split(/\r?\n/)
+      .filter((l) => l.startsWith('data:'))
+      .map((l) => l.slice(5).replace(/^ /, ''))
+      .join('\n')
+    if (!data) {
+      return
+    }
+    try {
+      const frame = JSON.parse(data) as PiWebStatusFrame
+      if (frame && typeof frame === 'object' && typeof frame.type === 'string') {
+        handlers.onFrame(frame)
+      }
+    } catch {
+      // Why: one malformed frame must not tear down the stream.
+    }
+  }
+
+  void (async () => {
+    try {
+      const res = await fetchImpl(`${baseUrl.replace(/\/+$/, '')}/api/agent/status-events`, {
+        signal: controller.signal,
+        headers: { Accept: 'text/event-stream' }
+      })
+      if (res.status === 404) {
+        await res.body?.cancel().catch(() => {})
+        finish('incompatible', 'status-events route not found')
+        return
+      }
+      if (!res.ok || !res.body) {
+        finish('error', `HTTP ${res.status}`)
+        return
+      }
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) {
+          break
+        }
+        buffer += decoder.decode(value, { stream: true })
+        const parts = buffer.split(/\r?\n\r?\n/)
+        buffer = parts.pop() ?? ''
+        for (const part of parts) {
+          if (!closed) {
+            dispatch(part)
+          }
+        }
+      }
+      finish('ended')
+    } catch (err) {
+      if (closed || controller.signal.aborted) {
+        return
+      }
+      finish('error', err instanceof Error ? err.message : String(err))
+    }
+  })()
+
+  return {
+    close() {
+      closed = true
+      controller.abort()
+    }
+  }
+}

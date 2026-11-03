@@ -55,3 +55,19 @@ export const PI_WEB_IPC = {
   dismiss: 'piWeb:dismiss',
   openSession: 'piWeb:openSession'
 } as const
+
+export type PiWebSettings = {
+  enabled: boolean
+  serverUrl: string | null
+  agentDir: string
+  launchCwd: string
+  launchCommand: string
+}
+
+export const DEFAULT_PI_WEB_SETTINGS: PiWebSettings = {
+  enabled: true,
+  serverUrl: null,
+  agentDir: '~/.pi/agent',
+  launchCwd: '~/Documents/code/pi-web',
+  launchCommand: 'node bin/pi-web.js --no-open --port 30141 --hostname 0.0.0.0'
+}

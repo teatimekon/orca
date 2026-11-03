@@ -1,4 +1,5 @@
 import type { GlobalSettings } from './global-settings-types'
+import { DEFAULT_PI_WEB_SETTINGS } from './pi-web/pi-web-status-types'
 import type { NotificationSettings } from './notification-settings-types'
 import type { VoiceSettings } from './speech-types'
 import { DEFAULT_TERMINAL_FONT_WEIGHT, DEFAULT_TERMINAL_FONT_WEIGHT_BOLD } from './terminal-fonts'
@@ -30,6 +31,7 @@ export function buildDefaultSettings(args: {
 }): GlobalSettings {
   return {
     workspaceDir: args.workspaceDir,
+    piWeb: { ...DEFAULT_PI_WEB_SETTINGS },
     worktreeVisibilityDefaults: { external: 'hide' },
     nestWorkspaces: true,
     workspaceDirHistory: [],
