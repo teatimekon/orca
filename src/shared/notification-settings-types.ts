@@ -66,7 +66,9 @@ export type NotificationDispatchRequest = {
   /** The verdict on the turn this notification reports, which picks its wording. */
   agentTurnOutcome?: AgentTurnOutcome
   /** Click-routing lane; absence means terminal, preserving pre-structured-chat senders. */
-  surface?: 'terminal' | 'agent-session'
+  surface?: 'terminal' | 'agent-session' | 'pi-web'
+  /** The pi-web conversation a `pi-web` surface click opens; its pane key is a one-way hash. */
+  piWebSessionId?: string
   /** Producer-owned once-only news identity bypasses workspace burst dedupe so distinct events survive. */
   attentionKey?: string
   structuredOrigin?: StructuredAttentionOrigin

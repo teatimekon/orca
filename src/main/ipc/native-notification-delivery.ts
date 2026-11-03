@@ -19,6 +19,8 @@ import {
 } from './native-notification-lifecycle'
 import { recordNotificationDeliveryOutcome } from './notification-permission-probe'
 import { getTrustedUIRendererWindow } from './ui'
+import { PI_WEB_IPC } from '../../shared/pi-web/pi-web-status-types'
+import { piWebNotificationTarget } from '../pi-web/pi-web-notification-click'
 
 export function deliverNativeNotification(
   args: NotificationDispatchRequest,
@@ -79,7 +81,9 @@ export function deliverNativeNotification(
   const chatTarget = args.surface === 'agent-session' ? paneTarget : null
   // Repo-less folder/floating workspaces still bind clicks through their pane target.
   const repoId = worktreeId?.includes('::') ? getRepoIdFromWorktreeId(worktreeId) : null
-  if (worktreeId && (repoId !== null || paneTarget)) {
+  // pi-web clicks bind even for repo-less folder ids; the renderer's open-session path activates them.
+  const piWebTarget = piWebNotificationTarget(args)
+  if (worktreeId && (repoId !== null || paneTarget || piWebTarget)) {
     clickHandler = () => {
       release()
       const win = getTrustedUIRendererWindow()
@@ -92,6 +96,13 @@ export function deliverNativeNotification(
       safelyRevealWindow(win)
       if (repoId !== null) {
         win.webContents.send('ui:activateWorktree', { repoId, worktreeId })
+      }
+      // The pi-web pane key's tab is a placeholder, so never fall through to terminal focus.
+      if (args.surface === 'pi-web') {
+        if (piWebTarget) {
+          win.webContents.send(PI_WEB_IPC.openSession, piWebTarget)
+        }
+        return
       }
       if (chatTarget) {
         win.webContents.send('ui:focusEditorTab', {
