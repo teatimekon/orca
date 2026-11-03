@@ -30,6 +30,7 @@ import {
   AgentPermissionsSetting,
   type AgentPermissionsSettingProps
 } from './permissions/AgentPermissionsSetting'
+import { PiWebSettingsSection } from './PiWebSettingsSection'
 import type { SettingsHostScope } from '../host-scope/settings-host-scope'
 
 type AgentSettingProps = {
@@ -109,6 +110,7 @@ export function AgentsPane({
         ) : null}
         <AgentCacheTimerSection settings={settings} updateSettings={updateSettings} />
       </section>
+      <PiWebSettingsSection settings={settings} updateSettings={updateSettings} />
     </div>
   )
 }

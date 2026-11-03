@@ -287,6 +287,17 @@ describe('AgentsPane', () => {
     expect(markup).toContain('>Agent<')
   })
 
+  it('renders pi-web section', () => {
+    const markup = renderPane(getDefaultSettings('/tmp'))
+
+    expect(markup).toContain('Track pi-web conversations')
+    expect(markup).toContain('Server URL')
+    expect(markup).toContain('Agent directory')
+    expect(markup).toContain('Launch directory')
+    expect(markup).toContain('Launch command')
+    expect(markup).toContain('ORCA_PI_WEB_* override these')
+  })
+
   it('hides desktop-only awake modes in paired web clients', () => {
     ;(globalThis as { __ORCA_WEB_CLIENT__?: boolean }).__ORCA_WEB_CLIENT__ = true
     try {
