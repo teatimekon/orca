@@ -65,6 +65,9 @@ export type PiWebSettings = {
   launchCommand: string
 }
 
+/** Composed into GlobalSettings; absent in older profiles (resolved against defaults at use). */
+export type PiWebGlobalSettings = { piWeb?: PiWebSettings }
+
 export const DEFAULT_PI_WEB_SETTINGS: PiWebSettings = {
   enabled: true,
   serverUrl: null,

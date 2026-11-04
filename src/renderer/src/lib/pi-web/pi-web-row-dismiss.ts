@@ -11,3 +11,14 @@ export function dismissPiWebRow(paneKey: string): void {
     console.warn('[pi-web] failed to dismiss row', error)
   })
 }
+
+/** Dismisses a sidebar agent row: forgets it in main if it is pi-web, then drops local state (order matters, see above). */
+export function dismissAgentRow(
+  paneKey: string,
+  dropAgentStatus: (paneKey: string) => void,
+  dismissRetainedAgent: (paneKey: string) => void
+): void {
+  dismissPiWebRow(paneKey)
+  dropAgentStatus(paneKey)
+  dismissRetainedAgent(paneKey)
+}
