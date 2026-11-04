@@ -103,6 +103,27 @@ export function sanitizeTaskResumeState(value: unknown): TaskResumeState | undef
   return Object.keys(next).length > 0 ? next : undefined
 }
 
+function sameFeatureInteractionState(
+  current: FeatureInteractionState,
+  merged: FeatureInteractionState
+): boolean {
+  const currentEntries = Object.entries(current)
+  const mergedRecords = new Map(Object.entries(merged))
+  return (
+    currentEntries.length === mergedRecords.size &&
+    currentEntries.every(([id, record]) => {
+      const next = mergedRecords.get(id)
+      return (
+        record !== undefined &&
+        next !== undefined &&
+        record.firstInteractedAt === next.firstInteractedAt &&
+        record.interactionCount === next.interactionCount
+      )
+    })
+  )
+}
+
+/** Returns `current` itself when the incoming state adds nothing, so a confirming ack is not a store change. */
 export function mergeFeatureInteractionState(
   current: FeatureInteractionState,
   incoming: PersistedUIState['featureInteractions']
@@ -125,18 +146,22 @@ export function mergeFeatureInteractionState(
         }
       : incomingRecord
   }
-  return merged
+  return sameFeatureInteractionState(current, merged) ? current : merged
 }
 
+/** Returns `current` itself when the incoming ids add nothing, so a confirming ack is not a store change. */
 export function mergeContextualTourSeenIds(
-  current: readonly ContextualTourId[],
+  current: ContextualTourId[],
   incoming: PersistedUIState['contextualToursSeenIds']
 ): ContextualTourId[] {
   const merged = new Set<ContextualTourId>(normalizeContextualTourIds(current))
   for (const id of normalizeContextualTourIds(incoming)) {
     merged.add(id)
   }
-  return [...merged]
+  const ids = [...merged]
+  return ids.length === current.length && ids.every((id, index) => id === current[index])
+    ? current
+    : ids
 }
 
 /** Stale acks/marks are inert (paneKey reuse beats them via stateStartedAt); the sanitizers only bound growth past HYDRATE_MAX_AGE_MS. */

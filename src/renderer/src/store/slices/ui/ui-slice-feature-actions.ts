@@ -53,16 +53,21 @@ export function createUiFeatureActions(set: UISliceSet, get: UISliceGet): Partia
           const recordInteraction = window.api.ui.recordFeatureInteraction
           const persist = recordInteraction
             ? recordInteraction(id).then((ui) => {
-                set((current) => ({
-                  featureInteractions: mergeFeatureInteractionState(
+                set((current) => {
+                  const featureInteractions = mergeFeatureInteractionState(
                     current.featureInteractions,
                     ui.featureInteractions
-                  ),
-                  contextualToursSeenIds: mergeContextualTourSeenIds(
+                  )
+                  const contextualToursSeenIds = mergeContextualTourSeenIds(
                     current.contextualToursSeenIds,
                     ui.contextualToursSeenIds
                   )
-                }))
+                  // Why: the ack usually confirms the optimistic count; rewriting it re-renders App and every tour on each workspace switch.
+                  return featureInteractions === current.featureInteractions &&
+                    contextualToursSeenIds === current.contextualToursSeenIds
+                    ? current
+                    : { featureInteractions, contextualToursSeenIds }
+                })
               })
             : window.api.ui.set({ featureInteractions: next })
           persistPromise = persist.catch(console.error)

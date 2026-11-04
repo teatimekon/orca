@@ -90,4 +90,40 @@ describe('createUISlice feature interactions', () => {
       interactionCount: 2
     })
   })
+
+  it('does not notify subscribers when the persistence ack confirms the optimistic state', async () => {
+    let resolveAck: (ui: PersistedUIState) => void = () => {}
+    vi.stubGlobal('window', {
+      api: {
+        ui: {
+          recordFeatureInteraction: vi.fn(
+            () =>
+              new Promise<PersistedUIState>((resolve) => {
+                resolveAck = resolve
+              })
+          ),
+          set: vi.fn(() => Promise.resolve())
+        }
+      }
+    })
+    const store = createUIStore()
+    store.getState().hydratePersistedUI(
+      makePersistedUI({
+        featureInteractions: { tasks: { firstInteractedAt: 100, interactionCount: 1 } }
+      })
+    )
+    store.getState().recordFeatureInteraction('tasks')
+    const listener = vi.fn()
+    store.subscribe(listener)
+
+    resolveAck(
+      makePersistedUI({
+        featureInteractions: { tasks: { firstInteractedAt: 100, interactionCount: 2 } }
+      })
+    )
+    await Promise.resolve()
+
+    expect(listener).not.toHaveBeenCalled()
+    expect(store.getState().featureInteractions.tasks?.interactionCount).toBe(2)
+  })
 })
