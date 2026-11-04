@@ -3,8 +3,6 @@ import { findSqliteRuntimeTests } from './vitest-sqlite-runtime-scan.mjs'
 // SQLite publication, native bindings, worker IPC, socket liveness, and V8 retention use Node.
 const NODE_RUNTIME_INCLUDE = [
   // Exercise the native fetch error and abort contracts used by the Linear SDK in Electron.
-  'src/main/linear/linear-request-recovery.test.ts',
-  'src/main/linear/linear-issue-detail-deadline.test.ts',
   'tests/e2e/linear-cli-recovery.unit.test.ts',
   'src/main/runtime/structured-agent-cli-writers.test.ts',
   'config/scripts/vitest-sqlite-runtime-boundary.test.ts',
@@ -100,7 +98,6 @@ const NODE_RUNTIME_INCLUDE = [
   'src/main/orca-profiles/**/*.test.ts',
   'src/main/managed-data-accounts/**/*.test.ts',
   'src/main/startup/quit/quit-path-durable-write-blocking.test.ts',
-  'src/main/automations/automation-worker-durability.test.ts',
   'src/**/*.node-pty.test.ts',
   'src/**/node-pty-*.test.ts',
   'src/**/*.live-shell.test.ts',
@@ -168,7 +165,6 @@ const NODE_RUNTIME_INCLUDE = [
   'src/main/window/main-window-updater-deferred-setup.test.ts',
   'src/renderer/src/lib/pane-manager/pane-dom-focus-class-sync-lifecycle.test.ts',
   'src/renderer/src/components/terminal-pane/terminal-pane-host-state-memo.test.ts',
-  'src/renderer/src/components/automations/use-automation-runs-dashboard-payload.test.tsx',
   'src/renderer/src/components/right-sidebar/parent-pr-checks-projection-selector.test.ts',
   'src/main/native-chat/agent-session-journal/**/*.test.ts',
   'src/main/native-chat/agent-session-wire/structured-agent-session-terminal-writer-acquire.test.ts',
