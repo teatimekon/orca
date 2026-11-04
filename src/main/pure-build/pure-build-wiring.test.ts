@@ -199,6 +199,19 @@ const REMOVED: readonly (readonly [string, string])[] = [
   [
     'renderer/src/components/settings/page/settings-git-task-section-renderers.tsx',
     'GitProviderApiBudgetPane'
+  ],
+  // O20 follow-up: emulator and computer-use openers
+  [
+    'renderer/src/components/tab-group/useTabGroupWorkspaceModel.ts',
+    'mobileEmulatorEnabled !== false'
+  ],
+  [
+    'renderer/src/components/tab-bar/use-tab-bar-runtime-model.ts',
+    'mobileEmulatorEnabled !== false'
+  ],
+  [
+    'renderer/src/components/settings/page/settings-interface-primary-section-renderers.tsx',
+    'onOpenComputerUse'
   ]
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */

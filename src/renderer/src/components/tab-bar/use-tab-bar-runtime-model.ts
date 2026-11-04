@@ -98,7 +98,7 @@ export function useTabBarRuntimeModel({
   const newFileShortcut = useShortcutLabel('tab.newMarkdown')
   const openMarkdownShortcut = useOptionalShortcutLabel('tab.openMarkdown')
   const generatedTabTitlesEnabled = useAppStore((s) => s.settings?.tabAutoGenerateTitle === true)
-  const mobileEmulatorEnabled = useAppStore((s) => s.settings?.mobileEmulatorEnabled !== false)
+  const mobileEmulatorEnabled: boolean = false
   const persistedUIReady = useAppStore((s) => s.persistedUIReady)
   const mobileEmulatorTabIntroDismissed = useAppStore((s) => s.mobileEmulatorTabIntroDismissed)
   const showMobileEmulatorIntroCallout = shouldShowMobileEmulatorTabIntro({

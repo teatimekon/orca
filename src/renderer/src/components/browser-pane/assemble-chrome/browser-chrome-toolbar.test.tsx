@@ -103,6 +103,7 @@ describe('BrowserChromeToolbar', () => {
     )
 
     expect(screen.queryByText('Draw')).toBeNull()
+    expect(screen.queryByText('Draw on screenshot')).toBeNull()
     expect(mocks.stages).not.toContain('draw')
   })
 

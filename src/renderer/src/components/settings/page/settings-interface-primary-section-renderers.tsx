@@ -65,7 +65,7 @@ export function renderQuickCommandsSettingsSection(
 export function renderBrowserSettingsSection(
   context: SettingsRenderContext
 ): React.JSX.Element | null {
-  const { model, actions, navigation, view } = context
+  const { model, navigation, view } = context
   return model.showDesktopOnlySettings ? (
     <SettingsSection
       id="browser"
@@ -77,11 +77,7 @@ export function renderBrowserSettingsSection(
       searchEntries={navigation.getSectionSearchEntries('browser')}
     >
       {view.isSectionMounted('browser') ? (
-        <BrowserPane
-          settings={model.settings}
-          updateSettings={model.updateSettings}
-          onOpenComputerUse={actions.openComputerUseFromBrowser}
-        />
+        <BrowserPane settings={model.settings} updateSettings={model.updateSettings} />
       ) : null}
     </SettingsSection>
   ) : null

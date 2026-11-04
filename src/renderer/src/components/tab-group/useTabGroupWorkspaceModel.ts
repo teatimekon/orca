@@ -35,7 +35,8 @@ export function useTabGroupWorkspaceModel({
       expandedPaneByTabId: state.expandedPaneByTabId,
       terminalLayoutsByTabId: state.terminalLayoutsByTabId ?? EMPTY_TERMINAL_LAYOUTS_BY_TAB_ID,
       generatedTabTitlesEnabled: state.settings?.tabAutoGenerateTitle === true,
-      mobileEmulatorEnabled: state.settings?.mobileEmulatorEnabled !== false
+      // zyx/orca-pure: the emulator pane and its bridge are removed.
+      mobileEmulatorEnabled: false
     }))
   )
 
