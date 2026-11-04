@@ -9,7 +9,6 @@ import type { SettingsRenderContext } from './settings-render-context'
 import {
   renderAccountsSettingsSection,
   renderAgentsSettingsSection,
-  renderDesktopCapabilitySettingsSections,
   renderLinearSettingsSection,
   renderOrchestrationSettingsSection
 } from './settings-capability-section-renderers'
@@ -28,7 +27,6 @@ import {
 import {
   renderBrowserSettingsSection,
   renderFloatingWorkspaceSettingsSection,
-  renderMobileEmulatorSettingsSection,
   renderQuickCommandsSettingsSection,
   renderTerminalSettingsSection
 } from './settings-interface-primary-section-renderers'
@@ -134,7 +132,6 @@ export function renderSettingsPage(context: SettingsRenderContext): React.JSX.El
                   {renderAccountsSettingsSection(context)}
                   {renderOrchestrationSettingsSection(context)}
                   {renderLinearSettingsSection(context)}
-                  {renderDesktopCapabilitySettingsSections(context)}
                   {renderOrcaAccountSettingsSection(context)}
                   {renderGeneralSettingsSection(context)}
                   {renderIntegrationsSettingsSection(context)}
@@ -146,7 +143,6 @@ export function renderSettingsPage(context: SettingsRenderContext): React.JSX.El
                   {renderTerminalSettingsSection(context)}
                   {renderQuickCommandsSettingsSection(context)}
                   {renderBrowserSettingsSection(context)}
-                  {renderMobileEmulatorSettingsSection(context)}
                   {renderFloatingWorkspaceSettingsSection(context)}
                   {renderAppearanceSettingsSection(context)}
                   {renderChatSettingsSection(context)}

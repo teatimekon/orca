@@ -32,6 +32,9 @@ import { resolveNotebookExecutionHost } from './ipynb-execution-host'
 import { useIpynbScrollRestoration } from './useIpynbScrollRestoration'
 import { selectWorktreesByRepo } from '@/store/workspace-record-selectors'
 
+// zyx/orca-pure: notebook kernels (and their IPC) are removed; cells render and edit only.
+const NOTEBOOK_KERNELS_ENABLED: boolean = false
+
 type IpynbViewerProps = {
   content: string
   fileId: string
@@ -126,6 +129,9 @@ export default function IpynbViewer({
     event: React.KeyboardEvent<HTMLElement>,
     index: number
   ): void => {
+    if (!NOTEBOOK_KERNELS_ENABLED) {
+      return
+    }
     const mod = getShortcutPlatform() === 'darwin' ? event.metaKey : event.ctrlKey
     if (
       isImeOwnedKeyboardEvent(event) ||
@@ -164,8 +170,9 @@ export default function IpynbViewer({
   }
 
   const { notebook } = parsed
-  // Kernels are local Python only; other notebooks still render and edit.
-  const canRun = notebook.language === 'python' && executionHost === 'local'
+  // Kernels are local Python only; other notebooks still render and edit. zyx/orca-pure never runs them.
+  const canRun =
+    NOTEBOOK_KERNELS_ENABLED && notebook.language === 'python' && executionHost === 'local'
   return (
     <div
       ref={setRootRef}
@@ -220,7 +227,7 @@ export default function IpynbViewer({
               >
                 {/* Mirrors the code surface's border and padding so the count shares the first line's box. */}
                 <div className="flex w-12 shrink-0 justify-center border-y border-transparent py-1">
-                  {cell.kind === 'code' ? (
+                  {cell.kind === 'code' && canRun ? (
                     <IpynbCellRunPrompt
                       filePath={filePath}
                       cellKey={cellKey}

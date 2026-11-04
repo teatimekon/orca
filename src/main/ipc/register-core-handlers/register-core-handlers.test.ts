@@ -575,6 +575,17 @@ describe('registerCoreHandlers', () => {
       { getAdditionalAiVaultCodexHomePaths, onBeforeRelaunch }
     )
     expect(registerDashboardPopoutHandlersMock).not.toHaveBeenCalled()
+    for (const removed of [
+      registerNotebookHandlersMock,
+      registerComputerUsePermissionHandlersMock,
+      registerPetHandlersMock,
+      registerEmulatorFrameStreamHandlersMock,
+      registerEmulatorVideoStreamHandlersMock,
+      registerEmulatorScrcpyTouchHandlerMock
+    ]) {
+      expect(removed).not.toHaveBeenCalled()
+    }
+    expect(registerSpeechHandlersMock).toHaveBeenCalledOnce()
 
     const aiVaultOptions = registerAiVaultHandlersMock.mock.calls[0]?.[0]
     expect(aiVaultOptions).toBeDefined()

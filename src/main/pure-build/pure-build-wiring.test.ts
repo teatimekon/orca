@@ -122,7 +122,26 @@ const REMOVED: readonly (readonly [string, string])[] = [
   [
     'renderer/src/components/settings/appearance/appearance-status-bar-search.ts',
     'portsToggleDescription'
-  ]
+  ],
+  // O20 emulator, computer use, dictation, pet, notebook kernels, theme import
+  ['main/startup/main-process-ready-runtime.ts', 'EmulatorBridge'],
+  [
+    'main/ipc/register-core-handlers/register-core-handlers.ts',
+    'registerEmulatorScrcpyKeyboardHandler'
+  ],
+  ['main/ipc/settings.ts', 'registerSettingsImportHandlers'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'DictationController'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'PetOverlay'],
+  ['renderer/src/components/status-bar/StatusBarSurface.tsx', 'PetStatusSegment'],
+  [
+    'renderer/src/components/settings/page/settings-page-renderer.tsx',
+    'renderDesktopCapabilitySettingsSections'
+  ],
+  [
+    'renderer/src/components/settings/page/settings-page-renderer.tsx',
+    'renderMobileEmulatorSettingsSection'
+  ],
+  ['renderer/src/components/settings/advanced/ExperimentalPane.tsx', 'experimentalPet']
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -171,10 +190,12 @@ const KEPT: readonly (readonly [string, string])[] = [
     'renderer/src/components/native-chat/use-native-chat-resume-command.ts',
     'openAgentSessionHistoryModal'
   ],
-  ['renderer/src/app-shell/app-command-handlers.ts', 'sidebar.ports.toggle']
+  ['renderer/src/app-shell/app-command-handlers.ts', 'sidebar.ports.toggle'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerSpeechHandlers']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [
+  ['renderer/src/components/editor/IpynbViewer.tsx', 'NOTEBOOK_KERNELS_ENABLED &&', 'notebook'],
   [
     'main/startup/main-process-ready-foundation.ts',
     "process.platform === 'win32'",

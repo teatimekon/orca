@@ -362,7 +362,7 @@ describe('TerminalAppearanceSection terminal config import wiring', () => {
     vi.clearAllMocks()
   })
 
-  it('renders the Import from Ghostty button with terminal appearance controls', () => {
+  it('never renders the Import from Ghostty button in the pure build', () => {
     const element = TerminalAppearanceSection({
       settings: {} as never,
       updateSettings: () => {},
@@ -372,12 +372,9 @@ describe('TerminalAppearanceSection terminal config import wiring', () => {
       warpThemes: warpThemesMock
     })
 
-    const buttons = findButtons(element)
-    const importButton = buttons.find((b) => b.text === 'Import from Ghostty')
-    expect(importButton).toBeDefined()
-
-    importButton?.onClick?.()
-    expect(configImportMock.handleClick).toHaveBeenCalled()
+    expect(findButtons(element).some((b) => b.text === 'Import from Ghostty')).toBe(false)
+    expect(findTerminalConfigImportModal(element)).toBeNull()
+    expect(findWarpThemeImportModal(element)).toBeNull()
   })
 
   it('routes dark and light theme searches to the matching catalog target', () => {
@@ -464,7 +461,7 @@ describe('TerminalAppearanceSection terminal config import wiring', () => {
     expect(findButtons(element).some((button) => button.text === 'Import from Ghostty')).toBe(false)
   })
 
-  it('shows the Ghostty import button for Ghostty-only searches', () => {
+  it('hides the Ghostty import button even for Ghostty-only searches', () => {
     mockSettingsSearchQuery = 'ghostty'
 
     const element = TerminalAppearanceSection({
@@ -476,7 +473,7 @@ describe('TerminalAppearanceSection terminal config import wiring', () => {
       warpThemes: warpThemesMock
     })
 
-    expect(findButtons(element).some((button) => button.text === 'Import from Ghostty')).toBe(true)
+    expect(findButtons(element).some((button) => button.text === 'Import from Ghostty')).toBe(false)
   })
 
   it('opens typography advanced inside the typography section for advanced searches', () => {

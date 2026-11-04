@@ -2,5 +2,8 @@
 export const PURE_REMOVED_SETTINGS_SECTION_IDS: ReadonlySet<string> = new Set([
   'setup-guide',
   'artifacts',
-  'session-history'
+  'session-history',
+  'computer-use',
+  'voice',
+  'mobile-emulator'
 ])

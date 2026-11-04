@@ -39,7 +39,6 @@ import { TerminalConfigImportModal } from '../configuration/TerminalConfigImport
 import type { UseTerminalConfigImportReturn } from '../configuration/useTerminalConfigImport'
 import { WarpThemeImportModal } from '../themes/WarpThemeImportModal'
 import type { UseWarpThemeImportReturn } from '../themes/useWarpThemeImport'
-import { isWebClientLocation } from '@/lib/web-client-location'
 import ghosttyIcon from '../../../../../../../resources/ghostty.svg'
 import { translate } from '@/i18n/i18n'
 
@@ -86,7 +85,7 @@ export function TerminalAppearanceSection({
   const isSearching = normalizeSettingsSearchQuery(searchQuery).length > 0
   const [themeSearch, setThemeSearch] = useState('')
   const [previewFontFamily, setPreviewFontFamily] = useState<string | null>(null)
-  const showDesktopThemeImports = !isWebClientLocation()
+  const showDesktopThemeImports: boolean = false
   const darkThemeSearchEntries = getTerminalDarkThemeSearchEntries()
   const lightThemeSearchEntries = getTerminalLightThemeSearchEntries()
   const terminalTypographyEntries = getTerminalTypographySearchEntries()
