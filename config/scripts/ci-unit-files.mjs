@@ -17,6 +17,7 @@ export const UNIT_SETUP_FILES = [
   'config/scripts/vitest-real-agent-home-write-guard.ts',
   'config/scripts/vitest-bun-node-builtins.ts',
   'config/scripts/vitest-dom-setup.ts',
+  'config/scripts/vitest-self-built-build-off.ts',
   'config/scripts/vitest-host-ports-setup.ts',
   'config/scripts/vitest-caller-identity-env-setup.ts',
   'config/scripts/vitest-inherited-git-env-setup.ts',

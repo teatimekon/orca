@@ -1,4 +1,5 @@
 import { net } from 'electron'
+import { SELF_BUILT_BUILD } from '../../../shared/self-built-build'
 import type { ChangelogData } from '../../../shared/update-status-types'
 import { compareVersions } from './updater-fallback'
 
@@ -29,6 +30,9 @@ export async function fetchChangelog(
   incomingVersion: string,
   localVersion: string
 ): Promise<ChangelogData | null> {
+  if (SELF_BUILT_BUILD) {
+    return null
+  }
   const res = await net.fetch('https://onorca.dev/whats-new/changelog.json', {
     signal: AbortSignal.timeout(5000)
   })
