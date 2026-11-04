@@ -258,7 +258,56 @@ const REMOVED: readonly (readonly [string, string])[] = [
   [
     'renderer/src/hooks/settings-navigation-workflow-sections.ts',
     'getGitProviderApiBudgetSearchEntries'
-  ]
+  ],
+  // O8 (Task 15)
+  ['renderer/src/app-shell/AppWorkspaceShell.tsx', 'AutomationsPage'],
+  ['renderer/src/app-shell/use-app-shell-services.ts', 'useAutomationDispatchEvents'],
+  ['renderer/src/main.tsx', 'installAutomationHostDiagnostic'],
+  ['renderer/src/components/sidebar/SidebarNav.tsx', 'openAutomationsPage'],
+  ['renderer/src/components/sidebar/use-worktree-card-foundation.ts', 'openAutomationsPage'],
+  ['renderer/src/components/sidebar/WorktreeCardMeta.tsx', 'WorktreeCardAutomationDetailSection'],
+  [
+    'renderer/src/components/activity/activity-thread-hover-card.tsx',
+    'WorktreeCardAutomationDetailSection'
+  ],
+  [
+    'renderer/src/components/settings/page/settings-setup-workflow-section-renderers.tsx',
+    'AutomationsSettingsPane'
+  ],
+  [
+    'renderer/src/hooks/settings-navigation-workflow-sections.ts',
+    'getAutomationsSettingsSearchEntries'
+  ],
+  [
+    'renderer/src/components/settings/appearance/AppearanceWindowSidebarSection.tsx',
+    'showAutomationsButton'
+  ],
+  ['renderer/src/store/slices/worktrees/teardown/remove-worktree.ts', 'snapshotWorkspaceName'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerAutomationHandlers'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'AutomationService'],
+  ['main/startup/main-window-core-services.ts', 'state.automations'],
+  ['main/startup/main-window-controller.ts', 'state.automations'],
+  ['main/startup/main-process-quit.ts', 'state.automations'],
+  ['main/startup/main-process-runtime-launch.ts', 'state.automations'],
+  ['main/startup/main-process-ready-runtime.ts', 'initializeMainProcessAutomations'],
+  ['main/startup/main-process-state.ts', 'AutomationService'],
+  ['main/orcad/orcad-entry.ts', 'startOrcadAutomations'],
+  ['main/orcad/orcad-entry.ts', 'orcadAutomationsKeepHostBusy'],
+  ['main/orcad/orcad-managed-stop-admission.ts', 'stopOrcadAutomationScheduler'],
+  ['main/ipc/wsl/wsl-host-handlers.ts', 'createWslHostAutomationWake'],
+  ['main/runtime/construction/runtime-construction.ts', 'RuntimeAutomationController'],
+  ['main/runtime/construction/runtime-identity-state.ts', 'RuntimeAutomationController'],
+  [
+    'main/runtime/workspaces/persisted-surfaces/automation-operations.ts',
+    'OrcaRuntimeWithAutomationApiOperations'
+  ],
+  [
+    'main/runtime/workspaces/persisted-surfaces/has-exact-persisted-terminal-surface-identity.ts',
+    'setAutomationService'
+  ],
+  ['main/runtime/rpc/methods/orcad-terminal-census.ts', 'releaseFinishedAutomationRunTerminals'],
+  ['main/menu/register-app-menu.ts', "onToggleAppearance('showAutomationsButton')"],
+  ['preload/index.ts', 'automationsApi']
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -338,7 +387,22 @@ const KEPT: readonly (readonly [string, string])[] = [
     'getWorkspaceReferenceLookup'
   ],
   ['renderer/src/components/sidebar/workspace-hover-attachments.ts', 'gateWorktreeCardAttachments'],
-  ['renderer/src/components/sidebar/WorktreeCardMeta.tsx', 'gateWorktreeCardAttachments']
+  ['renderer/src/components/sidebar/WorktreeCardMeta.tsx', 'gateWorktreeCardAttachments'],
+  ['main/runtime/workspaces/persisted-surfaces/automation-operations.ts', 'getOrchestrationDb'],
+  [
+    'main/runtime/workspaces/persisted-surfaces/restored-terminal-placement.ts',
+    'OrcaRuntimeWithAutomationOperations'
+  ],
+  ['main/persistence/loading-store/loaded-state-parsing.ts', 'migrateAutomationOwners'],
+  [
+    'main/persistence/leasing-ssh-ptys/ssh-target-reassignment.ts',
+    'migrateAutomationsForSshReadoption'
+  ],
+  [
+    'main/ipc/worktrees/create/register-worktree-create-handlers.ts',
+    'resolveAutomationWorkspaceProvenance'
+  ],
+  ['main/runtime/rpc/methods/index.ts', 'AUTOMATION_METHODS']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [

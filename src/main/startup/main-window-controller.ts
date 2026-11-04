@@ -58,7 +58,6 @@ export function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}
     openCodeUsage: state.openCodeUsage,
     museUsage: state.museUsage,
     rateLimits: state.rateLimits,
-    automations: state.automations,
     codexAccounts: state.codexAccounts,
     codexRuntimeHome: state.codexRuntimeHome,
     claudeAccounts: state.claudeAccounts,
@@ -229,7 +228,6 @@ export function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}
       }
     }
     clearExpectedRendererReload(rendererWebContentsId)
-    state.automations?.setWebContents(null)
     clearMainWindowAgentStatusListeners()
   })
   logStartupMilestone('load-start')

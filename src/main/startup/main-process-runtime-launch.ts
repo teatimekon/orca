@@ -195,8 +195,6 @@ async function launchServeMode(
   settleDesktopActivation()
   installServeQuitHandling()
   await registerCliForHeadlessServe()
-  // Headless automation cannot wait for a renderer that never opens.
-  state.automations?.start()
   // Arm history-removal GC without a window so interrupted serve deletions do not leak until desktop launch.
   void scheduleAllPendingHistoryTreeRemovals()
   emitServeBrowserIdentityActionLine(getBrowserIdentityModeStatus())

@@ -37,7 +37,6 @@ import { installRuntimeSkillCommandSurface } from '../runtime-skill-command-cont
 import { getAppEnvironment } from '../../../shared/app-environment'
 import { RuntimeClientSettingsController } from '../runtime-client-settings'
 import { RuntimeSessionSearchSettingsController } from '../runtime-session-search-settings'
-import { RuntimeAutomationController } from '../runtime-automation-controller'
 import { RuntimeOrchestrationFederation } from '../runtime-orchestration-federation'
 import { configureAiVaultSessionSources } from '../../ai-vault/cached-session-list'
 import { configureHostReadableTranscriptPathSources } from '../../native-chat/host-readable-transcript-path'
@@ -85,7 +84,6 @@ export abstract class OrcaRuntimeWithStateFields extends OrcaRuntimeWithFileComm
   declare protected readonly agentSessionClaimSigner: HostServices['agentSessionClaimSigner']
   declare protected readonly store: IdentityState['store']
   declare protected readonly clientSettings: IdentityState['clientSettings']
-  declare protected readonly automation: IdentityState['automation']
   declare protected readonly orchestrationEnvironmentTransport: IdentityState['orchestrationEnvironmentTransport']
   declare protected readonly orchestrationFederation: IdentityState['orchestrationFederation']
   declare protected readonly skillCommands: ServiceState['skillCommands']
@@ -205,10 +203,6 @@ export abstract class OrcaRuntimeWithStateFields extends OrcaRuntimeWithFileComm
         skills: () => this.skillCommands.hasSkillCloudService()
       }
     )
-    this.automation = new RuntimeAutomationController(store, {
-      showRepo: (selector) => this.showRepo(selector),
-      showManagedWorktree: (selector, hostId) => this.showManagedWorktree(selector, hostId)
-    })
     const persistedClientTabSelections = store?.getMobileClientTabSelections?.()
     if (persistedClientTabSelections) {
       this.clientSessionTabSelections.hydrate(persistedClientTabSelections)

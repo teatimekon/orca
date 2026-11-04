@@ -12,7 +12,6 @@ import {
 import { WorktreeCardTaskDetailSection } from '../sidebar/WorktreeCardTaskDetailSection'
 import { getWorktreeCardTaskActions } from '../sidebar/worktree-card-task-actions'
 import { WorktreeCardReviewDetailSection } from '../sidebar/WorktreeCardReviewDetailSection'
-import { WorktreeCardAutomationDetailSection } from '../sidebar/WorktreeCardAutomationDetailSection'
 import { WorktreeCardCliDetailSection } from '../sidebar/WorktreeCardCliDetailSection'
 import { WorktreeCardPortsDetails } from '../sidebar/WorktreeCardPorts'
 import { WORKTREE_NATIVE_CONTEXT_MENU_ATTR } from '../sidebar/WorktreeContextMenu'
@@ -140,7 +139,6 @@ function ActivityThreadHoverCardContent({
     showLinearIssue: true,
     showJiraIssue: true,
     showPR: true,
-    showAutomation: true,
     showCli: true,
     showComment: true,
     showPorts: true,
@@ -214,23 +212,6 @@ function ActivityThreadHoverCardContent({
           onOpenLink={onOpenLink}
           onManageLinks={dismissAndRun(foundation.handleManageLinks)}
         />
-
-        {/* Automation Provenance */}
-        {secondary.metaAutomationProvenance && (
-          <WorktreeCardAutomationDetailSection
-            provenance={secondary.metaAutomationProvenance}
-            onOpenAutomation={
-              foundation.handleOpenAutomation
-                ? dismissAndRun(foundation.handleOpenAutomation)
-                : undefined
-            }
-            onOpenAutomationRun={
-              foundation.handleOpenAutomationRun
-                ? dismissAndRun(foundation.handleOpenAutomationRun)
-                : undefined
-            }
-          />
-        )}
 
         {/* CLI Provenance */}
         {secondary.metaCliProvenance && (

@@ -245,35 +245,11 @@ export function AppearanceWindowSidebarSection({
 
                   <SearchableSetting
                     title={translate(
-                      'auto.components.settings.AppearancePane.511f270ebb',
-                      'Show Automations Button'
-                    )}
-                    description={sidebarEntries[0]?.description}
-                    keywords={
-                      sidebarEntries[0]?.keywords ?? ['automations', 'automation', 'schedule']
-                    }
-                  >
-                    <SettingsSwitchRow
-                      label={translate(
-                        'auto.components.settings.AppearancePane.511f270ebb',
-                        'Show Automations Button'
-                      )}
-                      checked={settings.showAutomationsButton !== false}
-                      onChange={() =>
-                        updateSettings({
-                          showAutomationsButton: !(settings.showAutomationsButton !== false)
-                        })
-                      }
-                    />
-                  </SearchableSetting>
-
-                  <SearchableSetting
-                    title={translate(
                       'auto.components.settings.AppearancePane.9da1020447',
                       'Show Orca Mobile Button'
                     )}
-                    description={sidebarEntries[1]?.description}
-                    keywords={sidebarEntries[1]?.keywords ?? ['mobile', 'phone', 'sidebar']}
+                    description={sidebarEntries[0]?.description}
+                    keywords={sidebarEntries[0]?.keywords ?? ['mobile', 'phone', 'sidebar']}
                   >
                     <SettingsSwitchRow
                       label={translate(

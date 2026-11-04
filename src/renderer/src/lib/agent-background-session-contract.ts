@@ -2,7 +2,6 @@ import type { ParsedAgentStatusPayload } from '../../../shared/agent-status-type
 import type { LaunchSource } from '../../../shared/telemetry-events'
 import type { TuiAgent } from '../../../shared/tui-agent'
 import type { AgentStartupPlan } from '@/lib/tui-agent-startup'
-import type { AutomationTerminalOwnership } from '@/lib/automation-terminal-ownership'
 import type { Repo } from '../../../shared/repo-types'
 import type { Worktree } from '../../../shared/worktree/types'
 
@@ -27,7 +26,6 @@ export type LaunchAgentBackgroundSessionResult = {
   paneKey: string
   ptyId: string
   startupPlan: AgentStartupPlan
-  terminalOwnership: AutomationTerminalOwnership | null
   /** Ends a remote runtime's exit wait and data stream; a no-op for local/SSH PTYs. */
   releaseRuntimeObservers: () => void
 }

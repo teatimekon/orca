@@ -12,7 +12,6 @@ import {
   renderOrchestrationSettingsSection
 } from './settings-capability-section-renderers'
 import {
-  renderAutomationsSettingsSection,
   renderGeneralSettingsSection,
   renderMobileSettingsSection,
   renderOrcaAccountSettingsSection,
@@ -129,7 +128,6 @@ export function renderSettingsPage(context: SettingsRenderContext): React.JSX.El
                   {renderOrcaAccountSettingsSection(context)}
                   {renderGeneralSettingsSection(context)}
                   {renderMobileSettingsSection(context)}
-                  {renderAutomationsSettingsSection(context)}
                   {renderShareSkillsSettingsSection(context)}
                   {renderGitSettingsSection(context)}
                   {renderTerminalSettingsSection(context)}

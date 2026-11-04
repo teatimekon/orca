@@ -47,7 +47,6 @@ export function useWorktreeCardController(props: ResolvedWorktreeCardProps) {
     linearIssue: showLinearIssue,
     jiraIssue: showJiraIssue,
     pr: showPR,
-    automation: showAutomation,
     cli: showCli,
     comment: showComment,
     ports: showPorts
@@ -133,7 +132,6 @@ export function useWorktreeCardController(props: ResolvedWorktreeCardProps) {
     showLinearIssue,
     showJiraIssue,
     showPR,
-    showAutomation,
     showCli,
     showComment,
     showPorts,
@@ -167,7 +165,6 @@ export function useWorktreeCardController(props: ResolvedWorktreeCardProps) {
     showLinearIssue,
     showJiraIssue,
     showPR,
-    showAutomation,
     showCli,
     showComment,
     showPorts,

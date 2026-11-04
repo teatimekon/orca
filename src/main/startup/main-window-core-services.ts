@@ -41,7 +41,6 @@ export function attachMainWindowCoreServices(
   const codexAccounts = state.codexAccounts
   const claudeAccounts = state.claudeAccounts
   const rateLimits = state.rateLimits
-  const automations = state.automations
   const keybindings = state.keybindings
   const codexRuntimeHome = state.codexRuntimeHome
   const claudeRuntimeAuth = state.claudeRuntimeAuth
@@ -56,7 +55,6 @@ export function attachMainWindowCoreServices(
     !codexAccounts ||
     !claudeAccounts ||
     !rateLimits ||
-    !automations ||
     !keybindings ||
     !codexRuntimeHome ||
     !claudeRuntimeAuth
@@ -77,7 +75,6 @@ export function attachMainWindowCoreServices(
     claudeAccounts,
     rateLimits,
     window.webContents.id,
-    automations,
     {
       prepareForCodexLaunch: prepareCodexRuntimeHomeForLaunch,
       prepareForClaudeLaunch: (target) => claudeRuntimeAuth.prepareForClaudeLaunch(target),
@@ -130,8 +127,6 @@ export function attachMainWindowCoreServices(
         }
       : undefined
   )
-  automations.setWebContents(window.webContents)
-  automations.start()
   attachMainWindowServices(
     window,
     store,

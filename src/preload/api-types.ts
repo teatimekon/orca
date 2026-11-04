@@ -20,7 +20,6 @@ import type {
 } from './api/agent-usage-api'
 import type { AiVaultApi } from './api/ai-vault-api'
 import type { AppApi, E2EApi, PlatformApi } from './api/app-api'
-import type { AutomationsApi } from './api/automation-api'
 import type { BrowserApi } from './api/browser/browser-api'
 import type { CliApi } from './api/cli-install-api'
 import type { CrashReportsApi, FeedbackApi } from './api/crash-report-api'
@@ -160,7 +159,6 @@ export type PreloadApi = {
   plainSsh?: PlainSshTerminalApi
   /** COMPAT(legacy-relay-bridge): desktop-only, revisit 2027-01-15. */
   legacyRelayBridge?: LegacyRelayBridgeApi
-  automations: AutomationsApi
   wsl: RuntimeApi['wsl']
   wslMove: WslMoveApi
   wslDriveProject: WslDriveProjectApi
@@ -180,7 +178,6 @@ export type {
   OpenCodeUsageApi
 } from './api/agent-usage-api'
 export type { AiVaultApi } from './api/ai-vault-api'
-export type { AutomationsApi, ExternalAutomationManagerResult } from './api/automation-api'
 export type { AppApi } from './api/app-api'
 export type {
   BrowserApi,

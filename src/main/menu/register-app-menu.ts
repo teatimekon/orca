@@ -203,12 +203,6 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
       },
       { type: 'separator' },
       {
-        label: translateMain('menu.showAutomationsButton', 'Show Automations Button'),
-        type: 'checkbox',
-        checked: appearance.showAutomationsButton,
-        click: () => onToggleAppearance('showAutomationsButton')
-      },
-      {
         label: translateMain('menu.showMobileButton', 'Show Orca Mobile Button'),
         type: 'checkbox',
         checked: appearance.showMobileButton,

@@ -21,7 +21,6 @@ import type { TerminalQuickCommandMutation } from '../../../shared/terminal-quic
 import type { NativeChatSessionOptionSettingsMutation } from '../../../shared/native-chat/input/native-chat-session-options'
 import type { WorktreeTerminalStopOptions } from '../terminal/stop/worktree-terminal-stop-options'
 import type { PtyLivenessVerdict } from '../../../shared/pty-liveness-verdict'
-import type { Automation } from '../../../shared/automations-types'
 
 export abstract class OrcaRuntimeWithPtyForegroundProcessReads extends OrcaRuntimeWithStateFields {
   abstract retireStructuredAgentSessionTabFromSnapshot(sessionId: string): boolean
@@ -225,9 +224,5 @@ export abstract class OrcaRuntimeWithPtyForegroundProcessReads extends OrcaRunti
 
   updateClientNativeChatSessionOptions(mutation: NativeChatSessionOptionSettingsMutation): void {
     this.clientSettings.updateNativeChatSessionOptions(mutation)
-  }
-
-  listAutomations(): Automation[] {
-    return this.automation.list()
   }
 }

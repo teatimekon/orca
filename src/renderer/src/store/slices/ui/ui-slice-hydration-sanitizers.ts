@@ -184,7 +184,8 @@ export function sanitizeHydratedActiveView(value: PersistedUIState['activeView']
     !isTopLevelView(value) ||
     value === 'activity' ||
     value === 'artifacts' ||
-    value === 'tasks'
+    value === 'tasks' ||
+    value === 'automations'
   ) {
     return 'terminal'
   }

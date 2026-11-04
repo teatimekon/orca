@@ -25,7 +25,6 @@ const WorktreeCreationPanel = lazy(
 const PendingNativeChatCreation = lazy(
   () => import('../components/worktree-creation/PendingNativeChatCreation')
 )
-const AutomationsPage = lazy(() => import('../components/automations/AutomationsPage'))
 const Settings = lazy(() => import('../components/settings/Settings'))
 const SkillsPage = lazy(() => import('../components/skills/SkillsPage'))
 const WorkspaceSpacePage = lazy(() => import('../components/workspace-space/WorkspaceSpacePage'))
@@ -88,7 +87,6 @@ function ActivePage({ layout }: { layout: AppChromeLayout }): React.JSX.Element 
     <>
       {activeView === 'settings' ? <Settings /> : null}
       {activeView === 'skills' ? <SkillsPage /> : null}
-      {activeView === 'automations' ? <AutomationsPage /> : null}
       {activeView === 'space' ? <WorkspaceSpacePage /> : null}
       {activeView === 'mobile' ? <MobilePage /> : null}
       {activeView === 'terminal' && creationLayoutActive && activePendingCreationId ? (

@@ -28,7 +28,6 @@ export function useWorktreeCardSecondaryDetails({
   showLinearIssue,
   showJiraIssue,
   showPR,
-  showAutomation,
   showCli,
   showComment,
   showPorts,
@@ -68,7 +67,6 @@ export function useWorktreeCardSecondaryDetails({
     showLinearIssue: boolean
     showJiraIssue: boolean
     showPR: boolean
-    showAutomation: boolean
     showCli: boolean
     showComment: boolean
     showPorts: boolean
@@ -85,7 +83,6 @@ export function useWorktreeCardSecondaryDetails({
   const metaLinearIssue = showLinearIssue ? hoverLinearIssue : null
   const metaJiraIssue = showJiraIssue ? hoverJiraIssue : null
   const metaReview = showPR ? hoverReview : null
-  const metaAutomationProvenance = showAutomation ? worktree.automationProvenance : null
   const metaCliProvenance = showCli ? worktree.cliProvenance : null
   const metaComment = showComment ? hoverComment : null
   const showInlineAgentList = cardDetails.inlineAgents
@@ -204,7 +201,6 @@ export function useWorktreeCardSecondaryDetails({
       jiraIssue: metaJiraIssue,
       review: newCardStyle ? null : metaReview,
       comment: metaComment,
-      automationProvenance: metaAutomationProvenance,
       cliProvenance: metaCliProvenance
     })
   const hasPorts = showPorts && workspacePorts.length > 0
@@ -224,7 +220,6 @@ export function useWorktreeCardSecondaryDetails({
     metaLinearIssue,
     metaJiraIssue,
     metaReview,
-    metaAutomationProvenance,
     metaCliProvenance,
     metaComment,
     showInlineAgentList,

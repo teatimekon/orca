@@ -9,6 +9,7 @@ describe('sanitizeHydratedActiveView in the pure build', () => {
     expect(sanitizeHydratedActiveView('activity')).toBe('terminal')
     expect(sanitizeHydratedActiveView('artifacts')).toBe('terminal')
     expect(sanitizeHydratedActiveView('tasks')).toBe('terminal')
+    expect(sanitizeHydratedActiveView('automations')).toBe('terminal')
   })
 
   it('keeps other views unchanged', () => {

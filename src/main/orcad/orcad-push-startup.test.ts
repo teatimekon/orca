@@ -89,11 +89,6 @@ vi.mock('./orcad-daemon-supervision', () => ({
   stopOrcadDaemon: state.stopDaemon
 }))
 vi.mock('./orcad-health', () => ({ collectOrcadHealth: async () => ({}) }))
-vi.mock('./orcad-automations', () => ({
-  startOrcadAutomations: () => {},
-  stopOrcadAutomationScheduler: () => {},
-  orcadAutomationsKeepHostBusy: () => false
-}))
 // Prevent network rule downloads in this unit test.
 vi.mock('../runtime/agent-state-rules/agent-state-rules-live-update', () => ({
   startAgentStateRulesLiveUpdates: () => {}

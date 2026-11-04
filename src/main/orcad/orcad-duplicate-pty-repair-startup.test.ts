@@ -88,11 +88,6 @@ vi.mock('./orcad-daemon-supervision', () => ({
   stopOrcadDaemon: async () => {}
 }))
 vi.mock('./orcad-health', () => ({ collectOrcadHealth: async () => ({}) }))
-vi.mock('./orcad-automations', () => ({
-  startOrcadAutomations: () => {},
-  stopOrcadAutomationScheduler: () => {},
-  orcadAutomationsKeepHostBusy: () => false
-}))
 vi.mock('../runtime/agent-state-rules/agent-state-rules-live-update', () => ({
   startAgentStateRulesLiveUpdates: () => {}
 }))

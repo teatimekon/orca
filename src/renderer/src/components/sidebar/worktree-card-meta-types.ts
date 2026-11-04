@@ -2,7 +2,6 @@ import type { IssueInfo } from '../../../../shared/github/pull-request-types'
 import type {
   Worktree,
   WorkspaceAttachment,
-  AutomationWorkspaceProvenance,
   CliWorkspaceProvenance
 } from '../../../../shared/worktree/types'
 import type { WorktreeCardPrDisplay } from './worktree-card-pr-display'
@@ -43,7 +42,6 @@ export type WorktreeCardMetaBadgesProps = {
   jiraIssue?: WorktreeCardJiraIssueDisplay | null
   review: WorktreeCardPrDisplay | null
   comment: string | null
-  automationProvenance?: AutomationWorkspaceProvenance | null
   cliProvenance?: CliWorkspaceProvenance | null
 }
 
@@ -71,7 +69,5 @@ export type WorktreeCardDetailsHoverProps = WorktreeCardMetaBadgesProps & {
   onOpenReviewInOrca?: (event: React.MouseEvent, review?: WorktreeCardPrDisplay) => void
   onOpenReviewInBrowser?: (url: string) => void
   onUnlinkReview?: (item?: WorkspaceAttachment) => void
-  onOpenAutomation?: (event: React.MouseEvent) => void
-  onOpenAutomationRun?: (event: React.MouseEvent) => void
   hoverControl?: WorktreeCardDetailsHoverControl
 }

@@ -19,7 +19,6 @@ import type {
   TerminalWorkspaceLaunchScope
 } from '../../runtime-legacy-worker-terminal-recovery-types'
 import { getLatestPtyTitle } from '../../runtime-worktree-status-projection'
-import type { AutomationService } from '../../../automations/service'
 import type { ArtifactCloudService } from '../../../artifacts/artifact-cloud-service'
 import type {
   ArtifactCloudOperation,
@@ -257,14 +256,6 @@ export abstract class OrcaRuntimeWithHasExactPersistedTerminalSurfaceIdentity ex
       identity.leafId === candidate.leafId &&
       identity.ptyId === candidate.ptyId
     )
-  }
-
-  setAutomationService(service: AutomationService): void {
-    this.automation.setService(service)
-  }
-
-  releaseFinishedAutomationRunTerminals(): Promise<number> {
-    return this.automation.releaseFinishedRunTerminals()
   }
 
   setArtifactService(service: ArtifactCloudService): void {

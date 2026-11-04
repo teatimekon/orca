@@ -8,7 +8,6 @@ import {
   installRendererCrashDiagnostics,
   recordRendererCrashBreadcrumb
 } from './lib/crash-diagnostics'
-import { installAutomationHostDiagnostic } from './components/automations/automation-host-diagnostics'
 import {
   applyCachedPluginAppTheme,
   applyDocumentTheme,
@@ -35,7 +34,6 @@ import.meta.hot?.dispose(disposeBodyOverlayAttributes)
 recordRendererCrashBreadcrumb('renderer_bootstrap_started', { dev: import.meta.env.DEV })
 installRendererCrashDiagnostics('main', { sampleMemory: false })
 installAppKeyboardRouter()
-installAutomationHostDiagnostic()
 
 if (
   import.meta.env.DEV &&

@@ -25,7 +25,6 @@ import type {
 } from './worktree-card-meta-types'
 import { translate } from '@/i18n/i18n'
 import { WorktreeCardReviewDetailSection } from './WorktreeCardReviewDetailSection'
-import { WorktreeCardAutomationDetailSection } from './WorktreeCardAutomationDetailSection'
 import { WorktreeCardCliDetailSection } from './WorktreeCardCliDetailSection'
 import { WorktreeCardTaskDetailSection } from './WorktreeCardTaskDetailSection'
 import { getWorktreeCardTaskActions } from './worktree-card-task-actions'
@@ -60,7 +59,6 @@ export function WorktreeCardDetailsHover({
   jiraIssue,
   review,
   comment,
-  automationProvenance,
   cliProvenance,
   children,
   branchName,
@@ -79,8 +77,6 @@ export function WorktreeCardDetailsHover({
   onOpenLinearIssueInOrca,
   onOpenReviewInOrca,
   onUnlinkReview,
-  onOpenAutomation,
-  onOpenAutomationRun,
   hoverControl
 }: WorktreeCardDetailsHoverProps): React.JSX.Element {
   const internalHoverControl = useWorktreeCardDetailsHoverControl()
@@ -148,7 +144,6 @@ export function WorktreeCardDetailsHover({
       jiraIssue,
       review,
       comment,
-      automationProvenance,
       cliProvenance
     }) &&
     !detailsAfter
@@ -240,16 +235,6 @@ export function WorktreeCardDetailsHover({
               />
             )}
           />
-
-          {automationProvenance && (
-            <WorktreeCardAutomationDetailSection
-              provenance={automationProvenance}
-              onOpenAutomation={onOpenAutomation ? dismissAndRun(onOpenAutomation) : undefined}
-              onOpenAutomationRun={
-                onOpenAutomationRun ? dismissAndRun(onOpenAutomationRun) : undefined
-              }
-            />
-          )}
 
           {cliProvenance && <WorktreeCardCliDetailSection provenance={cliProvenance} />}
 

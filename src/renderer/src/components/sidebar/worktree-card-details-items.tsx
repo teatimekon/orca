@@ -40,7 +40,6 @@ export function renderWorktreeCardIndicators(
           jiraIssue={card.metaJiraIssue}
           review={newCardStyle ? null : card.metaReview}
           comment={card.metaComment}
-          automationProvenance={card.metaAutomationProvenance}
           cliProvenance={card.metaCliProvenance}
           className="ml-0 pr-0"
         />
@@ -78,7 +77,6 @@ export function WorktreeCardMetaDetailsHover({
       jiraIssue={card.metaJiraIssue}
       review={metaReview}
       comment={card.metaComment}
-      automationProvenance={card.metaAutomationProvenance}
       cliProvenance={card.metaCliProvenance}
       detailsAfter={card.hasPorts ? <WorktreeCardPortsDetails ports={workspacePorts} /> : null}
       hoverControl={card.detailsHoverControl}
@@ -88,8 +86,6 @@ export function WorktreeCardMetaDetailsHover({
         metaIssue && 'url' in metaIssue && metaIssue.url ? card.handleOpenIssueInBrowser : undefined
       }
       onOpenReviewInBrowser={metaReview?.url ? card.handleOpenReviewInBrowser : undefined}
-      onOpenAutomation={affiliateListMode ? undefined : card.handleOpenAutomation}
-      onOpenAutomationRun={affiliateListMode ? undefined : card.handleOpenAutomationRun}
       onUnlinkReview={canUnlink(card) ? card.handleUnlinkReview : undefined}
     >
       {children}
@@ -123,7 +119,6 @@ export function WorktreeCardIdentityHover({
       jiraIssue={card.hoverJiraIssue}
       review={hoverReview}
       comment={card.hoverComment}
-      automationProvenance={card.metaAutomationProvenance}
       cliProvenance={card.metaCliProvenance}
       branchName={branchName}
       workspaceTitle={workspaceTitle}
@@ -154,8 +149,6 @@ export function WorktreeCardIdentityHover({
           : undefined
       }
       onOpenReviewInBrowser={hoverReview?.url ? card.handleOpenReviewInBrowser : undefined}
-      onOpenAutomation={affiliateListMode ? undefined : card.handleOpenAutomation}
-      onOpenAutomationRun={affiliateListMode ? undefined : card.handleOpenAutomationRun}
       onUnlinkReview={canUnlink(card) ? card.handleUnlinkReview : undefined}
     >
       {React.cloneElement(children, { ref })}

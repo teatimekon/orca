@@ -50,7 +50,6 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
     remoteBranchConflict,
     visibleCardTitle,
     workspacePorts,
-    metaAutomationProvenance,
     metaCliProvenance,
     hoverIssue,
     hoverLinearIssue,
@@ -130,7 +129,6 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
         jiraIssue: hoverJiraIssue,
         review: hoverReview,
         comment: hoverComment,
-        automationProvenance: metaAutomationProvenance,
         cliProvenance: metaCliProvenance
       }) ||
       workspacePorts.length > 0 ||

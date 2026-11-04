@@ -1,22 +1,32 @@
 import { getWorkerTerminalAutoReleaseScheduler } from '../../orchestration/worker-terminal-auto-release-scheduler'
 import type { ResolvedWorktree } from '../../runtime-worktree-path-identity'
-import { OrcaRuntimeWithAutomationApiOperations } from './automation-api-operations'
+import { OrcaRuntimeWithCrewOperations } from './crew-operations'
 import { OrchestrationDb } from '../../orchestration/db'
 import {
   committedHandBackTypes,
   type MailHandBack
 } from '../../orchestration/db/messages/helper-mailbox-hand-back'
 import { existsSync } from 'node:fs'
+import type { Automation, AutomationRun } from '../../../../shared/automations-types'
 import type { LegacyWorkerTerminalRecoveryPlan } from '../../orchestration/orchestration-legacy-worker-terminal-recovery'
 import type { LegacyWorkerTerminalRecoveryResult } from '../../runtime-legacy-worker-terminal-recovery-types'
 
-export abstract class OrcaRuntimeWithAutomationOperations extends OrcaRuntimeWithAutomationApiOperations {
+export abstract class OrcaRuntimeWithAutomationOperations extends OrcaRuntimeWithCrewOperations {
   abstract ensureOrchestrationFederationRelay(runId?: string): void
   protected abstract scheduleRestoredMessageRepoints(): void
   /** Mail a worker left unread when it reported before a restart still continues it. */
   protected abstract continueRestoredWorkerMail(db: OrchestrationDb): void
   protected abstract getResolvedWorktreeMap(): Promise<Map<string, ResolvedWorktree>>
   protected abstract getLeafKey(tabId: string, leafId: string): string
+
+  /** zyx/orca-pure: no automation service; worktree-create provenance checks see no automations. */
+  showAutomation(_id: string): Automation {
+    throw new Error('runtime_unavailable')
+  }
+
+  listAutomationRuns(_automationId?: string): AutomationRun[] {
+    return []
+  }
 
   // Defer until userData is final; tests can inject an in-memory DB.
   getOrchestrationDb(): OrchestrationDb {

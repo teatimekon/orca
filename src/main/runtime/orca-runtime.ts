@@ -303,10 +303,6 @@ const OrcaRuntimeServiceExport: {
 export { OrcaRuntimeServiceExport as OrcaRuntimeService }
 
 export type { LegacyWorkerTerminalRecoveryResult } from './runtime-legacy-worker-terminal-recovery-types'
-export type {
-  RuntimeAutomationCreateInput,
-  RuntimeAutomationUpdateInput
-} from './runtime-automation-controller'
 export type { SubscriptionRegistration } from './runtime-subscription-registry'
 export type { MessageWaitResult } from './runtime-message-waiters'
 export type { AccountsSnapshot, CodexRateLimitResetRpcResult } from './runtime-account-controller'

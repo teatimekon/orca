@@ -24,9 +24,6 @@ vi.mock('../../wsl/host-lifecycle/wsl-host-e2e-fake-connector', () => ({
   readFakeWslHostsConfig: () => undefined
 }))
 vi.mock('../../orcad/orcad-artifact-materializer', () => ({ hasOrcadTemplate: () => undefined }))
-vi.mock('./wsl-host-automation-wake-wiring', () => ({
-  createWslHostAutomationWake: () => undefined
-}))
 vi.mock('../../wsl/host-lifecycle/wsl-host-gate', async (importOriginal) => ({
   // The rest stay real, so a gate export added later never breaks this suite's handler wiring.
   ...(await importOriginal<typeof WslHostGate>()),

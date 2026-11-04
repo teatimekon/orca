@@ -1,7 +1,6 @@
 import { useAppStore } from '../store'
 import { useClosedEditorTabCleanup } from '../components/editor/useClosedEditorTabCleanup'
 import { useIpcEvents } from '../hooks/useIpcEvents'
-import { useAutomationDispatchEvents } from '../hooks/useAutomationDispatchEvents'
 import { useReadOnScreenAttention } from '../hooks/useReadOnScreenAttention'
 import { useAppMenuPaste } from '../hooks/useAppMenuPaste'
 import { useAppMenuSelectionActions } from '../hooks/useAppMenuSelectionActions'
@@ -40,7 +39,6 @@ export function useAppShellServices(): void {
   useProfileStateSaveDelayNotice()
   useRemoteRuntimeRecoveryTriggers()
   useTerminalViewerColorPublication()
-  useAutomationDispatchEvents()
   useReadOnScreenAttention()
   useAppMenuPaste()
   useAppMenuSelectionActions()

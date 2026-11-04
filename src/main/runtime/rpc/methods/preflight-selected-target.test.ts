@@ -17,8 +17,6 @@ import { PREFLIGHT_METHODS } from './preflight'
 import type { Repo } from '../../../../shared/repo-types'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
 import { PREFLIGHT_RUNTIME_CAPABILITIES } from '../../../../shared/preflight-runtime-capabilities'
-import { launchHeadlessAutomationAgent } from '../../../automations/headless-automation-agent-launch'
-import type { Automation, AutomationRun } from '../../../../shared/automations-types'
 import type * as WorkspaceAgentDetection from '../../../preflight/workspace-agent-detection'
 
 const { refresh, deliver } = vi.hoisted(() => ({
@@ -49,96 +47,6 @@ afterEach(() => {
 })
 
 describe('qualified discovery at the runtime RPC boundary', () => {
-  it('reuses an exact saved SSH folder without importing fresh path refusal, but refuses a missing selected folder before input', async () => {
-    const folder = makeFolderWorkspace({
-      id: 'dup',
-      folderPath: '/unserved/remote',
-      executionHostId: 'ssh:a%2Fb'
-    })
-    const folders = [folder]
-    const runtime = new OrcaRuntimeService({ ...store, getFolderWorkspaces: () => folders })
-    const repo: Repo = {
-      ...store.getRepos()[0]!,
-      id: 'repo-1',
-      path: '/unserved/remote',
-      connectionId: 'a/b'
-    }
-    const automation: Automation = {
-      id: 'saved-folder',
-      name: 'Saved folder',
-      prompt: 'Continue review',
-      agentId: 'claude',
-      projectId: repo.id,
-      workspaceMode: 'existing',
-      workspaceId: 'folder:dup',
-      reuseSession: true,
-      precheck: null,
-      baseBranch: null,
-      executionTargetType: 'ssh',
-      executionTargetId: 'a/b',
-      schedulerOwner: 'ssh_bridge',
-      timezone: 'UTC',
-      rrule: '0 9 * * *',
-      dtstart: 1,
-      enabled: false,
-      nextRunAt: 2,
-      missedRunPolicy: 'run_once_within_grace',
-      missedRunGraceMinutes: 720,
-      createdAt: 1,
-      updatedAt: 1
-    }
-    const previous: AutomationRun = {
-      id: 'old',
-      automationId: automation.id,
-      title: 'Saved folder',
-      status: 'completed',
-      trigger: 'scheduled',
-      scheduledFor: 1,
-      createdAt: 1,
-      startedAt: 1,
-      dispatchedAt: 1,
-      workspaceId: 'folder:dup',
-      sessionKind: 'terminal',
-      chatSessionId: null,
-      terminalSessionId: 'tab-old',
-      terminalPaneKey: 'tab-old:leaf',
-      terminalPtyId: 'pty-old',
-      outputSnapshot: null,
-      precheckResult: null,
-      usage: null,
-      error: null
-    }
-    Object.defineProperties(runtime, {
-      getAgentStatusRowsForPane: {
-        value: () => [{ state: 'done', agentType: 'claude', receivedAt: 1 }]
-      },
-      getTerminalHandleForPaneKey: { value: () => 'live-handle' },
-      getTerminalPtyIdForHandle: { value: () => 'pty-old' },
-      getTerminalWorktreeIdForHandle: { value: () => 'folder:dup' },
-      getPtyExecutionHostMetadata: { value: () => ({ executionHostId: 'ssh:a%2Fb' }) }
-    })
-    const request = {
-      automation,
-      run: { id: 'current', title: 'Current', scheduledFor: 2, trigger: 'scheduled' as const },
-      target: { ok: true as const, repo, cwd: repo.path },
-      runs: [previous]
-    }
-    deliver.mockClear()
-    await expect(
-      runtime.showManagedTerminalWorkspace('id:folder:dup', 'ssh:a%2Fb')
-    ).rejects.toThrow('folder_workspace_path_unavailable')
-    await expect(launchHeadlessAutomationAgent(runtime, request)).resolves.toMatchObject({
-      terminalHandle: 'live-handle',
-      workspaceId: 'folder:dup'
-    })
-    expect(deliver).toHaveBeenCalledTimes(1)
-    folders.splice(folders.indexOf(folder), 1)
-    await expect(launchHeadlessAutomationAgent(runtime, request)).rejects.toThrow(
-      'selector_not_found'
-    )
-    expect(deliver).toHaveBeenCalledTimes(1)
-  })
-
   it.each([false, true])(
     'retains the selected folder through path validation, startup and actual create (reverse=%s)',
     async (reverse) => {

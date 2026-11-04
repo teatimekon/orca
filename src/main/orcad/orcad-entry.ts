@@ -20,7 +20,6 @@ import { prepareOrcadManagedStop } from './orcad-managed-stop-admission'
 import { bindOrcadStopTerminalAdmission } from './orcad-stop-terminal-admission'
 import type { OrcadHandle, OrcadOptions } from './orcad-start-contract'
 import { beginOrcadIdleExit, bindOrcadIdleShutdown } from './orcad-managed-idle-exit-host'
-import { orcadAutomationsKeepHostBusy, startOrcadAutomations } from './orcad-automations'
 import { changedAiVaultSearchSettings } from '../../shared/ai-vault-search-settings'
 import type { AiVaultSearchSettings } from '../../shared/ai-vault-search-settings'
 import { stampRuntimeSourceEnv } from '../../shared/runtime-source-env'
@@ -310,7 +309,6 @@ async function startOrcadRuntime(
   // Stop RPC before cleanup can tear down writers and runtime state.
   registerCleanup(() => rpc.stop())
   await timed('rpc', () => rpc.start())
-  startOrcadAutomations(runtime, profileStore, registerCleanup)
   const pushService = DesktopPushService.create({
     runtime,
     runtimeRpc: rpc,
@@ -340,7 +338,7 @@ async function startOrcadRuntime(
     rpc,
     agentStates: () => agentHookServer.getStatusSnapshot(),
     hasStagedMigration: () => profileStore.hasStagedOrcadMigrationCatalog(),
-    automationsBusy: () => orcadAutomationsKeepHostBusy(profileStore),
+    automationsBusy: () => false,
     emulatorsBusy: async () =>
       (await runtime.getEmulatorBridge()?.hasLiveManagedSessions()) ?? false,
     registerCleanup
