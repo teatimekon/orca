@@ -33,7 +33,6 @@ const SleepTwinWorkspaceDialog = lazyWithRetry(() => import('./SleepTwinWorkspac
 const WorktreeVisibilityDialog = lazyWithRetry(() => import('./WorktreeVisibilityDialog'))
 const OrcaYamlTrustDialog = lazyWithRetry(() => import('./OrcaYamlTrustDialog'))
 const ForgetSshWorkspaceDialog = lazyWithRetry(() => import('./ForgetSshWorkspaceDialog'))
-const AgentDashboardSidebarHost = lazyWithRetry(() => import('./AgentDashboardSidebarHost'))
 
 const MIN_WIDTH = 220
 const MAX_WIDTH = 500
@@ -266,17 +265,6 @@ function Sidebar({
           onOpenChange={handleWorkspaceBoardOpenChange}
           onMenuOpenChange={setWorkspaceBoardMenuOpen}
         />
-      ) : null}
-      {showAgentDashboard ? (
-        <React.Suspense fallback={null}>
-          <AgentDashboardSidebarHost
-            sidebarOpen={sidebarOpen}
-            workspaceBoardOpen={workspaceBoardOpen}
-            closeWorkspaceBoard={closeWorkspaceBoard}
-            leftSidebarStyle={leftSidebarStyle}
-            statusBarVisible={statusBarVisible}
-          />
-        </React.Suspense>
       ) : null}
     </TooltipProvider>
   )

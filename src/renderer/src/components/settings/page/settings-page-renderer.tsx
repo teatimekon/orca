@@ -14,7 +14,6 @@ import {
   renderOrchestrationSettingsSection
 } from './settings-capability-section-renderers'
 import {
-  renderArtifactsSettingsSection,
   renderSessionHistorySettingsSection,
   renderAutomationsSettingsSection,
   renderGeneralSettingsSection,
@@ -142,7 +141,6 @@ export function renderSettingsPage(context: SettingsRenderContext): React.JSX.El
                   {renderIntegrationsSettingsSection(context)}
                   {renderMobileSettingsSection(context)}
                   {renderAutomationsSettingsSection(context)}
-                  {renderArtifactsSettingsSection(context)}
                   {renderShareSkillsSettingsSection(context)}
                   {renderSessionHistorySettingsSection(context)}
                   {renderGitSettingsSection(context)}

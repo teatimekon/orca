@@ -2,7 +2,6 @@
 
 import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { getDefaultSettings } from '../../../../shared/constants'
@@ -216,14 +215,7 @@ describe('SidebarNav', () => {
     setSidebarState()
   })
 
-  it('keeps the Agent Dashboard row unmounted while its experiment is off', async () => {
-    const container = await renderSidebarNav()
-
-    expect(queryButtonByText(container, 'Agent Dashboard')).toBeNull()
-    expect(mocks.getAgentBucketCounts).not.toHaveBeenCalled()
-  })
-
-  it('mounts the Agent Dashboard row only when its experiment is enabled', async () => {
+  it('never mounts the Agent Dashboard row, even with the experiment enabled', async () => {
     setSidebarState({
       settings: {
         ...getDefaultSettings('/tmp'),
@@ -232,35 +224,8 @@ describe('SidebarNav', () => {
     })
     const container = await renderSidebarNav()
 
-    await waitFor(() => expect(queryButtonByText(container, 'Agent Dashboard')).not.toBeNull())
-    expect(mocks.getAgentBucketCounts).toHaveBeenCalledTimes(1)
-  })
-
-  it('uses a question glyph only for the Needs You count', async () => {
-    mocks.agentBucketCounts = { attention: 2, working: 3, done: 1, idle: 4 }
-    setSidebarState({
-      settings: {
-        ...getDefaultSettings('/tmp'),
-        experimentalAgentDashboardPopout: true,
-        experimentalAgentDashboardShowIdle: true
-      }
-    })
-    const container = await renderSidebarNav()
-
-    await waitFor(() =>
-      expect(container.querySelector('[aria-label="Needs You: 2"]')).not.toBeNull()
-    )
-    const attention = container.querySelector('[aria-label="Needs You: 2"]')
-    const working = container.querySelector('[aria-label="Working: 3"]')
-    const done = container.querySelector('[aria-label="Done: 1"]')
-    const idle = container.querySelector('[aria-label="Idle: 4"]')
-    expect(attention?.querySelector('.lucide-message-circle-question-mark')).not.toBeNull()
-    expect(working?.querySelector('.rounded-full')).not.toBeNull()
-    expect(done?.querySelector('.rounded-full')).not.toBeNull()
-    expect(idle?.querySelector('.rounded-full')).not.toBeNull()
-    expect(working?.querySelector('svg')).toBeNull()
-    expect(done?.querySelector('svg')).toBeNull()
-    expect(idle?.querySelector('svg')).toBeNull()
+    expect(queryButtonByText(container, 'Agent Dashboard')).toBeNull()
+    expect(mocks.getAgentBucketCounts).not.toHaveBeenCalled()
   })
 
   it('shows the Mobile entry by default for older settings', () => {
@@ -275,28 +240,13 @@ describe('SidebarNav', () => {
     expect(shouldShowArtifactsButton({ showArtifactsButton: false })).toBe(false)
   })
 
-  it('opens Artifacts from the sidebar', async () => {
+  it('never renders Artifacts, even with showArtifactsButton', async () => {
     setSidebarState({
       settings: { ...getDefaultSettings('/tmp'), showArtifactsButton: true }
     })
     const container = await renderSidebarNav()
 
-    await clickButton(getButtonByText(container, 'Artifacts'))
-
-    expect(mocks.openArtifactsPage).toHaveBeenCalledOnce()
-  })
-
-  it('hides Artifacts from its context menu', async () => {
-    setSidebarState({
-      settings: { ...getDefaultSettings('/tmp'), showArtifactsButton: true }
-    })
-    const container = await renderSidebarNav()
-    const row = getButtonByText(container, 'Artifacts')
-    const menu = row.closest('[data-testid="context-menu"]')
-
-    await clickButton(getHideButton(menu as Element))
-
-    expect(mocks.updateSettings).toHaveBeenCalledWith({ showArtifactsButton: false })
+    expect(queryButtonByText(container, 'Artifacts')).toBeNull()
   })
 
   it('hides the Mobile entry when the sidebar setting is off', () => {

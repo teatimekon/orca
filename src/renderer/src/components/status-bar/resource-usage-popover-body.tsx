@@ -1,5 +1,4 @@
 import React, { type Dispatch, type SetStateAction } from 'react'
-import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import type { MemorySnapshot } from '../../../../shared/process-stats-types'
@@ -171,7 +170,6 @@ export function renderResourceUsagePopoverBody({
 }
 
 export function renderResourceUsagePopoverFooter({
-  handleOpenWorkspaceCleanup,
   orphanCount,
   handleKillOrphans
 }: {
@@ -181,24 +179,11 @@ export function renderResourceUsagePopoverFooter({
 }): React.JSX.Element {
   return (
     <div className="border-t border-border/50 px-3 py-2 shrink-0">
-      <button
-        type="button"
-        onClick={handleOpenWorkspaceCleanup}
-        className="relative inline-flex w-full items-center justify-center rounded-md border border-border/70 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent/60"
-      >
-        <span className="min-w-0 truncate px-4 text-center">
-          {translate(
-            'auto.components.status.bar.ResourceUsageStatusSegment.92924a14e3',
-            'Clean up workspaces'
-          )}
-        </span>
-        <ChevronRight className="absolute right-2.5 size-3.5 text-muted-foreground" aria-hidden />
-      </button>
       {orphanCount > 0 ? (
         <button
           type="button"
           onClick={() => void handleKillOrphans()}
-          className="mt-2 inline-flex w-full items-center justify-center rounded-md border border-border/70 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent/60"
+          className="inline-flex w-full items-center justify-center rounded-md border border-border/70 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent/60"
         >
           {translate(
             'auto.components.status.bar.ResourceUsageStatusSegment.endOrphanTerminals',

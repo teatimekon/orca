@@ -8,7 +8,6 @@ import { getExperimentalSearchEntry } from './experimental-search'
 import { HiddenExperimentalGroup } from './HiddenExperimentalGroup'
 import { NumberField, SettingsSwitch } from '../form-controls/SettingsFormControls'
 import { translate } from '@/i18n/i18n'
-import { AgentDashboardExperimentalSetting } from '../../dashboard/AgentDashboardExperimentalSetting'
 import { EphemeralVmsExperimentalSetting } from '../virtual-machines/recipes/EphemeralVmsExperimentalSetting'
 import { BrowserExtensionsExperimentalSetting } from '../browser/extensions/BrowserExtensionsExperimentalSetting'
 import { OrchestrationPanelExperimentalSetting } from '../orchestration/OrchestrationPanelExperimentalSetting'
@@ -36,9 +35,6 @@ export function ExperimentalPane({
 }: ExperimentalPaneProps): React.JSX.Element {
   const searchQuery = useAppStore((s) => s.settingsSearchQuery)
   const showPet = matchesSettingsSearch(searchQuery, [getExperimentalSearchEntry().pet])
-  const showAgentDashboard = matchesSettingsSearch(searchQuery, [
-    getExperimentalSearchEntry().agentDashboard
-  ])
   const showTerminalAttention = matchesSettingsSearch(searchQuery, [
     getExperimentalSearchEntry().terminalAttention
   ])
@@ -57,10 +53,6 @@ export function ExperimentalPane({
 
   return (
     <div className="space-y-4">
-      {showAgentDashboard ? (
-        <AgentDashboardExperimentalSetting settings={settings} updateSettings={updateSettings} />
-      ) : null}
-
       {showPet ? (
         <SearchableSetting
           title={translate('auto.components.settings.ExperimentalPane.dd6f0a1d45', 'Pet')}

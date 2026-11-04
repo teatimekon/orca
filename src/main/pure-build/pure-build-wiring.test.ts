@@ -50,7 +50,28 @@ const REMOVED: readonly (readonly [string, string])[] = [
   ],
   ['main/menu/register-app-menu.ts', 'featureTourItem'],
   ['main/menu/register-app-menu.ts', 'setupGuideItem'],
-  ['main/startup/main-process-ready-runtime.ts', 'starNag.start()']
+  ['main/startup/main-process-ready-runtime.ts', 'starNag.start()'],
+  // O17 prototype pages and agent dashboard
+  ['renderer/src/app-shell/AppWorkspaceShell.tsx', 'ActivityPrototypePage'],
+  ['renderer/src/app-shell/AppWorkspaceShell.tsx', 'ArtifactsPage'],
+  ['renderer/src/app-shell/AppBackgroundServices.tsx', 'DashboardPopoutBridge'],
+  ['renderer/src/components/sidebar/SidebarNav.tsx', 'AgentDashboardSidebarEntry'],
+  ['renderer/src/components/sidebar/SidebarNav.tsx', 'openArtifactsPage'],
+  ['renderer/src/components/sidebar/index.tsx', 'AgentDashboardSidebarHost'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'WorkspaceCleanupDialog'],
+  [
+    'renderer/src/components/status-bar/resource-usage-popover-body.tsx',
+    'onClick={handleOpenWorkspaceCleanup}'
+  ],
+  [
+    'renderer/src/components/settings/advanced/ExperimentalPane.tsx',
+    'AgentDashboardExperimentalSetting'
+  ],
+  [
+    'renderer/src/components/settings/page/settings-page-renderer.tsx',
+    'renderArtifactsSettingsSection'
+  ],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerDashboardPopoutHandlers']
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -79,7 +100,8 @@ const KEPT: readonly (readonly [string, string])[] = [
   ['main/startup/main-process-ready-runtime.ts', 'starNag.registerIpcHandlers()'],
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerOnboardingHandlers'],
   ['main/updater/nudges/updater-nudge.ts', 'SELF_BUILT_BUILD'],
-  ['main/updater/lifecycle/updater-setup.ts', 'SELF_BUILT_BUILD']
+  ['main/updater/lifecycle/updater-setup.ts', 'SELF_BUILT_BUILD'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'isDashboardPopoutRenderer']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [

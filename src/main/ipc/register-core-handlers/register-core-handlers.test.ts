@@ -574,6 +574,7 @@ describe('registerCoreHandlers', () => {
       undefined,
       { getAdditionalAiVaultCodexHomePaths, onBeforeRelaunch }
     )
+    expect(registerDashboardPopoutHandlersMock).not.toHaveBeenCalled()
 
     const aiVaultOptions = registerAiVaultHandlersMock.mock.calls[0]?.[0]
     expect(aiVaultOptions).toBeDefined()

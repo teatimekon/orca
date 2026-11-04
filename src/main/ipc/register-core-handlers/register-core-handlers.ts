@@ -39,7 +39,6 @@ import { registerNativeChatHandlers } from '../native-chat'
 import { registerNotificationHandlers } from '../notifications'
 import { registerNotebookHandlers } from '../notebook'
 import { registerOnboardingHandlers } from '../onboarding'
-import { registerDashboardPopoutHandlers } from '../dashboard-popout'
 import { registerWorkspaceSpaceWindowHandlers } from '../workspace-space/workspace-space-window'
 import { registerTerminalPreviewHandlers } from '../terminal-preview'
 import { registerDeveloperPermissionHandlers } from '../developer-permissions'
@@ -216,7 +215,6 @@ export function registerCoreHandlers(
   registerNotificationHandlers(store, runtime)
   registerNotebookHandlers(store)
   registerOnboardingHandlers(store)
-  registerDashboardPopoutHandlers(store, keybindings)
   registerWorkspaceSpaceWindowHandlers(store)
   registerTerminalPreviewHandlers(runtime)
   registerDeveloperPermissionHandlers()

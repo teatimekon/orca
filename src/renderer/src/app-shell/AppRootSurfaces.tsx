@@ -26,9 +26,6 @@ import type { FloatingWorkspacePanelState } from './use-floating-workspace-panel
 import type { OnboardingGate } from './use-onboarding-and-feature-tips'
 
 const QuickOpen = lazy(() => import('../components/QuickOpen'))
-const WorkspaceCleanupDialog = lazy(
-  () => import('../components/workspace-cleanup/WorkspaceCleanupDialog')
-)
 const StatusBar = lazy(() =>
   import('../components/status-bar/StatusBar').then((module) => ({ default: module.StatusBar }))
 )
@@ -196,16 +193,6 @@ export const AppRootSurfaces = memo(function AppRootSurfaces(props: {
         ) : null}
       </Suspense>
       {/* Keep lazy root surfaces under the shared Radix Tooltip provider. */}
-      <Suspense fallback={null}>
-        {mountedLazyModalIds.has('workspace-cleanup') ? (
-          <ModalBoundary
-            boundaryId="modal.workspace-cleanup"
-            resetKey={activeModal === 'workspace-cleanup'}
-          >
-            <WorkspaceCleanupDialog />
-          </ModalBoundary>
-        ) : null}
-      </Suspense>
       <Suspense fallback={null}>
         {mountedLazyModalIds.has('quick-open') ? (
           <ModalBoundary boundaryId="modal.quick-open" resetKey={activeModal === 'quick-open'}>
