@@ -72,7 +72,8 @@ const REMOVED: readonly (readonly [string, string])[] = [
     'renderArtifactsSettingsSection'
   ],
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerDashboardPopoutHandlers'],
-  ['renderer/src/components/settings/navigation/SettingsSidebar.tsx', 'SettingsSetupGuideNavRow']
+  ['renderer/src/components/settings/navigation/SettingsSidebar.tsx', 'SettingsSetupGuideNavRow'],
+  ['renderer/src/hooks/ipc-events/workspace-shortcut-ipc-bridge.ts', 'onToggleAgentDashboard']
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
