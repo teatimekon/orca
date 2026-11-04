@@ -1,5 +1,4 @@
 import { AgentHibernationGate } from '../components/AgentHibernationGate'
-import { AiVaultTabTitleSyncGate } from '../components/AiVaultTabTitleSyncGate'
 import RetainedAgentsSyncGate from '../components/dashboard/RetainedAgentsSyncGate'
 import { SavedHostScopeWidenGate } from '../components/sidebar/SavedHostScopeWidenGate'
 import { MacosTccPromptNoticeHost } from '../hooks/MacosTccPromptNoticeHost'
@@ -16,7 +15,6 @@ export function AppBackgroundServices(): React.JSX.Element {
       <MacosTccPromptNoticeHost />
       {/* Keep agent-status retention subscriptions out of the App render tree. */}
       <RetainedAgentsSyncGate />
-      <AiVaultTabTitleSyncGate />
       <SavedHostScopeWidenGate />
       <AgentHibernationGate />
       <StructuredAgentSessionStatusBridge />

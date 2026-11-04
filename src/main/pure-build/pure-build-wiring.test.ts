@@ -95,7 +95,19 @@ const REMOVED: readonly (readonly [string, string])[] = [
   // O4 background port scanner and port surfaces
   ['renderer/src/app-shell/AppBackgroundServices.tsx', 'WorkspacePortScanner'],
   ['renderer/src/components/status-bar/StatusBarSurface.tsx', 'PortsStatusSegment'],
-  ['renderer/src/components/right-sidebar/PortsPanel.tsx', 'HostScopedPortsPanel']
+  ['renderer/src/components/right-sidebar/PortsPanel.tsx', 'HostScopedPortsPanel'],
+  // O5 AI Vault background work and panels
+  ['main/startup/main-process-runtime-service.ts', 'installChildSessionSearchService'],
+  ['renderer/src/app-shell/AppBackgroundServices.tsx', 'AiVaultTabTitleSyncGate'],
+  ['renderer/src/components/right-sidebar/right-sidebar-panel-content.tsx', 'AiVaultSidebarPanel'],
+  [
+    'renderer/src/components/right-sidebar/use-right-sidebar-activity-items.ts',
+    'AgentSessionHistoryIcon'
+  ],
+  [
+    'renderer/src/components/settings/page/settings-page-renderer.tsx',
+    'renderSessionHistorySettingsSection'
+  ]
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -136,6 +148,13 @@ const KEPT: readonly (readonly [string, string])[] = [
   [
     'renderer/src/components/browser-pane/new-tab/use-browser-new-tab-servers.ts',
     'refreshWorkspacePortScanForTarget'
+  ],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerAiVaultHandlers'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerAiVaultSearchHandlers'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'AiVaultSessionHistoryDialog'],
+  [
+    'renderer/src/components/native-chat/use-native-chat-resume-command.ts',
+    'openAgentSessionHistoryModal'
   ]
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */

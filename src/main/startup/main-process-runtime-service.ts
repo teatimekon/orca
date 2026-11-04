@@ -1,10 +1,4 @@
-import {
-  applySessionSearchSettingsChange,
-  installChildSessionSearchService
-} from '../ai-vault-search/session-search-enablement'
-import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
-import { sessionSearchScopeCatalogFromStore } from '../ai-vault-search/session-search-store-scope-catalog'
-import { getCanonicalUserDataPath } from '../persistence/loading-store/user-data-path'
+import { applySessionSearchSettingsChange } from '../ai-vault-search/session-search-enablement'
 import { app } from 'electron'
 import { translateMain } from '../i18n/main-i18n'
 import { OrcaRuntimeService } from '../runtime/orca-runtime'
@@ -145,14 +139,6 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
     applySessionSearchSettings: applySessionSearchSettingsChange,
     skillTransactionRecovery: state.skillTransactionRecovery
   })
-  // Both desktop and headless serve own a host-local search service.
-  const sessionSearch = installChildSessionSearchService({
-    dataRoot: getCanonicalUserDataPath(),
-    getSettings: () => store.getSettings(),
-    // Read the host catalog per search so added repos/renamed workspaces are immediately in scope.
-    getScopeCatalog: () => sessionSearchScopeCatalogFromStore(store, LOCAL_EXECUTION_HOST_ID)
-  })
-  app.once('will-quit', () => sessionSearch?.dispose())
   // Desktop and headless hosts each evaluate their own panes' rules.
   startAgentStateRulesLiveUpdates(store, (rules) =>
     recordDurableCrashBreadcrumb('agent_state_rules_active', rules)

@@ -322,7 +322,7 @@ describe('rendered right sidebar titlebar drag regions', () => {
     const markup = renderToStaticMarkup(<RightSidebar />)
 
     expect(markup).toContain('aria-label="Explorer')
-    expect(markup).toContain('aria-label="Agents')
+    expect(markup).not.toContain('aria-label="Agents')
     expect(markup).not.toContain('aria-label="Search')
     expect(markup).toContain('aria-label="Attached worktrees')
     expect(markup).toContain('aria-label="PR Checks')
