@@ -91,4 +91,13 @@ describe('useBrowserPageViewportSizeFeedback', () => {
     resizeTo(960, 600)
     expect(showBrowserViewportSizeFeedback).toHaveBeenCalledWith({ width: 960, height: 600 })
   })
+
+  it('does not read the guest zoom, a sync IPC, for a baseline measurement', () => {
+    const getGuestZoomLevel = vi.fn(() => 0)
+    renderFeedback(true, getGuestZoomLevel)
+    resizeTo(800, 600)
+    expect(getGuestZoomLevel).not.toHaveBeenCalled()
+    resizeTo(760, 600)
+    expect(getGuestZoomLevel).toHaveBeenCalledTimes(1)
+  })
 })

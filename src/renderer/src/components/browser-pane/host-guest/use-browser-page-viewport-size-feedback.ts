@@ -70,10 +70,14 @@ export function useBrowserPageViewportSizeFeedback(
       const hostDip = { width: box.width * uiZoomFactor, height: box.height * uiZoomFactor }
       const previous = previousHostDip
       previousHostDip = hostDip
+      // Why: the baseline callback (every remount on a workspace switch) never announces, and the zoom read is a sync IPC.
+      if (!previous) {
+        return
+      }
       // Why skip the flash but keep the baseline: a size computed at a guessed zoom is worse than
       // no size, yet the first resize after dom-ready must still be announced.
       const guestZoomLevel = readGuestZoomLevel(webviewRef.current)
-      if (!previous || guestZoomLevel === null) {
+      if (guestZoomLevel === null) {
         return
       }
       // Why: the renderer's devicePixelRatio includes UI zoom; the guest's scale is the screen's.
