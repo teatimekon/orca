@@ -23669,7 +23669,8 @@
       "launchCwd": "Launch directory",
       "launchCommand": "Launch command",
       "envOverride": "Environment variables ORCA_PI_WEB_* override these (used by dev builds).",
-      "track": "Track pi-web conversations"
+      "track": "Track pi-web conversations",
+      "overriddenBy": "Overridden by {{variable}} in this session"
     },
     "open": {
       "localOnly": "pi-web: only local workspaces are supported",
