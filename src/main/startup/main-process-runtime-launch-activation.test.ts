@@ -280,6 +280,39 @@ describe('desktop startup activation', () => {
     }
   })
 
+  it('starts relay and push but never installs or connects the connector cloud', async () => {
+    const { startDesktopRelayService } = await import('./main-process-relay-startup')
+    const { startDesktopPushService } = await import('./main-process-push-startup')
+    const { installDesktopConnectorCloud, connectDesktopConnectorCloud } =
+      await import('./main-process-connector-startup')
+    for (const fn of [
+      startDesktopRelayService,
+      startDesktopPushService,
+      installDesktopConnectorCloud,
+      connectDesktopConnectorCloud
+    ]) {
+      vi.mocked(fn).mockClear()
+    }
+    vi.useFakeTimers({ toFake: ['setTimeout'] })
+    try {
+      await initializeMainProcessReady({
+        // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the launch only calls once() on the returned window.
+        openMainWindow: () => openMainWindow() as unknown as NonNullable<typeof state.mainWindow>,
+        handleMacAppActivation: vi.fn()
+      })
+      for (const listener of firstLoadListeners) {
+        listener()
+      }
+      vi.advanceTimersByTime(AGENT_LAUNCH_RECORD_WARMUP_DELAY_MS)
+    } finally {
+      vi.useRealTimers()
+    }
+    expect(startDesktopRelayService).toHaveBeenCalledOnce()
+    expect(startDesktopPushService).toHaveBeenCalledOnce()
+    expect(installDesktopConnectorCloud).not.toHaveBeenCalled()
+    expect(connectDesktopConnectorCloud).not.toHaveBeenCalled()
+  })
+
   it('does not replay an activation when launch fails before the startup window', async () => {
     launchHooks.duringInstallDirRepair = () => state.desktopActivationGate?.requestActivation()
     launchHooks.failBeforeWindow = true

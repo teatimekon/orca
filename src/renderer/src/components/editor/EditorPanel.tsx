@@ -25,10 +25,6 @@ import {
   selectEditorPanelGitStatusEntries
 } from './editor-panel-git-entry-selector'
 import { createEditorPanelDraftSelector } from './editor-panel-draft-selector'
-import {
-  createCurrentEditorArtifactRequest,
-  editorArtifactContentType
-} from './editor-artifact-upload'
 import { useEditorPanelSave } from './useEditorPanelSave'
 import { isMarkdownReviewNotesEnabled } from '@/lib/markdown-review-notes-setting'
 import { useFileCustomEditors } from '@/store/plugin-custom-editors'
@@ -331,19 +327,6 @@ function EditorPanelInner({
     markdownFrontmatterVisible[markdownDocumentStateFileId] ?? true
   const isMarkdownTableOfContentsVisible =
     markdownTableOfContentsVisible[markdownDocumentStateFileId] ?? false
-  const artifactContentType = editorArtifactContentType(activeFile.filePath, model.isMarkdown)
-  const createActiveArtifactRequest =
-    activeDocumentContent === null || artifactContentType === null
-      ? undefined
-      : () =>
-          Promise.resolve(
-            createCurrentEditorArtifactRequest(
-              activeFile,
-              markdownDocumentStateFileId,
-              activeDocumentContent ?? '',
-              artifactContentType
-            )
-          )
 
   return (
     <EditorCommandOwnerContext value={isCmdSaveOwner}>
@@ -388,7 +371,6 @@ function EditorPanelInner({
           onExportMarkdownToPdf={() =>
             void exportActiveMarkdownToPdf({ fileId: activeFile.id, root: panelRef.current })
           }
-          createArtifactRequest={createActiveArtifactRequest}
           onContentChange={handleContentChange}
           onContentChangeForFile={handleContentChangeForFile}
           onDirtyStateHint={handleDirtyStateHint}

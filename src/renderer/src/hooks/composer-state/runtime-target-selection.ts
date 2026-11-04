@@ -251,8 +251,8 @@ export function useComposerRuntimeTargetSelection(input: ComposerRuntimeTargetSe
 
   const selectedRecipeRepoConnectionId = selectedRepo?.connectionId ?? null
 
-  // Only probe enabled experiments or hidden features can raise setup errors.
-  const ephemeralVmsEnabled = settings?.experimentalEphemeralVms === true
+  // zyx/orca-pure: the ephemeral-VM UI is removed, so never probe recipes.
+  const ephemeralVmsEnabled: boolean = false
 
   const {
     recipes: ephemeralVmRecipes,

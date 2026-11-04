@@ -299,24 +299,11 @@ describe('HtmlDocPreview browser chrome', () => {
     expect(hasLiveBrowserGuest('preview-1')).toBe(false)
   })
 
-  it('shares through the minted grant even after the workspace resolves to another host', async () => {
+  it('never offers sharing, even after the workspace resolves to another host', async () => {
     grants.shareControlCalls.length = 0
     await renderPreview(container, root)
-    expect(grants.shareControlCalls.at(-1)).toEqual([ABSOLUTE_PATH, grants.mintedLocation])
-    expect(button(container, 'Share as artifact')).not.toBeNull()
-
-    grants.requestLocation = {
-      ...grants.mintedLocation,
-      owner: { ...grants.mintedLocation.owner, environmentId: 'env-2' }
-    }
-    storeState.settings = { activeRuntimeEnvironmentId: 'env-2' }
-    try {
-      await renderPreview(container, root)
-      expect(grants.shareControlCalls.at(-1)).toEqual([ABSOLUTE_PATH, grants.mintedLocation])
-    } finally {
-      grants.requestLocation = grants.mintedLocation
-      storeState.settings = { activeRuntimeEnvironmentId: 'env-1' }
-    }
+    expect(grants.shareControlCalls).toEqual([])
+    expect(container.querySelector('button[aria-label="Share as artifact"]')).toBeNull()
   })
 
   it('identifies the document by its workspace path and owning machine', async () => {

@@ -73,7 +73,25 @@ const REMOVED: readonly (readonly [string, string])[] = [
   ],
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerDashboardPopoutHandlers'],
   ['renderer/src/components/settings/navigation/SettingsSidebar.tsx', 'SettingsSetupGuideNavRow'],
-  ['renderer/src/hooks/ipc-events/workspace-shortcut-ipc-bridge.ts', 'onToggleAgentDashboard']
+  ['renderer/src/hooks/ipc-events/workspace-shortcut-ipc-bridge.ts', 'onToggleAgentDashboard'],
+  // O22 connector cloud, artifact share, ephemeral VM UI
+  ['main/startup/main-process-runtime-launch.ts', 'installDesktopConnectorCloud'],
+  ['main/startup/main-process-runtime-launch.ts', 'connectDesktopConnectorCloud'],
+  ['main/startup/main-process-runtime-service.ts', 'ArtifactCloudService'],
+  [
+    'renderer/src/components/browser-pane/assemble-chrome/browser-page-toolbar.tsx',
+    'ArtifactPublishButton'
+  ],
+  ['renderer/src/components/native-chat/NativeChatInlineVisual.tsx', 'ArtifactPublishButton'],
+  [
+    'renderer/src/components/browser-pane/workspace-doc/HtmlDocPreview.tsx',
+    'buildDocPreviewShareControl'
+  ],
+  ['renderer/src/components/editor/EditorPanel.tsx', 'createActiveArtifactRequest'],
+  [
+    'renderer/src/components/settings/advanced/ExperimentalPane.tsx',
+    'EphemeralVmsExperimentalSetting'
+  ]
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -103,7 +121,12 @@ const KEPT: readonly (readonly [string, string])[] = [
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerOnboardingHandlers'],
   ['main/updater/nudges/updater-nudge.ts', 'SELF_BUILT_BUILD'],
   ['main/updater/lifecycle/updater-setup.ts', 'SELF_BUILT_BUILD'],
-  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'isDashboardPopoutRenderer']
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'isDashboardPopoutRenderer'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerOrcaProfileHandlers'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerEphemeralVmHandlers'],
+  ['main/startup/main-process-runtime-launch.ts', 'installCloudSessionShutdownFlush'],
+  ['main/runtime/mobile-cloud-relay/relay-auth-context.ts', 'readFreshOrcaCloudSession'],
+  ['renderer/src/lib/sidebar-worktree-activation.ts', 'resumeWorkspace']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [

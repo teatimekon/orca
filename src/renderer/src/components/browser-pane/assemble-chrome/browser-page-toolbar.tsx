@@ -1,5 +1,4 @@
 import type { Dispatch, RefObject, SetStateAction } from 'react'
-import { ArtifactPublishButton } from '@/components/artifacts/ArtifactPublishButton'
 import { translate } from '@/i18n/i18n'
 import { useShortcutLabel } from '@/hooks/useShortcutLabel'
 import { useAppStore } from '@/store'
@@ -13,10 +12,7 @@ import { BrowserExtensionToolbar } from './browser-extension-toolbar'
 import { useBrowserExtensionToolbar } from './use-browser-extension-toolbar'
 import { SshEgressIndicator } from './browser-egress-indicator'
 import { destroyPersistentWebview } from '../host-guest/webview-registry'
-import {
-  getShareableBrowserArtifactFile,
-  readBrowserHtmlArtifactRequest
-} from '../describe-page/browser-artifact-upload'
+import { getShareableBrowserArtifactFile } from '../describe-page/browser-artifact-upload'
 import {
   canOpenBrowserFileInWorkspaceEditor,
   openBrowserFileSource
@@ -70,7 +66,6 @@ export function BrowserPageToolbar({
   markupCancel,
   grabElementShortcut,
   browserAnnotationsLength,
-  shareableArtifactFile,
   currentBrowserUrl,
   externalUrl
 }: {
@@ -227,18 +222,6 @@ export function BrowserPageToolbar({
         onToggle: () => (markupIsActive ? markupCancel() : void markupStart()),
         canShowDiscoveryHint: isActive
       }}
-      shareControl={
-        shareableArtifactFile
-          ? (control) => {
-              const props = {
-                sourceKey: shareableArtifactFile.filePath,
-                className: 'h-7 w-7',
-                createRequest: () => readBrowserHtmlArtifactRequest(currentBrowserUrl)
-              }
-              return <ArtifactPublishButton {...props} {...control} />
-            }
-          : undefined
-      }
       viewSource={{
         onSelect: () => void window.api.browser.openDevTools({ browserPageId }),
         label: translate(
