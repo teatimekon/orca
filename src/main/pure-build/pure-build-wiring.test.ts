@@ -116,6 +116,12 @@ const REMOVED: readonly (readonly [string, string])[] = [
   [
     'renderer/src/components/settings/virtual-machines/runtimes/CloudVmSetupGuide.tsx',
     'ephemeral-vms'
+  ],
+  // O4 follow-up: dead Ports switches
+  ['renderer/src/components/status-bar/StatusBarVisibilityMenu.tsx', 'Plug'],
+  [
+    'renderer/src/components/settings/appearance/appearance-status-bar-search.ts',
+    'portsToggleDescription'
   ]
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
@@ -164,7 +170,8 @@ const KEPT: readonly (readonly [string, string])[] = [
   [
     'renderer/src/components/native-chat/use-native-chat-resume-command.ts',
     'openAgentSessionHistoryModal'
-  ]
+  ],
+  ['renderer/src/app-shell/app-command-handlers.ts', 'sidebar.ports.toggle']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [
