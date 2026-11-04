@@ -4,6 +4,10 @@ import { AgentHookServerRuntimeEnv } from './server-runtime-env'
 import { ClaudeAgentViewBridge } from '../../claude/agent-view/agent-view-bridge'
 
 export abstract class AgentHookServerStatusHookLifecycle extends AgentHookServerRuntimeEnv {
+  /** Follows Claude daemon jobs whose hooks are declined; implemented above the presence layer. */
+  protected abstract startClaudeJobFollower(): void
+  protected abstract stopClaudeJobFollower(): void
+
   readonly claudeAgentViews = new ClaudeAgentViewBridge()
   private statusHookInitialization: Promise<void> | null = null
 
@@ -16,6 +20,7 @@ export abstract class AgentHookServerStatusHookLifecycle extends AgentHookServer
       this.claudeAgentViews.clear()
       this.flushStatusPersistSync()
       this.stopOpenCodeBinderLoop()
+      this.stopClaudeJobFollower()
       for (const timer of this.assistantMessageRetryTimers.values()) {
         clearTimeout(timer)
       }
@@ -28,6 +33,7 @@ export abstract class AgentHookServerStatusHookLifecycle extends AgentHookServer
         console.error('[agent-hooks] status initialization failed', error)
       })
       this.startOpenCodeBinderLoop()
+      this.startClaudeJobFollower()
     }
   }
 

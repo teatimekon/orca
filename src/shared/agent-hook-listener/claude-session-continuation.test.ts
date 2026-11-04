@@ -46,6 +46,16 @@ function pointer(sessionId: string, continuedInSessionId: string): string {
   return line({ type: 'continued-in', sessionId, continuedInSessionId })
 }
 
+/** The output Claude Code records when `/resume` or `/fork` opens a background job. */
+function jobOutput(sessionId: string, jobSessionId: string): string {
+  return line({
+    type: 'system',
+    subtype: 'local_command',
+    sessionId,
+    content: `<local-command-stdout>Opening "Work", running in the background (${jobSessionId.slice(0, 8)})</local-command-stdout>`
+  })
+}
+
 function writeTranscript(projectDir: string, name: string, body: string): string {
   const transcriptPath = join(projectDir, `${name}.jsonl`)
   writeFileSync(transcriptPath, body)
@@ -219,6 +229,73 @@ describe('ClaudeSessionContinuationTracker', () => {
     )
 
     expect(new ClaudeSessionContinuationTracker().resolve(session(OLD, oldPath))).toBeNull()
+  })
+
+  it('falls back to the job named by the /resume output when the pointer never reaches disk', () => {
+    const { configDir, projectDir } = makeProject()
+    const oldPath = writeTranscript(
+      projectDir,
+      OLD,
+      turn(OLD, 'u1') + jobOutput(OLD, FORK) + pointer(OLD, SECOND_FORK)
+    )
+    const forkPath = writeTranscript(projectDir, FORK, turn(FORK, 'u1'))
+    const tracker = new ClaudeSessionContinuationTracker()
+    expect(tracker.resolve(session(OLD, oldPath))).toBeNull()
+
+    writeJobState(configDir, { sessionId: FORK, resumeSessionId: FORK, linkScanPath: forkPath })
+    expect(tracker.resolve(session(OLD, oldPath, '/work/repo'))).toEqual(
+      session(FORK, forkPath, '/work/repo')
+    )
+    expect(tracker.isJobSession(session(FORK, forkPath))).toBe(true)
+    expect(tracker.isJobSession(session(OLD, oldPath))).toBe(false)
+  })
+
+  it('follows a job output written without any continued-in record', () => {
+    const { configDir, projectDir } = makeProject()
+    const oldPath = writeTranscript(projectDir, OLD, turn(OLD, 'u1') + jobOutput(OLD, FORK))
+    const forkPath = writeTranscript(projectDir, FORK, turn(FORK, 'u1'))
+    writeJobState(configDir, { sessionId: FORK, resumeSessionId: FORK, linkScanPath: forkPath })
+
+    expect(new ClaudeSessionContinuationTracker().resolve(session(OLD, oldPath))).toEqual(
+      session(FORK, forkPath)
+    )
+  })
+
+  it('prefers the pointer over the job output when both resolve', () => {
+    const { configDir, projectDir } = makeProject()
+    const oldPath = writeTranscript(
+      projectDir,
+      OLD,
+      turn(OLD, 'u1') + jobOutput(OLD, FORK) + pointer(OLD, SECOND_FORK)
+    )
+    writeTranscript(projectDir, FORK, turn(FORK, 'u1'))
+    const secondPath = writeTranscript(projectDir, SECOND_FORK, turn(SECOND_FORK, 'u1'))
+    writeJobState(configDir, {
+      sessionId: FORK,
+      resumeSessionId: FORK,
+      linkScanPath: join(projectDir, `${FORK}.jsonl`)
+    })
+
+    expect(new ClaudeSessionContinuationTracker().resolve(session(OLD, oldPath))).toEqual(
+      session(SECOND_FORK, secondPath)
+    )
+  })
+
+  it('ignores a job output older than the latest completed turn or naming another job', () => {
+    const { configDir, projectDir } = makeProject()
+    const forkPath = writeTranscript(projectDir, FORK, turn(FORK, 'u1'))
+    writeJobState(configDir, { sessionId: FORK, resumeSessionId: FORK, linkScanPath: forkPath })
+    const stale = writeTranscript(projectDir, OLD, jobOutput(OLD, FORK) + turn(OLD, 'u2'))
+    expect(new ClaudeSessionContinuationTracker().resolve(session(OLD, stale))).toBeNull()
+
+    const wrongJob = writeTranscript(
+      projectDir,
+      SECOND_FORK,
+      turn(SECOND_FORK, 'u1') + jobOutput(SECOND_FORK, CLEARED)
+    )
+    expect(
+      new ClaudeSessionContinuationTracker().resolve(session(SECOND_FORK, wrongJob))
+    ).toBeNull()
   })
 
   it('follows a chain of forks and stops on a cycle', () => {

@@ -235,6 +235,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerStatusHook
     }
     if (isCurrent() && this.statusHooksEnabled) {
       this.startOpenCodeBinderLoop()
+      this.startClaudeJobFollower()
     }
   }
 
@@ -255,6 +256,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerStatusHook
       this.flushStatusPersistSync()
     }
     this.stopOpenCodeBinderLoop()
+    this.stopClaudeJobFollower()
     this.stopTmuxStatus()
     this.rollbackTransportStart()
     this.env = 'production'

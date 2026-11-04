@@ -24,7 +24,7 @@ export abstract class AgentHookServerAgentPresence extends AgentHookServerLifecy
       promise: Promise<AgentProcessVerdict | null>
     }
   >()
-  private readonly claudeContinuations = new ClaudeSessionContinuationTracker()
+  protected readonly claudeContinuations = new ClaudeSessionContinuationTracker()
 
   /** Issue pane-root bindings for a relay's request on the link generation current when it
    *  asked; a link restart during the read issues nothing. */
@@ -184,7 +184,7 @@ export abstract class AgentHookServerAgentPresence extends AgentHookServerLifecy
 
   /** A Claude session forked into a daemon job keeps running in this pane, but #15304 declines
    *  the job's hooks; the pane's own transcript names the fork, so rebind the row to it. */
-  private followClaudeSessionContinuation(paneKey: string): void {
+  protected followClaudeSessionContinuation(paneKey: string): void {
     const row = this.state.lastStatusByPaneKey.get(paneKey)
     if (!row || row.connectionId !== null) {
       return

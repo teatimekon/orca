@@ -1,9 +1,13 @@
-import { closeSync, openSync, readFileSync, readSync, statSync } from 'node:fs'
-import path from 'node:path'
+import { statSync } from 'node:fs'
+import type { AgentProviderSessionMetadata } from '../agent-session/lifecycle/agent-session-resume'
 import {
-  normalizeAgentProviderSession,
-  type AgentProviderSessionMetadata
-} from '../agent-session/lifecycle/agent-session-resume'
+  isClaudeSessionId,
+  parseRecord,
+  readJobState,
+  resolveAttachedJobSession,
+  resolveClearedJobSession,
+  resolveForkedSession
+} from './claude-session-continuation-jobs'
 import type { AgentHookEventPayload } from './listener-event'
 import { scanFileRegionsBackward } from './reverse-file-region-scan'
 import { TRANSCRIPT_CHUNK_BYTES } from './transcript-reader'
@@ -11,13 +15,16 @@ import { TRANSCRIPT_CHUNK_BYTES } from './transcript-reader'
 const FIRST_SCAN_BYTES = 1024 * 1024
 // Why: a rescan reads only what was appended, plus enough to re-read a line split at the old end.
 const RESCAN_OVERLAP_BYTES = 64 * 1024
-const FORK_HEAD_SCAN_BYTES = 256 * 1024
 const MAX_CONTINUATION_HOPS = 8
 const MAX_REMEMBERED_ENTRIES = 256
 // Claude Code accepts only this shape for continuedInSessionId; it also keeps ids out of path joins.
 // Claude Code skips tagged text (commands, reminders) and interrupt markers when finding prompts.
 const NOT_A_PROMPT = /^\s*<[a-z][\w-]*[\s>]|^\[Request interrupted by user/
-const CLAUDE_SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+// Claude Code names the job it attached to (`/resume`, `/fork`) in its own command output; the
+// `continued-in` record it writes beside that output can name a session that never reaches disk.
+const BACKGROUND_JOB_OUTPUT = /running in the background \(([0-9a-f]{8})\)/
+
+type ContinuationScan = { pointer: string | null; jobShortId?: string }
 
 /**
  * Follows the `continued-in` record Claude Code writes when it forks a pane's session into a
@@ -26,7 +33,10 @@ const CLAUDE_SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9
  */
 export class ClaudeSessionContinuationTracker {
   /** Last scan per transcript, so an unchanged file is not re-read while its fork is pending. */
-  private readonly scanByTranscript = new Map<string, { size: number; pointer?: string }>()
+  private readonly scanByTranscript = new Map<
+    string,
+    { size: number; pointer?: string; jobShortId?: string }
+  >()
   /** A session `/clear` started inside a job → that job's first session, which names its state dir. */
   private readonly jobSessionBySession = new Map<string, string>()
 
@@ -67,6 +77,7 @@ export class ClaudeSessionContinuationTracker {
     }
     const scan = this.scanByTranscript.get(transcriptPath)
     let pointer = scan?.pointer
+    let jobShortId = scan?.jobShortId
     if (scan?.size !== size) {
       const isRescan = scan !== undefined && scan.size < size
       const found = readContinuationPointer(
@@ -75,11 +86,34 @@ export class ClaudeSessionContinuationTracker {
         isRescan ? size - scan.size + RESCAN_OVERLAP_BYTES : FIRST_SCAN_BYTES
       )
       // Why keep the old pointer on an empty rescan: only the appended bytes were read.
-      pointer = found === undefined && isRescan ? scan.pointer : (found ?? undefined)
-      remember(this.scanByTranscript, transcriptPath, { size, pointer })
+      pointer = found === undefined && isRescan ? scan.pointer : (found?.pointer ?? undefined)
+      jobShortId = found === undefined && isRescan ? scan.jobShortId : found?.jobShortId
+      remember(this.scanByTranscript, transcriptPath, { size, pointer, jobShortId })
     }
     // Why retry a remembered pointer: its fork may reach disk after the old file stops growing.
-    return pointer ? resolveForkedSession(transcriptPath, pointer, session.cwd) : null
+    const forked = pointer ? resolveForkedSession(transcriptPath, pointer, session.cwd) : null
+    if (forked || !jobShortId) {
+      return forked
+    }
+    // A dangling pointer still has the job Claude Code printed; its state names the live session.
+    const attached = resolveAttachedJobSession(transcriptPath, jobShortId, session.cwd)
+    if (attached && attached.session.id !== attached.jobSessionId) {
+      remember(this.jobSessionBySession, attached.session.id, attached.jobSessionId)
+    }
+    return attached?.session ?? null
+  }
+
+  /** Whether this session runs as a Claude daemon job, whose hooks Orca declines (#15304). */
+  isJobSession(session: Pick<AgentProviderSessionMetadata, 'id' | 'transcriptPath'>): boolean {
+    const transcriptPath = session.transcriptPath
+    if (!transcriptPath?.endsWith('.jsonl')) {
+      return false
+    }
+    const jobSessionId = this.jobSessionBySession.get(session.id) ?? session.id
+    const state = readJobState(transcriptPath, jobSessionId)
+    return (
+      state !== undefined && (jobSessionId === session.id || state.resumeSessionId === session.id)
+    )
   }
 }
 
@@ -123,53 +157,72 @@ export function resolvePaneClaudeContinuation(
   return next
 }
 
-function parseRecord(line: string): Record<string, unknown> | undefined {
-  try {
-    const parsed: unknown = JSON.parse(line)
-    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
-      ? Object.fromEntries(Object.entries(parsed))
-      : undefined
-  } catch {
-    return undefined
-  }
-}
-
 /** The newest pointer out of `sessionId`, or null when a later turn continued this session
  *  instead (close to Claude Code's own reader); undefined when the scan saw neither. */
 function readContinuationPointer(
   transcriptPath: string,
   sessionId: string,
   maxScanBytes: number
-): string | null | undefined {
-  return scanFileRegionsBackward<{ pointer: string | null }>(
+): ContinuationScan | undefined {
+  return scanFileRegionsBackward<ContinuationScan>(
     transcriptPath,
     { chunkBytes: TRANSCRIPT_CHUNK_BYTES, maxScanBytes },
     (region) => {
       const lines = region.toString('utf8').split('\n')
+      let found: ContinuationScan | undefined
       for (let index = lines.length - 1; index >= 0; index--) {
         const text = lines[index]
         if (
           !text.includes('"continued-in"') &&
+          !text.includes('"local_command"') &&
           !text.includes('"type":"user"') &&
           !text.includes('"type":"assistant"')
         ) {
           continue
         }
         const record = parseRecord(text.trim())
+        if (!record) {
+          continue
+        }
         if (
-          record?.type === 'continued-in' &&
+          record.type === 'continued-in' &&
           record.sessionId === sessionId &&
           isClaudeSessionId(record.continuedInSessionId)
         ) {
-          return { pointer: record.continuedInSessionId }
+          if (found) {
+            return found
+          }
+          // Keep reading: the command that wrote this pointer printed the job's id just before it.
+          found = { pointer: record.continuedInSessionId }
+          continue
         }
-        if (record && isCompletedTurn(record)) {
-          return { pointer: null }
+        const jobShortId = backgroundJobShortId(record, sessionId)
+        if (jobShortId) {
+          return { pointer: found?.pointer ?? null, jobShortId }
+        }
+        if (isCompletedTurn(record)) {
+          return found ?? { pointer: null }
         }
       }
-      return undefined
+      return found
     }
-  )?.pointer
+  )
+}
+
+/** The job named by Claude Code's own `/resume` or `/fork` output, recorded as a local command. */
+function backgroundJobShortId(
+  record: Record<string, unknown>,
+  sessionId: string
+): string | undefined {
+  if (
+    record.type !== 'system' ||
+    record.subtype !== 'local_command' ||
+    record.sessionId !== sessionId ||
+    typeof record.content !== 'string'
+  ) {
+    return undefined
+  }
+  return BACKGROUND_JOB_OUTPUT.exec(record.content)?.[1]
 }
 
 /** A real prompt or a finished, non-error reply: the old session went on after any older pointer. */
@@ -196,117 +249,4 @@ function isCompletedTurn(record: Record<string, unknown>): boolean {
   return texts.some(
     (text) => typeof text === 'string' && text.trim() !== '' && !NOT_A_PROMPT.test(text)
   )
-}
-
-function isClaudeSessionId(value: unknown): value is string {
-  return typeof value === 'string' && CLAUDE_SESSION_ID.test(value)
-}
-
-function resolveForkedSession(
-  transcriptPath: string,
-  forkedSessionId: string,
-  cwd: string | undefined
-): AgentProviderSessionMetadata | null {
-  const forkedPath = findForkedTranscript(transcriptPath, forkedSessionId)
-  if (!forkedPath || !forkHeadNamesSession(forkedPath, forkedSessionId)) {
-    return null
-  }
-  return normalizeAgentProviderSession({
-    key: 'session_id',
-    id: forkedSessionId,
-    transcriptPath: forkedPath,
-    cwd
-  })
-}
-
-/** The fork lives beside the old transcript; the job's state names it when the file is not `<id>.jsonl`. */
-function findForkedTranscript(transcriptPath: string, sessionId: string): string | undefined {
-  const byId = path.join(path.dirname(transcriptPath), `${sessionId}.jsonl`)
-  if (isFile(byId)) {
-    return byId
-  }
-  const state = readJobState(transcriptPath, sessionId)
-  return state && isSiblingFile(transcriptPath, state.linkScanPath) ? state.linkScanPath : undefined
-}
-
-/** `/clear` inside a job starts a new transcript without writing `continued-in`; the job's state
- *  keeps its first session id and names the current one as `resumeSessionId`. */
-function resolveClearedJobSession(
-  transcriptPath: string,
-  jobSessionId: string,
-  session: AgentProviderSessionMetadata
-): AgentProviderSessionMetadata | null {
-  const state = readJobState(transcriptPath, jobSessionId)
-  if (
-    !state ||
-    !isClaudeSessionId(state.resumeSessionId) ||
-    state.resumeSessionId === session.id ||
-    !isSiblingFile(transcriptPath, state.linkScanPath) ||
-    !forkHeadNamesSession(state.linkScanPath, state.resumeSessionId)
-  ) {
-    return null
-  }
-  return normalizeAgentProviderSession({
-    key: 'session_id',
-    id: state.resumeSessionId,
-    transcriptPath: state.linkScanPath,
-    cwd: session.cwd
-  })
-}
-
-type JobState = { linkScanPath: unknown; resumeSessionId: unknown }
-
-/** <config>/projects/<cwd slug>/<id>.jsonl → <config>/jobs/<first 8 of id>/state.json, when it is this session's job. */
-function readJobState(transcriptPath: string, sessionId: string): JobState | undefined {
-  if (!isClaudeSessionId(sessionId)) {
-    return undefined
-  }
-  const configDir = path.dirname(path.dirname(path.dirname(transcriptPath)))
-  const statePath = path.join(configDir, 'jobs', sessionId.slice(0, 8), 'state.json')
-  let state: Record<string, unknown> | undefined
-  try {
-    state = parseRecord(readFileSync(statePath, 'utf8'))
-  } catch {
-    return undefined
-  }
-  return state?.sessionId === sessionId
-    ? { linkScanPath: state.linkScanPath, resumeSessionId: state.resumeSessionId }
-    : undefined
-}
-
-function isSiblingFile(transcriptPath: string, candidate: unknown): candidate is string {
-  return (
-    typeof candidate === 'string' &&
-    path.dirname(candidate) === path.dirname(transcriptPath) &&
-    isClaudeSessionId(path.basename(candidate, '.jsonl')) &&
-    path.extname(candidate) === '.jsonl' &&
-    isFile(candidate)
-  )
-}
-
-function isFile(filePath: string): boolean {
-  try {
-    return statSync(filePath).isFile()
-  } catch {
-    return false
-  }
-}
-
-/** The fork's own records must carry the new id; a stray file under that name proves nothing. */
-function forkHeadNamesSession(forkedPath: string, sessionId: string): boolean {
-  let head: string
-  try {
-    const fd = openSync(forkedPath, 'r')
-    try {
-      const buffer = Buffer.alloc(FORK_HEAD_SCAN_BYTES)
-      const read = readSync(fd, buffer, 0, FORK_HEAD_SCAN_BYTES, 0)
-      head = buffer.subarray(0, read).toString('utf8')
-    } finally {
-      closeSync(fd)
-    }
-  } catch {
-    return false
-  }
-  // Why a substring: a huge first record would not parse inside the head window.
-  return head.includes(`"sessionId":"${sessionId}"`)
 }

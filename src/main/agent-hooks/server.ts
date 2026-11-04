@@ -4,7 +4,7 @@ import { normalizeHookPayload } from '../../shared/agent-hook-listener'
 import { parseFormEncodedBody } from '../../shared/agent-hook-listener/request-body'
 import type { AgentHookEventPayload } from '../../shared/agent-hook-listener/listener-event'
 import type { AgentHookSource } from '../../shared/agent-hook-relay'
-import { AgentHookServerAgentPresence } from './server/server-agent-presence'
+import { AgentHookServerClaudeJobFollower } from './server/server-claude-job-follower'
 import { isValidPaneKey } from './server/server-status-identity'
 
 export type {
@@ -25,7 +25,7 @@ export {
 } from './server/server-constants'
 export { isValidPaneKey }
 
-export class AgentHookServer extends AgentHookServerAgentPresence {}
+export class AgentHookServer extends AgentHookServerClaudeJobFollower {}
 
 export const agentHookServer = new AgentHookServer()
 
