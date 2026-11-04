@@ -80,6 +80,39 @@ async function collectGarbage(): Promise<void> {
 }
 
 describe('AI Vault title subscription inputs', () => {
+  it('refreshes when a live Claude pane renames its session in the terminal title', () => {
+    const state = makeState(1)
+    const paneKey = Object.keys(state.agentStatusByPaneKey)[0]
+    state.agentStatusByPaneKey[paneKey] = {
+      ...state.agentStatusByPaneKey[paneKey],
+      agentType: 'claude'
+    }
+    const retitle = (base: AppState, tabId: string, title: string): AppState => ({
+      ...base,
+      tabsByWorktree: {
+        'wt-title': base.tabsByWorktree['wt-title'].map((tab) =>
+          tab.id === tabId ? { ...tab, title } : tab
+        )
+      }
+    })
+
+    const named = retitle(state, 'tab-0', '✳ switch-model-settings')
+    expect(aiVaultTitleSyncInputsChanged(named, state)).toBe(true)
+    // Spinner frames and status glyphs around the same name are not a rename.
+    expect(
+      aiVaultTitleSyncInputsChanged(retitle(named, 'tab-0', '◐ switch-model-settings'), named)
+    ).toBe(false)
+    expect(aiVaultTitleSyncInputsChanged(retitle(named, 'tab-0', '◐ 新思路'), named)).toBe(true)
+    // Claude's generic identity frames carry no name.
+    const generic = retitle(state, 'tab-0', '✳ Claude Code')
+    expect(aiVaultTitleSyncInputsChanged(retitle(generic, 'tab-0', '◐ Claude Code'), generic)).toBe(
+      false
+    )
+    // Tabs without a live Claude session (retained, sleeping, other agents) keep the old cadence.
+    expect(aiVaultTitleSyncInputsChanged(retitle(state, 'tab-1', '✳ renamed'), state)).toBe(false)
+    expect(aiVaultTitleSyncInputsChanged(retitle(state, 'tab-2', '✳ renamed'), state)).toBe(false)
+  })
+
   it('does not enumerate unchanged retained and sleeping maps during live status writes', () => {
     const state = makeState(500)
     let unchangedEnumerations = 0

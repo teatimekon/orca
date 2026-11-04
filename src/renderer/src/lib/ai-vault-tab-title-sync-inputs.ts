@@ -1,5 +1,8 @@
 import type { AgentProviderSessionMetadata } from '../../../shared/agent-session/lifecycle/agent-session-resume'
+import { parsePaneKey } from '../../../shared/stable-pane-id'
 import { isAiVaultTitleAgent } from '../../../shared/ai-vault-session-title'
+import { isClaudeIdentityFrameSegment } from '../../../shared/agent-title-core'
+import { stripLeadingAgentTitleDecorationOrEmpty } from '../../../shared/agent-title-decoration'
 import type { TerminalTab } from '../../../shared/terminal-tab-types'
 import { getExecutionHostIdForWorktree } from '@/lib/worktree-runtime-owner'
 import type { AppState } from '@/store/types'
@@ -112,6 +115,31 @@ function titleEqual(
   )
 }
 
+/** The session name Claude writes into its terminal title, or '' for its generic identity frames. */
+function claudeTitleName(title: string | undefined): string {
+  const name = stripLeadingAgentTitleDecorationOrEmpty(title ?? '').trim()
+  return isClaudeIdentityFrameSegment(name) ? '' : name
+}
+
+function tabHasLiveClaude(state: AppState, tabId: string): boolean {
+  return Object.values(state.agentStatusByPaneKey).some(
+    (entry) =>
+      entry.agentType === 'claude' &&
+      Boolean(entry.providerSession?.id) &&
+      (entry.tabId ?? parsePaneKey(entry.paneKey)?.tabId) === tabId
+  )
+}
+
+/** A renamed Claude session (`/rename`, its own naming) reaches the title at once; the vault's
+ *  copy on the tab is stale until it is read again, so treat the new name as a sync input. */
+function liveClaudeTitleRenamed(current: AppState, left: TerminalTab, right: TerminalTab): boolean {
+  return (
+    left.title !== right.title &&
+    claudeTitleName(left.title) !== claudeTitleName(right.title) &&
+    tabHasLiveClaude(current, left.id)
+  )
+}
+
 function terminalTabsEqual(current: AppState, previous: AppState): boolean {
   const currentKeys = Object.keys(current.tabsByWorktree)
   const previousKeys = Object.keys(previous.tabsByWorktree)
@@ -130,7 +158,8 @@ function terminalTabsEqual(current: AppState, previous: AppState): boolean {
       if (
         left.id !== right.id ||
         left.worktreeId !== right.worktreeId ||
-        !titleEqual(left.aiVaultTitle, right.aiVaultTitle)
+        !titleEqual(left.aiVaultTitle, right.aiVaultTitle) ||
+        liveClaudeTitleRenamed(current, left, right)
       ) {
         return false
       }
