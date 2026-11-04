@@ -71,7 +71,8 @@ const REMOVED: readonly (readonly [string, string])[] = [
     'renderer/src/components/settings/page/settings-page-renderer.tsx',
     'renderArtifactsSettingsSection'
   ],
-  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerDashboardPopoutHandlers']
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerDashboardPopoutHandlers'],
+  ['renderer/src/components/settings/navigation/SettingsSidebar.tsx', 'SettingsSetupGuideNavRow']
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
