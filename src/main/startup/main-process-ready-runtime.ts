@@ -117,9 +117,11 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
     })
   }, WORKTREE_TRASH_SWEEP_FALLBACK_MS)
   // The startup pass ran before browser sessions and any window existed, so `browser-cookies` paused.
-  runAfterFirstWindowShown(() => {
-    void runGatedWslMoveDesktopRewritePass({ userDataPath: app.getPath('userData') })
-  }, WORKTREE_TRASH_SWEEP_FALLBACK_MS)
+  if (process.platform === 'win32') {
+    runAfterFirstWindowShown(() => {
+      void runGatedWslMoveDesktopRewritePass({ userDataPath: app.getPath('userData') })
+    }, WORKTREE_TRASH_SWEEP_FALLBACK_MS)
+  }
   nativeTheme.themeSource = store.getSettings().theme ?? 'system'
   // Wait for shell PATH before probing Codex; start reconciliation early so first launch can share it.
   startCodexHooks({
