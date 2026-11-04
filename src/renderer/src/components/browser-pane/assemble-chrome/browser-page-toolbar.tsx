@@ -1,15 +1,11 @@
 import type { Dispatch, RefObject, SetStateAction } from 'react'
 import { translate } from '@/i18n/i18n'
-import { useShortcutLabel } from '@/hooks/useShortcutLabel'
 import { useAppStore } from '@/store'
 import type { BrowserReloadTrigger } from '../navigate/browser-reload-action'
 import BrowserAddressBar from './BrowserAddressBar'
 import { BrowserChromeToolbar } from './browser-chrome-toolbar'
-import { BrowserImportHintButton } from './BrowserImportHintButton'
 import { BrowserReloadControl } from './browser-reload-control'
 import { BrowserToolbarMenu } from './BrowserToolbarMenu'
-import { BrowserExtensionToolbar } from './browser-extension-toolbar'
-import { useBrowserExtensionToolbar } from './use-browser-extension-toolbar'
 import { SshEgressIndicator } from './browser-egress-indicator'
 import { destroyPersistentWebview } from '../host-guest/webview-registry'
 import { getShareableBrowserArtifactFile } from '../describe-page/browser-artifact-upload'
@@ -57,15 +53,6 @@ export function BrowserPageToolbar({
   navigateToUrl,
   addressBarInputRef,
   dismissAddressBarSuggestionsRef,
-  grab,
-  grabIntent,
-  startGrabIntent,
-  isBlankTab,
-  markupIsActive,
-  markupStart,
-  markupCancel,
-  grabElementShortcut,
-  browserAnnotationsLength,
   currentBrowserUrl,
   externalUrl
 }: {
@@ -110,7 +97,6 @@ export function BrowserPageToolbar({
   currentBrowserUrl: string
   externalUrl: string | null
 }): React.JSX.Element {
-  const annotateElementShortcut = useShortcutLabel('browser.annotateElement')
   const browserTourStep = useAppStore((state) =>
     state.activeContextualTourId === 'browser' ? state.activeContextualTourStepIndex : null
   )
@@ -129,11 +115,6 @@ export function BrowserPageToolbar({
     canOpenSourceFile && localHtmlFilePath !== null
       ? () => openBrowserFileSource(worktreeId, localHtmlFilePath)
       : null
-  const extensionToolbar = useBrowserExtensionToolbar(
-    browserPageId,
-    isActive,
-    `${currentBrowserUrl}\n${loading}`
-  )
 
   return (
     <BrowserChromeToolbar
@@ -195,33 +176,8 @@ export function BrowserPageToolbar({
           onHardReload={() => runReloadTrigger('hard-reload')}
         />
       }
-      importControl={(compact) => (
-        <BrowserImportHintButton profileId={sessionProfileId} compact={compact} />
-      )}
-      extensionActions={
-        extensionToolbar &&
-        ((compact) => (
-          <BrowserExtensionToolbar
-            browserPageId={browserPageId}
-            state={extensionToolbar}
-            compact={compact}
-          />
-        ))
-      }
-      elementTools={{
-        activeIntent: grab.state !== 'idle' ? grabIntent : null,
-        onStartIntent: startGrabIntent,
-        disabled: isBlankTab || markupIsActive,
-        grabShortcutLabel: grabElementShortcut,
-        annotateShortcutLabel: annotateElementShortcut,
-        annotationCount: browserAnnotationsLength
-      }}
-      markup={{
-        active: markupIsActive,
-        disabled: isBlankTab || grab.state !== 'idle',
-        onToggle: () => (markupIsActive ? markupCancel() : void markupStart()),
-        canShowDiscoveryHint: isActive
-      }}
+      elementTools={null}
+      markup={null}
       viewSource={{
         onSelect: () => void window.api.browser.openDevTools({ browserPageId }),
         label: translate(

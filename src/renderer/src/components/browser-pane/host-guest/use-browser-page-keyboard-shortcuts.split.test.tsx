@@ -219,27 +219,6 @@ describe('useBrowserPageKeyboardShortcuts in a split of two active browser panes
     expect(b.startGrabIntent).not.toHaveBeenCalled()
   })
 
-  it('arms annotate from the focused pane only, even while text is selected', () => {
-    const { a, b } = renderSplit('focused', 'inactive')
-    selectText('transcript')
-
-    press(document.body, { key: 'C', code: 'KeyC', shiftKey: true })
-    press(document.body, { key: 'C', code: 'KeyC', shiftKey: true, repeat: true })
-
-    expect(a.startGrabIntent.mock.calls).toEqual([['annotate']])
-    expect(b.startGrabIntent).not.toHaveBeenCalled()
-  })
-
-  it('arms the intent a focused guest forwarded, only in that pane', () => {
-    const { a, b } = renderSplit('focused', 'inactive')
-
-    act(() => grabModeToggleListeners.forEach((listener) => listener('page-b', 'annotate')))
-    act(() => grabModeToggleListeners.forEach((listener) => listener('page-b', 'copy')))
-
-    expect(b.startGrabIntent.mock.calls).toEqual([['annotate'], ['copy']])
-    expect(a.startGrabIntent).not.toHaveBeenCalled()
-  })
-
   it('answers a floating browser chord only in the floating panel', () => {
     const { split, floating } = renderFloatingOverSplit()
 
@@ -249,7 +228,8 @@ describe('useBrowserPageKeyboardShortcuts in a split of two active browser panes
 
     expect(floating.webview.goBack).toHaveBeenCalledTimes(1)
     expect(floating.reload).toHaveBeenCalledWith(false)
-    expect(floating.startGrabIntent).toHaveBeenCalledWith('copy')
+    // The grab chords are removed in the pure build: no pane arms the picker.
+    expect(floating.startGrabIntent).not.toHaveBeenCalled()
     expect(split.webview.goBack).not.toHaveBeenCalled()
     expect(split.reload).not.toHaveBeenCalled()
     expect(split.startGrabIntent).not.toHaveBeenCalled()
@@ -264,7 +244,7 @@ describe('useBrowserPageKeyboardShortcuts in a split of two active browser panes
 
     expect(split.webview.goBack).toHaveBeenCalledTimes(1)
     expect(split.reload).toHaveBeenCalledWith(false)
-    expect(split.startGrabIntent).toHaveBeenCalledWith('copy')
+    expect(split.startGrabIntent).not.toHaveBeenCalled()
     expect(floating.webview.goBack).not.toHaveBeenCalled()
     expect(floating.reload).not.toHaveBeenCalled()
     expect(floating.startGrabIntent).not.toHaveBeenCalled()

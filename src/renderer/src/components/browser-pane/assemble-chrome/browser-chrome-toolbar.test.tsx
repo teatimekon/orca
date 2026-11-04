@@ -89,6 +89,23 @@ describe('BrowserChromeToolbar', () => {
     expect(foldedTools.map((tool) => tool.stage)).toEqual(['external'])
   })
 
+  it('renders no Draw on screenshot control when markup is null', () => {
+    render(
+      <BrowserChromeToolbar
+        controls={controls}
+        addressSlot={null}
+        elementTools={null}
+        markup={null}
+        viewSource={null}
+        openExternal={null}
+        overflowMenu={emptyOverflowMenu}
+      />
+    )
+
+    expect(screen.queryByText('Draw')).toBeNull()
+    expect(mocks.stages).not.toContain('draw')
+  })
+
   it('compacts the import hint before removing it', () => {
     mocks.folded = new Set(['import-label'])
     const importControl = vi.fn(() => null)

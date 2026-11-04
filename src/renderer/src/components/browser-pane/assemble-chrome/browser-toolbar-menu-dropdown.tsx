@@ -1,4 +1,4 @@
-import { Check, Ellipsis, FileCode2, History, Import, Monitor, Plus, Settings } from 'lucide-react'
+import { Check, Ellipsis, FileCode2, History, Monitor, Plus, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,8 +14,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { BrowserCookieImportDisclosure } from '@/components/BrowserCookieImportDisclosure'
-import { BrowserCookieImportMachineNotice } from '@/components/BrowserCookieImportMachineNotice'
 import { useAppStore } from '@/store'
 import { formatOptionalShortcutLabel } from '@/hooks/useShortcutLabel'
 import { BROWSER_FAMILY_LABELS } from '../../../../../shared/constants'
@@ -77,11 +75,6 @@ export function BrowserToolbarMenuDropdown({
   effectiveProfileId,
   onSwitchProfile,
   onNewProfile,
-  detectedBrowsers,
-  onFetchDetectedBrowsers,
-  browserSessionImportState,
-  onImportFromBrowser,
-  onImportFromFile,
   viewportPresetId,
   onApplyViewportPreset,
   siteDisplay,
@@ -157,80 +150,6 @@ export function BrowserToolbarMenuDropdown({
           <Plus className="mr-2 size-3.5" />
           {translate('auto.components.browser.pane.BrowserToolbarMenu.cf7cdc67ef', 'New Profile…')}
         </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuSub
-          onOpenChange={(open) => {
-            if (open) {
-              // Defer macOS app-data profile probes until the user opens Import.
-              onFetchDetectedBrowsers()
-            }
-          }}
-        >
-          <DropdownMenuSubTrigger
-            disabled={
-              browserSessionImportState?.profileId === effectiveProfileId &&
-              browserSessionImportState.status === 'importing'
-            }
-            data-contextual-tour-target="browser-import-cookies-control"
-          >
-            <Import className="mr-2 size-3.5" />
-            {translate(
-              'auto.components.browser.pane.BrowserToolbarMenu.2293adf620',
-              'Import Cookies'
-            )}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent data-browser-page-menu-id={browserPageId}>
-              <BrowserCookieImportMachineNotice />
-              {detectedBrowsers.map((browser) =>
-                browser.profiles.length > 1 ? (
-                  <DropdownMenuSub key={browser.family}>
-                    <DropdownMenuSubTrigger>
-                      {translate(
-                        'auto.components.browser.pane.BrowserToolbarMenu.eb280bfb11',
-                        'From {{value0}}',
-                        { value0: browser.label }
-                      )}
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent data-browser-page-menu-id={browserPageId}>
-                        {browser.profiles.map((profile) => (
-                          <DropdownMenuItem
-                            key={profile.directory}
-                            onSelect={() => onImportFromBrowser(browser.family, profile.directory)}
-                          >
-                            {profile.name}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                ) : (
-                  <DropdownMenuItem
-                    key={browser.family}
-                    onSelect={() => onImportFromBrowser(browser.family)}
-                  >
-                    {translate(
-                      'auto.components.browser.pane.BrowserToolbarMenu.eb280bfb11',
-                      'From {{value0}}',
-                      { value0: browser.label }
-                    )}
-                  </DropdownMenuItem>
-                )
-              )}
-              {detectedBrowsers.length > 0 && <DropdownMenuSeparator />}
-              <DropdownMenuItem onSelect={onImportFromFile}>
-                {translate(
-                  'auto.components.browser.pane.BrowserToolbarMenu.56f94f4ffa',
-                  'From File…'
-                )}
-              </DropdownMenuItem>
-              <BrowserCookieImportDisclosure />
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
 
         <DropdownMenuSeparator />
 

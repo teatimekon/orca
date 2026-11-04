@@ -1,8 +1,5 @@
 import type { Session } from 'electron'
-import {
-  cancelBrowserWebAuthnAccountRequestsForSession,
-  requestBrowserWebAuthnAccount
-} from './browser-webauthn-account-picker'
+import { cancelBrowserWebAuthnAccountRequestsForSession } from './browser-webauthn-account-picker'
 
 const FIDO_HID_USAGE_PAGE = 0xf1d0
 const LOCALHOST_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1', '[::1]'])
@@ -10,7 +7,7 @@ type SelectWebAuthnAccountHandler = (
   event: Electron.Event,
   details: Electron.SelectWebauthnAccountDetails,
   callback: (credentialId?: string | null) => void
-) => Promise<void>
+) => void
 const selectWebAuthnAccountHandlers = new WeakMap<Session, SelectWebAuthnAccountHandler>()
 
 function isSecureBrowserOrigin(rawOrigin: string | undefined): boolean {
@@ -63,23 +60,14 @@ function handleBrowserSelectHidDevice(
   callback(selectedDevice?.deviceId)
 }
 
-async function handleBrowserSelectWebAuthnAccount(
-  browserSession: Session,
+function handleBrowserSelectWebAuthnAccount(
   event: Electron.Event,
   details: Electron.SelectWebauthnAccountDetails,
   callback: (credentialId?: string | null) => void
-): Promise<void> {
+): void {
   event.preventDefault()
-  if (details.accounts.length <= 1) {
-    callback(details.accounts[0]?.credentialId ?? null)
-    return
-  }
-  let credentialId: string | null = null
-  try {
-    credentialId = await requestBrowserWebAuthnAccount(details, browserSession)
-  } finally {
-    callback(credentialId)
-  }
+  // zyx/orca-pure: no account picker; several passkeys cancel at once instead of waiting out the picker timeout.
+  callback(details.accounts.length === 1 ? (details.accounts[0]?.credentialId ?? null) : null)
 }
 
 export function installBrowserWebAuthnAccessHandlers(browserSession: Session): void {
@@ -96,8 +84,8 @@ export function installBrowserWebAuthnAccessHandlers(browserSession: Session): v
   if (previousHandler) {
     browserSession.removeListener('select-webauthn-account', previousHandler)
   }
-  const selectWebAuthnAccountHandler: SelectWebAuthnAccountHandler = (event, details, callback) =>
-    handleBrowserSelectWebAuthnAccount(browserSession, event, details, callback)
+  const selectWebAuthnAccountHandler: SelectWebAuthnAccountHandler =
+    handleBrowserSelectWebAuthnAccount
   selectWebAuthnAccountHandlers.set(browserSession, selectWebAuthnAccountHandler)
   browserSession.on('select-webauthn-account', selectWebAuthnAccountHandler)
 }

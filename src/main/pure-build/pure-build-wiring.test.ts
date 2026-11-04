@@ -141,7 +141,39 @@ const REMOVED: readonly (readonly [string, string])[] = [
     'renderer/src/components/settings/page/settings-page-renderer.tsx',
     'renderMobileEmulatorSettingsSection'
   ],
-  ['renderer/src/components/settings/advanced/ExperimentalPane.tsx', 'experimentalPet']
+  ['renderer/src/components/settings/advanced/ExperimentalPane.tsx', 'experimentalPet'],
+  // O18 browser extras (stream-remote kept by coordinator ruling)
+  ['main/startup/main-process-ready-runtime.ts', 'AgentBrowserBridge'],
+  ['main/startup/main-process-ready-foundation.ts', 'switchBrowserExtensionSupport'],
+  ['renderer/src/App.tsx', 'BrowserExtensionInstallDialog'],
+  ['renderer/src/App.tsx', 'BrowserWebAuthnAccountDialog'],
+  [
+    'renderer/src/components/settings/advanced/ExperimentalPane.tsx',
+    'BrowserExtensionsExperimentalSetting'
+  ],
+  ['renderer/src/components/settings/browser/BrowserPane.tsx', 'BrowserExtensionsSection'],
+  [
+    'renderer/src/components/browser-pane/assemble-chrome/browser-page-toolbar.tsx',
+    'BrowserImportHintButton'
+  ],
+  [
+    'renderer/src/components/browser-pane/assemble-chrome/browser-page-toolbar.tsx',
+    'BrowserExtensionToolbar'
+  ],
+  [
+    'renderer/src/components/browser-pane/assemble-chrome/browser-page-viewport-overlays.tsx',
+    'useBrowserAgentCursor'
+  ],
+  ['renderer/src/components/browser-pane/ClientHostedBrowserPagePane.tsx', 'useBrowserAgentCursor'],
+  [
+    'renderer/src/components/browser-pane/host-guest/use-browser-page-keyboard-shortcuts.ts',
+    'onGrabModeToggle'
+  ],
+  [
+    'renderer/src/components/browser-pane/assemble-chrome/browser-toolbar-menu-dropdown.tsx',
+    'BrowserCookieImportDisclosure'
+  ],
+  ['main/browser/browser-webauthn-access.ts', 'requestBrowserWebAuthnAccount']
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -191,7 +223,21 @@ const KEPT: readonly (readonly [string, string])[] = [
     'openAgentSessionHistoryModal'
   ],
   ['renderer/src/app-shell/app-command-handlers.ts', 'sidebar.ports.toggle'],
-  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerSpeechHandlers']
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerSpeechHandlers'],
+  ['main/startup/main-process-ready-runtime.ts', 'configureBrowserClientPageAutomationRuntime'],
+  ['main/browser/browser-session-partition-policies.ts', 'installBrowserWebAuthnAccessHandlers'],
+  [
+    'renderer/src/components/browser-pane/assemble-chrome/browser-workspace-pane.tsx',
+    'ClientHostedBrowserPagePane'
+  ],
+  [
+    'renderer/src/components/browser-pane/assemble-chrome/browser-workspace-pane.tsx',
+    'RemoteBrowserPagePane'
+  ],
+  [
+    'renderer/src/components/settings/browser/profiles/BrowserProfileRow.tsx',
+    'importCookiesFromBrowser'
+  ]
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [

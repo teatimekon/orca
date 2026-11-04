@@ -104,7 +104,7 @@ export function BrowserChromeToolbar({
    */
   extensionActions?: ((compact: boolean) => React.ReactNode) | null
   elementTools: BrowserChromeElementTools | null
-  markup: BrowserChromeMarkupTool
+  markup: BrowserChromeMarkupTool | null
   shareControl?: (control: BrowserChromeShareControl) => React.ReactNode
   viewSource: BrowserChromeToolAction | null
   openExternal: BrowserChromeToolAction | null
@@ -123,7 +123,7 @@ export function BrowserChromeToolbar({
     devtools: viewSource !== null,
     share: shareControl != null,
     extensions: extensionActions != null,
-    draw: true,
+    draw: markup !== null,
     grab: elementTools !== null,
     annotate: elementTools !== null
   }
@@ -162,7 +162,7 @@ export function BrowserChromeToolbar({
       active: elementTools.activeIntent === 'annotate'
     })
   }
-  if (folded.has('draw')) {
+  if (markup && folded.has('draw')) {
     foldedTools.push({
       stage: 'draw',
       label: translate('auto.components.browser-pane.markup.drawButton', 'Draw on screenshot'),
@@ -225,7 +225,7 @@ export function BrowserChromeToolbar({
         />
       ) : null}
 
-      {folded.has('draw') ? null : (
+      {markup === null || folded.has('draw') ? null : (
         <MarkupDrawButton
           onClick={markup.onToggle}
           disabled={markup.disabled}

@@ -23,7 +23,6 @@ import { BrowserSitePermissionsSetting } from './BrowserSitePermissionsSetting'
 import { SettingsSubsectionHeader } from '../form-controls/SettingsFormControls'
 import { BrowserSessionCookiesSection } from './profiles/BrowserSessionCookiesSection'
 import { BrowserNewProfileDialog } from './profiles/BrowserNewProfileDialog'
-import { BrowserExtensionsSection } from './extensions/BrowserExtensionsSection'
 import {
   createBrowserHomePageDraftState,
   resolveBrowserHomePageDraftState
@@ -32,7 +31,6 @@ import { buildSidebarHostOptions } from '../../sidebar/sidebar-host-options'
 import { getHostDisplayLabelOverrides } from '../../../../../shared/host-setting-overrides'
 import {
   getSettingsFocusedExecutionHostId,
-  LOCAL_EXECUTION_HOST_ID,
   type ExecutionHostId
 } from '../../../../../shared/execution-host'
 import { isMacUserAgent } from '@/components/terminal-pane/pane-helpers'
@@ -336,18 +334,6 @@ export function BrowserPane({
           onSelectHost={selectBrowserSessionHost}
           onSelectDefaultProfile={() => setDefaultBrowserSessionProfileId(null)}
           onSelectProfile={setDefaultBrowserSessionProfileId}
-        />
-      ) : null}
-
-      {/* Why local only: release 1 runs extensions in this computer's browser profiles. */}
-      {settings.experimentalBrowserExtensions === true &&
-      selectedBrowserSessionHostId === LOCAL_EXECUTION_HOST_ID ? (
-        <BrowserExtensionsSection
-          profileId={activeBrowserSessionProfileId}
-          profileLabel={
-            browserSessionProfiles.find((profile) => profile.id === activeBrowserSessionProfileId)
-              ?.label ?? activeBrowserSessionProfileId
-          }
         />
       ) : null}
 
