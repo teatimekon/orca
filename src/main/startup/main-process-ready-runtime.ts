@@ -10,7 +10,6 @@ import { browserManager } from '../browser/browser-manager'
 import { configureBrowserClientPageAutomationRuntime } from '../browser/browser-client-page-automation-runtime'
 import { BrowserExpectedUrlMismatch } from '../../shared/browser-expected-url'
 import { BrowserClientPageCommandError } from '../browser/browser-client-page-command-failure'
-import { startPreGoneCrashSampling } from '../crash-reporting/process-gone-diagnostics'
 import { refuseRealtimeSchedulingUnderZeroRtTime } from './linux-realtime-scheduling-guard'
 import { recordProcessGoneCrash } from './main-window-lifecycle-flags'
 import { handleGpuChildCrash } from './gpu-lifecycle'
@@ -42,7 +41,6 @@ import { pruneDesktopOrcadArtifactCache } from '../orcad/orcad-artifact-cache-re
 import { runGatedWslMoveDesktopRewritePass } from '../persistence/moving-wsl-projects/wsl-move-desktop-rewrite'
 import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../shared/layout-owner-switch'
 import { repairDuplicatePtyPanesOnStart } from '../runtime/moved-pane-owner-rekey'
-import { WslUsageReporter } from '../telemetry/wsl-usage-reporter'
 
 // Headless serve has no first window; timer fallback must still sweep trash.
 const WORKTREE_TRASH_SWEEP_FALLBACK_MS = 15_000
@@ -109,9 +107,6 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
     refreshInstalledOpenCodeStatusPlugins(store.getSettings())
   }, WORKTREE_TRASH_SWEEP_FALLBACK_MS)
   runAfterFirstWindowShown(() => {
-    new WslUsageReporter(store, app.getPath('userData')).start()
-  }, WORKTREE_TRASH_SWEEP_FALLBACK_MS)
-  runAfterFirstWindowShown(() => {
     void pruneDesktopOrcadArtifactCache(app.getPath('userData')).catch((error) => {
       console.warn('[orcad-artifacts] Failed to bound the slot cache:', error)
     })
@@ -141,8 +136,6 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
       shouldHydrateShellPath: app.isPackaged
     })
   }
-  // Sample live processes: gone-time metrics omit dead children and already-released memory.
-  startPreGoneCrashSampling()
   app.on('child-process-gone', (_event, details) => {
     recordProcessGoneCrash('child', details.type, details.reason, details.exitCode ?? null, {
       name: details.name,

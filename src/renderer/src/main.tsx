@@ -1,6 +1,3 @@
-// Install the import-free hook before react-dom reads it during evaluation; the observer below wraps a per-commit property and can load later.
-import './lib/react-devtools-commit-hook-shim'
-import './lib/react-commit-cascade-observer'
 import './assets/main.css'
 
 import { StrictMode } from 'react'
@@ -17,7 +14,6 @@ import {
   applyDocumentTheme,
   readCachedPluginAppTheme
 } from './lib/document-theme'
-import { installTypingLatencyDiagnostic } from './lib/typing-latency/diagnostic'
 import { installAppKeyboardRouter } from './lib/app-keyboard-router'
 import { shouldEnableReactGrab } from './lib/react-grab-dev-gate'
 import { I18nProvider } from './i18n/I18nProvider'
@@ -37,8 +33,7 @@ import.meta.hot?.dispose(disposeOsFileDropGuard)
 const disposeBodyOverlayAttributes = installBodyOverlayAttributes()
 import.meta.hot?.dispose(disposeBodyOverlayAttributes)
 recordRendererCrashBreadcrumb('renderer_bootstrap_started', { dev: import.meta.env.DEV })
-installRendererCrashDiagnostics()
-installTypingLatencyDiagnostic()
+installRendererCrashDiagnostics('main', { sampleMemory: false })
 installAppKeyboardRouter()
 installAutomationHostDiagnostic()
 

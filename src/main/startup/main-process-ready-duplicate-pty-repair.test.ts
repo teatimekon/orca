@@ -5,6 +5,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { getDefaultWorkspaceSession } from '../../shared/constants'
 import type { PersistedState } from '../../shared/persisted-state-types'
 import { agentHookServer } from '../agent-hooks/server'
+import { startPreGoneCrashSampling } from '../crash-reporting/process-gone-diagnostics'
 import { DelayedAuthority } from '../persistence/loading-store/profile-state-delayed-authority-fixture'
 import { Store } from '../persistence/loading-store/store'
 import { ProfileStateSqliteAuthority } from '../persistence/profile-state/profile-state-sqlite-authority'
@@ -203,4 +204,5 @@ it('finishes the duplicate-terminal repair before ready services resolve, even b
   await ready
 
   expect(atReady).toEqual({ memory: [KEPT], disk: [KEPT] })
+  expect(startPreGoneCrashSampling).not.toHaveBeenCalled()
 })

@@ -17,7 +17,10 @@ let rendererMemoryInterval: number | null = null
 // Re-export the leaf recorder so terminal/E2E imports avoid this module’s import.meta and webview dependencies.
 export { recordRendererCrashBreadcrumb } from './crash-breadcrumb-recorder'
 
-export function installRendererCrashDiagnostics(surface: RendererSurface = 'main'): void {
+export function installRendererCrashDiagnostics(
+  surface: RendererSurface = 'main',
+  options: { sampleMemory?: boolean } = {}
+): void {
   if (rendererCrashDiagnosticsInstalled || typeof window === 'undefined') {
     return
   }
@@ -27,7 +30,7 @@ export function installRendererCrashDiagnostics(surface: RendererSurface = 'main
   window.addEventListener('error', recordRendererError)
   window.addEventListener('unhandledrejection', recordRendererUnhandledRejection)
 
-  if (readHeapMetrics()) {
+  if (options.sampleMemory !== false && readHeapMetrics()) {
     startRendererLongTaskSampling()
     recordRendererMemorySample('startup')
     rendererMemoryInterval = window.setInterval(

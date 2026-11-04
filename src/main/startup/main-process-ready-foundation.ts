@@ -5,8 +5,6 @@ import { installElectronProxyRequestGuard } from '../network/electron-proxy-requ
 import { handleElectronProxyLogin } from '../network/electron-proxy-credentials'
 import { setNodeDistMirrorSettingReader } from '../node-runtime/node-dist-mirror-setting'
 import { handleBrowserGuestLogin } from '../browser/browser-http-auth-prompt'
-import { installMainThreadHangWatchdog } from '../hang-watchdog/main-thread-hang-watchdog'
-import { preservePreviousHangDetection } from '../hang-watchdog/previous-hang-detection'
 import { browserCertificateTrustController, browserManager } from '../browser/browser-manager'
 import { browserSiteDisplayController } from '../browser/browser-site-display-controller'
 import { ensureActiveOrcaProfile } from '../orca-profiles/profile-index-store'
@@ -86,8 +84,6 @@ export async function initializeReadyFoundation(): Promise<void> {
     handleBrowserGuestLogin(event, webContents, details, authInfo, callback)
   })
   const canonicalUserDataPath = getCanonicalUserDataPath()
-  preservePreviousHangDetection(canonicalUserDataPath)
-  installMainThreadHangWatchdog({ userDataPath: canonicalUserDataPath })
   // Install certificate decisions before any webview/headless window can issue TLS.
   app.on(
     'certificate-error',

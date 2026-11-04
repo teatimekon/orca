@@ -36,15 +36,6 @@ import { getDevInstanceIdentity, shouldApplyPreReadyAppName } from './dev-instan
 import { enableRendererHeapHeadroom } from './renderer-heap-headroom'
 import { configureLinuxDevShmUsage } from './linux-dev-shm-policy'
 import { isStartupDiagnosticsEnabled, logStartupDiagnostic } from './startup-diagnostics'
-import { startEventLoopStallProbe } from './event-loop-stall-probe'
-import { startEventLoopDelayProbe } from '../diagnostics/event-loop-delay-probe'
-import {
-  isMainThreadDiagnosticsEnabled,
-  recordSubprocessSpawn,
-  startMainThreadChurnProbe
-} from '../diagnostics/main-thread-churn-probe'
-import { setSpawnObserver } from '@orca/process-host/spawn-observer'
-import { settledDiffCache } from '../git/source-control/git-read-cache-invalidation'
 import { reserveServeStdoutForReadiness } from '../server/serve-stdout-boundary'
 import { createServeDesktopActivationGate } from './serve-desktop-activation'
 import {
@@ -203,7 +194,6 @@ function initializeMainProcessPreflight(options: MainProcessPreflightOptions): b
   setAppEnvironment(new ElectronAppEnvironment())
   // Capture after overrides, before ready-time app naming can change userData on case-sensitive filesystems.
   initDataPath()
-  startEventLoopDelayProbe('main', getCanonicalUserDataPath())
   antigravityHookService.setWindowsRuntimePathProvider(
     () => getRelocatedDaemonHost()?.execPath ?? process.execPath
   )
@@ -222,14 +212,7 @@ function initializeMainProcessPreflight(options: MainProcessPreflightOptions): b
       userData: app.getPath('userData'),
       e2eUserData: Boolean(process.env.ORCA_E2E_USER_DATA_DIR)
     })
-    startEventLoopStallProbe()
   }
-  // Session-long main-thread diagnostics (#7576) distinguish cold cache from unstable filesystem stamps via hit/miss/unprovable counts.
-  if (isMainThreadDiagnosticsEnabled()) {
-    // Include process-host spawns too; Git-only probe sites miss rg/ps/PTY helpers.
-    setSpawnObserver(recordSubprocessSpawn)
-  }
-  startMainThreadChurnProbe({ extraStats: () => ({ diffCache: settledDiffCache.stats() }) })
   // Lock after userData override so dev/packaged namespaces differ; concurrent dev copies also need separate profiles to avoid store corruption (#1326, #1312).
   const bypass = shouldBypassSingleInstanceLock({ isDev, isServeMode: state.isServeMode })
   const skip = shouldSkipSingleInstanceLock({ isDev, isServeMode: state.isServeMode })

@@ -6,8 +6,6 @@ import {
 } from '../crash-reporting/crash-breadcrumb-store'
 import { recordDurableCrashBreadcrumb } from '../crash-reporting/durable-crash-breadcrumb'
 import { shouldRecoverRendererAfterProcessGone } from '../crash-reporting/process-gone-classification'
-import { resolveConsent } from '../telemetry/consent'
-import { trackAppOpenedOnce } from '../telemetry/client'
 import { ensureWindowsUserDataAclGrant } from './windows-user-data-acl'
 import { probeWindowsInstallDirAcl } from './windows-install-dir-acl-probe'
 import {
@@ -186,10 +184,6 @@ export function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}
     logStartupMilestone('did-finish-load')
     // Reload removes the listener; hold pushes until the fresh renderer pulls to prove readiness.
     state.osDocumentOpenListenerReady = false
-    const currentStore = state.store
-    if (currentStore && resolveConsent(currentStore.getSettings()).effective === 'enabled') {
-      trackAppOpenedOnce()
-    }
   }
   window.webContents.on('did-finish-load', onFirstWindowLoad)
   attachMainWindowCoreServices(window, {

@@ -10,15 +10,11 @@ import {
 } from '../notifications/desktop-presence-reporter'
 import { agentHookServer } from '../agent-hooks/server'
 import { installHookStatusSessionTabsRepublish } from '../agent-hooks/hook-status-session-tabs-republish'
-import { initTelemetry, track } from '../telemetry/client'
+import { track } from '../telemetry/client'
 import { setCodexTrustGrantTelemetry } from '../codex/codex-trust-grant-telemetry'
 import { initObservability } from '../observability'
 import { recordDurableCrashBreadcrumb } from '../crash-reporting/durable-crash-breadcrumb'
-import { reportPreviousHangDetection } from '../hang-watchdog/previous-hang-detection'
-import { getCanonicalUserDataPath } from '../persistence/loading-store/user-data-path'
 import { recoverPendingSkillTransactions } from '../skills/skill-transaction-startup-recovery'
-import { initCohortClassifier } from '../telemetry/cohort-classifier'
-import { initOnboardingCohortClassifier } from '../telemetry/onboarding-cohort-classifier'
 import { StatsCollector } from '../stats/collector'
 import { feedAgentSessionStats } from '../stats/agent-session-stats-feed'
 import { ClaudeUsageStore } from '../claude-usage/store'
@@ -27,9 +23,6 @@ import { OpenCodeUsageStore } from '../opencode-usage/store'
 import { MuseUsageStore } from '../muse-usage/store'
 import { installRepoMaintenanceIdleGate } from '../workspaces/catalog/repo-maintenance-idle-gate'
 import { mainProcessState as state } from './main-process-state'
-import { runAfterFirstWindowShown } from './first-window-deferral'
-
-const TELEMETRY_CLIENT_START_FALLBACK_MS = 15_000
 
 export function initializeMainProcessObservers(): void {
   const store = state.store
@@ -81,11 +74,6 @@ export function initializeMainProcessObservers(): void {
     unsubscribeStatusFreshness()
     uninstallHookStatusRepublish()
   }
-  // Initialize before IPC/renderers can track; the telemetry client gates dev/disabled cases itself.
-  // Load the SDK after first paint (#35752); headless serve and GPU failures never show a window.
-  initTelemetry(store, (start) =>
-    runAfterFirstWindowShown(start, TELEMETRY_CLIENT_START_FALLBACK_MS)
-  )
   const profileStateStartup = state.profileStateStartup
   if (profileStateStartup) {
     track('profile_state_authority_selected', {
@@ -113,13 +101,6 @@ export function initializeMainProcessObservers(): void {
     packaged: app.isPackaged,
     platform: process.platform
   })
-  state.hangDetection = reportPreviousHangDetection(getCanonicalUserDataPath())
-  if (state.hangDetection) {
-    track('main_thread_hang_detected', {
-      unresponsive_ms: Math.round(state.hangDetection.unresponsiveMs),
-      self_recovered: state.hangDetection.selfRecovered
-    })
-  }
   state.skillTransactionRecovery = recoverPendingSkillTransactions(
     join(app.getPath('userData'), 'skill-installs')
   )
@@ -141,9 +122,6 @@ export function initializeMainProcessObservers(): void {
       }
     })
     .catch((error) => console.warn('[skills] startup transaction recovery failed:', error))
-  // Hydrate repo count before IPC/window tracking; cohort classification reads it synchronously.
-  initCohortClassifier(store)
-  initOnboardingCohortClassifier(store)
   state.stats = new StatsCollector()
   feedAgentSessionStats(state.stats, agentHookServer)
   state.claudeUsage = new ClaudeUsageStore(store)

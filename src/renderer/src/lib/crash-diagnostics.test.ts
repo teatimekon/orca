@@ -59,6 +59,25 @@ describe('renderer crash diagnostics', () => {
     vi.unstubAllGlobals()
   })
 
+  it('keeps error breadcrumbs but never samples memory when sampleMemory is false', () => {
+    diagnostics.installRendererCrashDiagnostics('main', { sampleMemory: false })
+    expect(window.addEventListener).toHaveBeenCalledTimes(2)
+    expect(setIntervalMock).not.toHaveBeenCalled()
+    expect(recordBreadcrumbMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'renderer_memory' })
+    )
+    listeners.get('error')?.[0]?.({
+      message: 'boom',
+      filename: 'f.ts',
+      lineno: 1,
+      colno: 1,
+      error: new Error('x')
+    })
+    expect(recordBreadcrumbMock).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'renderer_error' })
+    )
+  })
+
   it('installs startup, error, rejection, and memory breadcrumbs once', () => {
     diagnostics.installRendererCrashDiagnostics()
     diagnostics.installRendererCrashDiagnostics()

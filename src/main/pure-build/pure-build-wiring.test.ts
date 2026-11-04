@@ -9,7 +9,25 @@ const esc = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'
 const token = (text: string): RegExp => new RegExp(`(?<![\\w$])${esc(text)}(?![\\w$])`)
 
 /** Wiring zyx/orca-pure switched off: [file under src/, identifier absent outside comments]. */
-const REMOVED: readonly (readonly [string, string])[] = []
+const REMOVED: readonly (readonly [string, string])[] = [
+  // O1 diagnostics and telemetry observers
+  ['renderer/src/main.tsx', 'react-devtools-commit-hook-shim'],
+  ['renderer/src/main.tsx', 'react-commit-cascade-observer'],
+  ['renderer/src/main.tsx', 'installTypingLatencyDiagnostic'],
+  ['main/startup/main-process-ready-foundation.ts', 'installMainThreadHangWatchdog'],
+  ['main/startup/main-process-ready-foundation.ts', 'preservePreviousHangDetection'],
+  ['main/startup/main-process-observers.ts', 'initTelemetry'],
+  ['main/startup/main-process-observers.ts', 'initCohortClassifier'],
+  ['main/startup/main-process-observers.ts', 'initOnboardingCohortClassifier'],
+  ['main/startup/main-process-observers.ts', 'reportPreviousHangDetection'],
+  ['main/startup/main-window-controller.ts', 'trackAppOpenedOnce'],
+  ['main/startup/main-process-ready-runtime.ts', 'startPreGoneCrashSampling'],
+  ['main/startup/main-process-ready-runtime.ts', 'WslUsageReporter'],
+  ['main/startup/main-process-preflight.ts', 'startEventLoopDelayProbe'],
+  ['main/startup/main-process-preflight.ts', 'startEventLoopStallProbe'],
+  ['main/startup/main-process-preflight.ts', 'startMainThreadChurnProbe'],
+  ['main/startup/main-process-preflight.ts', 'setSpawnObserver']
+]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerWslHostHandlers'],
@@ -24,7 +42,12 @@ const KEPT: readonly (readonly [string, string])[] = [
   ['renderer/src/App.tsx', 'BrowserPagePrompts'],
   ['main/startup/first-window-startup-services.ts', 'startAgentHookServer'],
   ['main/startup/main-process-runtime-launch.ts', 'startDesktopRelayService'],
-  ['main/startup/main-process-runtime-launch.ts', 'startDesktopPushService']
+  ['main/startup/main-process-runtime-launch.ts', 'startDesktopPushService'],
+  ['renderer/src/main.tsx', "installRendererCrashDiagnostics('main', { sampleMemory: false })"],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerTelemetryHandlers'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerDiagnosticsHandlers'],
+  ['main/startup/main-process-ready-runtime.ts', 'recordProcessGoneCrash'],
+  ['main/startup/main-process-preflight.ts', 'logStartupDiagnostic']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [
