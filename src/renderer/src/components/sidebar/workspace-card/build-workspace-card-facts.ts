@@ -1,4 +1,5 @@
 import { getWorkspaceAttachments } from '../../../../../shared/workspace-attachments'
+import { gateWorktreeCardAttachments } from '../worktree-card-hosted-review-gate'
 import type { WorktreeCardProperty } from '../../../../../shared/ui-chrome-types'
 import type {
   WorkspaceCardFacts,
@@ -94,7 +95,7 @@ export function buildWorkspaceCardFacts(card: WorktreeCardController): Workspace
       pending: card.reviewChecks.pending
     },
     links: {
-      count: getWorkspaceAttachments(worktree).length,
+      count: gateWorktreeCardAttachments(getWorkspaceAttachments(worktree)).length,
       issue: Boolean(card.hoverIssue),
       linearIssue: Boolean(card.hoverLinearIssue),
       jiraIssue: Boolean(card.hoverJiraIssue)

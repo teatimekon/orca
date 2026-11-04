@@ -14,7 +14,7 @@ export function initCohortClassifier(store: Store): void {
 
 export function getCohortAtEmit(): { nth_repo_added: number | undefined } {
   if (!storeRef) {
-    warnOnce('store not initialized')
+    // zyx/orca-pure: telemetry init is gone, so an unset store is the normal state, not a warning.
     return { nth_repo_added: undefined }
   }
   try {

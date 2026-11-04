@@ -163,6 +163,14 @@ const CASES: Record<string, Case> = {
     }
   },
   details: { worktree: { comment: 'Waiting on review' } },
+  twoAttachments: {
+    worktree: {
+      linkedItems: [
+        { type: 'pr', provider: 'github', number: 1, url: 'https://github.com/a/b/pull/1' },
+        { type: 'pr', provider: 'github', number: 2, url: 'https://github.com/a/b/pull/2' }
+      ]
+    }
+  },
   cacheTimer: { cacheStartedAt: 1000 },
   deleteQuickAction: { deleteModifier: true },
   ssh: { repo: { connectionId: 'ssh-1' } },

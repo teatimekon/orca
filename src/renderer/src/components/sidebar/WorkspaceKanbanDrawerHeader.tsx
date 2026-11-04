@@ -40,8 +40,6 @@ export default function WorkspaceKanbanDrawerHeader({
   onQueryChange,
   onClearQuery,
   workspaceStatuses,
-  syncTaskStatusFromWorkspaceBoard,
-  onSyncTaskStatusFromWorkspaceBoardChange,
   onRenameStatus,
   onChangeStatusColor,
   onChangeStatusIcon,
@@ -101,8 +99,6 @@ export default function WorkspaceKanbanDrawerHeader({
         />
         <WorkspaceKanbanSettingsMenu
           workspaceStatuses={workspaceStatuses}
-          syncTaskStatusFromWorkspaceBoard={syncTaskStatusFromWorkspaceBoard}
-          onSyncTaskStatusFromWorkspaceBoardChange={onSyncTaskStatusFromWorkspaceBoardChange}
           onRenameStatus={onRenameStatus}
           onChangeStatusColor={onChangeStatusColor}
           onChangeStatusIcon={onChangeStatusIcon}

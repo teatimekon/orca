@@ -2,11 +2,12 @@ import {
   OPENCODE_CONFIG_DIR_ENV_KEYS,
   isOpenCodeLegacySharedConfigDir
 } from '../../../opencode/legacy-shared-config-dir'
-import { openCode2HookService, openCodeHookService } from '../../../opencode/hook-service'
 import { resolveOpenCodeSourceConfigDir } from './pi-agent'
 import { restoreOrStripOverlayEnv } from '../../../../shared/agent-overlay-env'
 import { selectOpenCodeHookAgent } from '../../../../shared/opencode-launch-command'
 import { isTuiAgentEnabled } from '../../../../shared/tui-agent-selection'
+import { openCode2HookService, openCodeHookService } from '../../../opencode/hook-service'
+import { MANAGED_AGENT_HOOK_INSTALLERS } from '../../../agent-hooks/managed-agent-hook-registry'
 import { resolveOpenCodeConfigDirectory } from '../../../../shared/opencode-config-directory'
 import { readSessionShellStartupEnvVar } from '../../../pty/shell-startup/shell-startup-env'
 import type { BuildPtyHostEnvOptions } from './types'
@@ -31,11 +32,13 @@ export function captureOpenCodeSourceConfig(
       inheritedEnv[key] = process.env[key]
     }
   }
-  // A daemon or sibling shell can retain a retired path that main no longer sees.
-  openCodeHookService.refreshLegacySharedPlugin()
-  openCode2HookService.refreshLegacySharedPlugin()
   const directory = resolveOpenCodeSourceConfigDir(env, inheritedEnv)
   return { inheritedEnv, directory: isLegacyDirectory(directory) ? undefined : directory }
+}
+
+// zyx/orca-pure: OpenCode is not in the managed hook registry, so no pane (even a plain shell) gets its plugin written.
+function isManagedHookAgent(agent: string): boolean {
+  return MANAGED_AGENT_HOOK_INSTALLERS.some(([managed]) => managed === agent)
 }
 
 export function applyOpenCodeStatusPluginEnv(
@@ -52,7 +55,9 @@ export function applyOpenCodeStatusPluginEnv(
     options.launchAgent,
     command,
     (candidate) =>
-      options.agentStatusHooksEnabled && isTuiAgentEnabled(candidate, options.disabledTuiAgents)
+      isManagedHookAgent(candidate) &&
+      options.agentStatusHooksEnabled &&
+      isTuiAgentEnabled(candidate, options.disabledTuiAgents)
   )
   restoreOrStripOverlayEnv(
     env,

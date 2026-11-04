@@ -2,8 +2,6 @@ import { translate } from '@/i18n/i18n'
 import type { SmartNameMode } from '../../../../shared/new-workspace/smart-workspace-source-results'
 
 export function getSmartWorkspaceNameFieldCopy({
-  repoBackedSourcesDisabled,
-  branchesEnabled,
   crossRepoSwitchTarget,
   disabled,
   disabledPlaceholder,
@@ -16,20 +14,11 @@ export function getSmartWorkspaceNameFieldCopy({
   disabledPlaceholder?: string
   mode: SmartNameMode
 }) {
-  const smartPlaceholder = repoBackedSourcesDisabled
-    ? translate(
-        'auto.components.new.workspace.SmartWorkspaceNameField.placeholderWorkspaceName',
-        'Type a workspace name'
-      )
-    : branchesEnabled
-      ? translate(
-          'auto.components.new.workspace.SmartWorkspaceNameField.placeholderSmartWithBranchGitLab',
-          'Type a name, #1234, branch, GitHub, or GitLab URL'
-        )
-      : translate(
-          'auto.components.new.workspace.SmartWorkspaceNameField.placeholderSmartGitLab',
-          'Type a name, #1234, GitHub, or GitLab URL'
-        )
+  // zyx/orca-pure: the catalog's other placeholders name Jira, so every branch reuses the plain one.
+  const smartPlaceholder = translate(
+    'auto.components.new.workspace.SmartWorkspaceNameField.placeholderWorkspaceName',
+    'Type a workspace name'
+  )
   const crossRepoSwitchIsTaskSource = crossRepoSwitchTarget === 'task-source'
   const crossRepoSwitchTitle = crossRepoSwitchIsTaskSource
     ? translate(

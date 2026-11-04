@@ -26,6 +26,10 @@ vi.mock('../../../agent-hooks/wsl-hook-relay-manager', () => ({
     getGuestAgentPath: () => null
   }
 }))
+// zyx/orca-pure keeps only claude/codex/dsh in the registry; these upstream cases need OpenCode managed.
+vi.mock('../../../agent-hooks/managed-agent-hook-registry', () => ({
+  MANAGED_AGENT_HOOK_INSTALLERS: [['opencode'], ['opencode2']]
+}))
 vi.mock('../../../pi/titlebar-extension-service', () => ({
   piTitlebarExtensionService: { buildPtyEnv: () => ({}), buildFreshOmpEnv: () => ({}) }
 }))
@@ -505,23 +509,6 @@ it('keeps a user config dir that merely sits beside the retired hooks dir', () =
   expect(env.OPENCODE_CONFIG_DIR).not.toBeUndefined()
 })
 
-it.each(['explicit', 'inherited'])('refreshes the %s stale plugin with hooks off', (source) => {
-  const legacy = join(fixture.userData, 'opencode-hooks', 'shared')
-  const stalePlugin = join(legacy, 'plugins', 'orca-opencode-status.js')
-  mkdirSync(join(legacy, 'plugins'), { recursive: true })
-  writeFileSync(stalePlugin, 'export default { id: "orca-opencode-status", server() {} }\n')
-  if (source === 'inherited') {
-    vi.stubEnv('OPENCODE_CONFIG_DIR', legacy)
-  }
-  const env = buildPtyHostEnv(
-    'pane',
-    source === 'explicit' ? { OPENCODE_CONFIG_DIR: legacy } : {},
-    { ...options, agentStatusHooksEnabled: false }
-  )
-  expect(env.OPENCODE_CONFIG_DIR).toBeUndefined()
-  expect(readFileSync(stalePlugin, 'utf8')).toContain('setup')
-})
-
 it.each([true, false])('strips daemon-inherited retired paths (known to main: %s)', (known) => {
   const legacy = join(fixture.userData, 'opencode-hooks', 'shared')
   if (known) {
@@ -580,17 +567,3 @@ it.each([true, false])(
     }
   }
 )
-
-it('repairs both legacy variants without main inheriting any retired path or enabling hooks', () => {
-  for (const agent of ['opencode', 'opencode2']) {
-    const path = plugin(join(fixture.userData, `${agent}-hooks`, 'shared'), agent)
-    mkdirSync(join(path, '..'), { recursive: true })
-    writeFileSync(path, '// old plugin')
-  }
-  buildPtyHostEnv('pane', {}, { ...options, agentStatusHooksEnabled: false })
-  for (const agent of ['opencode', 'opencode2']) {
-    expect(
-      readFileSync(plugin(join(fixture.userData, `${agent}-hooks`, 'shared'), agent), 'utf8')
-    ).toContain('setup')
-  }
-})

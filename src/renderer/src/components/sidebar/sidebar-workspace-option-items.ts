@@ -118,7 +118,14 @@ export const AGENT_ACTIVITY_DISPLAY_OPTIONS = localizeChoices<
     translate('auto.components.sidebar.SidebarWorkspaceOptionsMenu.2a81e07366', 'Full list')
 })
 
-export const PROPERTY_OPTIONS = localizeChoices<ChoiceId<typeof WORKSPACE_CARD_PROPERTY_CHOICES>>(
+// zyx/orca-pure: Linear, Jira and automation displays no longer exist, so their toggles are not offered.
+const REMOVED_CARD_PROPERTIES: ReadonlySet<string> = new Set([
+  'linear-issue',
+  'jira-issue',
+  'automation'
+])
+
+const ALL_PROPERTY_OPTIONS = localizeChoices<ChoiceId<typeof WORKSPACE_CARD_PROPERTY_CHOICES>>(
   WORKSPACE_CARD_PROPERTY_CHOICES,
   {
     issue: () =>
@@ -139,6 +146,10 @@ export const PROPERTY_OPTIONS = localizeChoices<ChoiceId<typeof WORKSPACE_CARD_P
       translate('auto.components.sidebar.SidebarWorkspaceOptionsMenu.d7084e8bc8', 'Agent activity'),
     host: () => translate('auto.components.sidebar.SidebarWorkspaceOptionsMenu.host', 'Host')
   }
+)
+
+export const PROPERTY_OPTIONS = ALL_PROPERTY_OPTIONS.filter(
+  (opt) => !REMOVED_CARD_PROPERTIES.has(opt.id)
 )
 
 const CARD_DISPLAY_LABELS: Record<
@@ -172,10 +183,12 @@ const CARD_DISPLAY_LABELS: Record<
 export function getWorktreeCardDisplayOptions(
   hasProjectGroups: boolean
 ): { id: WorktreeCardProperty; readonly label: string }[] {
-  return WORKSPACE_CARD_DISPLAY_CHOICES.map(({ id }) => ({
-    id,
-    get label() {
-      return CARD_DISPLAY_LABELS[id](hasProjectGroups)
-    }
-  }))
+  return WORKSPACE_CARD_DISPLAY_CHOICES.filter(({ id }) => !REMOVED_CARD_PROPERTIES.has(id)).map(
+    ({ id }) => ({
+      id,
+      get label() {
+        return CARD_DISPLAY_LABELS[id](hasProjectGroups)
+      }
+    })
+  )
 }
