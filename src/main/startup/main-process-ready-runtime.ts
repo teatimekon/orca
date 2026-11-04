@@ -61,7 +61,6 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
   installFirstWorkRenameHookSubscription()
   await initializeMainProcessPlugins(runtime)
   state.starNag = new StarNagService(store, state.stats!)
-  state.starNag.start()
   state.starNag.registerIpcHandlers()
   state.piWebBridge = startPiWebBridge(store)
   state.agentBrowserBridge = new AgentBrowserBridge(browserManager, {

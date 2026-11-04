@@ -34,7 +34,7 @@ import { runWslDriveUncRendererStoreRewrites } from './lib/wsl-drive-unc-rendere
 import { useDocumentAppearance } from './app-shell/use-document-appearance'
 import { useFloatingWorkspacePanel } from './app-shell/use-floating-workspace-panel'
 import { useGlobalKeybindings } from './app-shell/use-global-keybindings'
-import { useOnboardingAndFeatureTips } from './app-shell/use-onboarding-and-feature-tips'
+import { usePureEducationGate } from './app-shell/pure-education-gate'
 import { usePersistedUIWriter } from './app-shell/use-persisted-ui-writer'
 import { useRuntimeGraphSync } from './app-shell/use-runtime-graph-sync'
 import { useWindowVisibilityEffects } from './app-shell/use-window-visibility-effects'
@@ -46,7 +46,7 @@ import { installActiveWorktreeRemovalSuccessor } from './lib/active-worktree-rem
 function App(): React.JSX.Element {
   const layout = useAppChromeLayout()
   const floatingWorkspace = useFloatingWorkspacePanel()
-  const onboardingGate = useOnboardingAndFeatureTips()
+  const onboardingGate = usePureEducationGate()
   const clearUnreadDockBadge = useUnreadDockBadge(floatingWorkspace.open)
 
   useAppShellServices()

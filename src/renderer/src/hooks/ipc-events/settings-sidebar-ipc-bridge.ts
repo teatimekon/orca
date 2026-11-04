@@ -65,12 +65,6 @@ export function registerSettingsAndSidebarIpcBridge(unsubs: (() => void)[]): voi
       .catch(() => {})
   }
 
-  unsubs.push(
-    window.api.ui.onOpenSetupGuide?.(() => {
-      useAppStore.getState().openModal('setup-guide', { telemetrySource: 'help_menu' })
-    }) ?? (() => {})
-  )
-
   // Lost-registry auth loops need a visible remedy on either end; main throttles this notice once per session.
   unsubs.push(
     subscribeToUnpairedDeviceAuthNotification(window.api.mobile, () => {
@@ -97,12 +91,6 @@ export function registerSettingsAndSidebarIpcBridge(unsubs: (() => void)[]): voi
           }
         }
       )
-    })
-  )
-
-  unsubs.push(
-    window.api.ui.onOpenFeatureTour(() => {
-      useAppStore.getState().openModal('feature-wall', { source: 'help_menu' })
     })
   )
 

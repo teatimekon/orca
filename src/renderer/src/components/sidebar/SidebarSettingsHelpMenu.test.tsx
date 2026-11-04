@@ -218,26 +218,14 @@ describe('SidebarSettingsHelpMenu', () => {
     expect(html).toContain('Keyboard Shortcuts')
   })
 
-  it('renders Milestones with progress when setup is incomplete', () => {
-    const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
-    expect(html).toContain('Milestones')
-    expect(html).toContain('data-testid="setup-guide-progress-ring"')
-  })
-
-  it('hides Milestones when setup is complete', () => {
-    mocks.setupProgress = {
-      ready: true,
-      coreDoneCount: 5,
-      coreTotal: 5,
-      stepDone: {}
-    }
+  it('never renders Milestones, even when setup is incomplete', () => {
     const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
     expect(html).not.toContain('Milestones')
   })
 
-  it('renders the Onboarding menu item by default', () => {
+  it('does not render the Onboarding item', () => {
     const html = renderToStaticMarkup(<SidebarSettingsHelpMenu />)
-    expect(html).toContain('Onboarding')
+    expect(html).not.toMatch(/>\s*Onboarding\s*</)
   })
 
   it('renders Restart Orca by default', () => {

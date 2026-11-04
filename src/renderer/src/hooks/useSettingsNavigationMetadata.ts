@@ -35,6 +35,7 @@ import { buildRemoteSettingsSections } from './settings-navigation-remote-sectio
 import { buildWorkflowSettingsSections } from './settings-navigation-workflow-sections'
 import { useWindowsTerminalCapabilityOwnerKey } from './useWindowsTerminalCapabilityOwnerKey'
 import { useUiLanguageRevision } from '@/i18n/use-ui-language-revision'
+import { PURE_REMOVED_SETTINGS_SECTION_IDS } from './pure-removed-settings-sections'
 
 export { isWebClientLocation } from '@/lib/web-client-location'
 
@@ -104,7 +105,7 @@ export function buildSettingsNavigationMetadata({
     ...buildWorkflowSettingsSections(options, terminalPaneSearchEntries),
     ...buildInterfaceSettingsSections(options),
     ...buildRemoteSettingsSections(options, runtimeEnvironmentsSearchEntry, reposById)
-  ]
+  ].filter((section) => !PURE_REMOVED_SETTINGS_SECTION_IDS.has(section.id))
 }
 
 export function useSettingsNavigationMetadata(): SettingsNavSection[] {

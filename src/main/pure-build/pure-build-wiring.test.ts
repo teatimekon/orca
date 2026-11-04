@@ -28,7 +28,29 @@ const REMOVED: readonly (readonly [string, string])[] = [
   ['main/startup/main-process-preflight.ts', 'startMainThreadChurnProbe'],
   ['main/startup/main-process-preflight.ts', 'setSpawnObserver'],
   // O2 managed hook registry
-  ['main/startup/main-process-ready-runtime.ts', 'refreshInstalledOpenCodeStatusPlugins']
+  ['main/startup/main-process-ready-runtime.ts', 'refreshInstalledOpenCodeStatusPlugins'],
+  // O13 onboarding, tips, tours, setup guide, star prompts
+  ['renderer/src/App.tsx', 'useOnboardingAndFeatureTips'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'SetupGuideModal'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'FeatureWallModal'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'FeatureTipsModal'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'ContextualTourOverlay'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'SetupGuideTelemetryObserver'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'OnboardingFlow'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'StarNagToastHost'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'StarNagAgentValueMomentObserver'],
+  ['renderer/src/app-shell/AppRootSurfaces.tsx', 'TelemetryFirstLaunchSurface'],
+  ['renderer/src/app-shell/AppNotificationCards.tsx', 'StarNagCard'],
+  ['renderer/src/components/sidebar/SidebarNav.tsx', 'SetupGuideSidebarEntry'],
+  ['renderer/src/hooks/ipc-events/settings-sidebar-ipc-bridge.ts', 'onOpenSetupGuide'],
+  ['renderer/src/hooks/ipc-events/settings-sidebar-ipc-bridge.ts', 'onOpenFeatureTour'],
+  [
+    'renderer/src/components/settings/page/settings-page-renderer.tsx',
+    'renderSetupGuideSettingsSection'
+  ],
+  ['main/menu/register-app-menu.ts', 'featureTourItem'],
+  ['main/menu/register-app-menu.ts', 'setupGuideItem'],
+  ['main/startup/main-process-ready-runtime.ts', 'starNag.start()']
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -53,7 +75,11 @@ const KEPT: readonly (readonly [string, string])[] = [
   ['main/startup/main-process-ready-runtime.ts', 'startCodexHooks'],
   ['main/startup/main-process-ready-runtime.ts', 'reconcileStartupManagedAgentHooks'],
   ['main/startup/main-process-ready-runtime.ts', 'hydrateAgentCliShellPath'],
-  ['main/ipc/pty/host-env/assembly.ts', 'piTitlebarExtensionService']
+  ['main/ipc/pty/host-env/assembly.ts', 'piTitlebarExtensionService'],
+  ['main/startup/main-process-ready-runtime.ts', 'starNag.registerIpcHandlers()'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerOnboardingHandlers'],
+  ['main/updater/nudges/updater-nudge.ts', 'SELF_BUILT_BUILD'],
+  ['main/updater/lifecycle/updater-setup.ts', 'SELF_BUILT_BUILD']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [

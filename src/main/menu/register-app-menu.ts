@@ -49,8 +49,6 @@ type RegisterAppMenuOptions = AppMenuQuitHandlers & {
 function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
   const {
     onOpenSettings,
-    onOpenSetupGuide,
-    onOpenFeatureTour,
     onOpenCrashReport,
     onCheckForUpdates,
     onBeforeReload,
@@ -109,16 +107,6 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
   const settingsItem: Electron.MenuItemConstructorOptions = {
     label: `${translateMain('menu.settings', 'Settings')}${settingsShortcut}`,
     click: () => onOpenSettings()
-  }
-
-  const featureTourItem: Electron.MenuItemConstructorOptions = {
-    label: translateMain('menu.exploreOrca', 'Explore Orca'),
-    click: (_menuItem, window) => onOpenFeatureTour(window)
-  }
-
-  const setupGuideItem: Electron.MenuItemConstructorOptions = {
-    label: translateMain('menu.gettingStarted', 'Getting Started with Orca'),
-    click: (_menuItem, window) => onOpenSetupGuide(window)
   }
 
   const crashReportItem: Electron.MenuItemConstructorOptions = {
@@ -280,9 +268,6 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
     label: translateMain('menu.help', 'Help'),
     submenu: [
       crashReportItem,
-      { type: 'separator' },
-      featureTourItem,
-      setupGuideItem,
       ...(isMac
         ? []
         : ([

@@ -9,12 +9,10 @@ import {
   MessageSquareText,
   RefreshCw,
   RotateCw,
-  School,
   ScrollText,
   Settings
 } from 'lucide-react'
 import { toast } from 'sonner'
-import logo from '../../../../../resources/logo.svg'
 import { useAppStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -28,9 +26,6 @@ import {
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { useShortcutKeyDetails } from '@/hooks/useShortcutLabel'
 import { ShortcutKeyCombo } from '@/components/ShortcutKeyCombo'
-import { showOnboardingFromRenderer } from '../onboarding/show-onboarding-event'
-import { SetupGuideProgressRing } from '../setup-guide/SetupGuideProgressRing'
-import { useSetupGuideProgress } from '../setup-guide/use-setup-guide-progress'
 import { lazyWithRetry } from '@/lib/lazy-with-retry'
 import type * as SidebarFeedbackDialogModule from './SidebarFeedbackDialog'
 import { translate } from '@/i18n/i18n'
@@ -93,11 +88,9 @@ function ExternalMenuItem({
 }
 
 export function SidebarSettingsHelpMenu(): React.JSX.Element {
-  const openModal = useAppStore((s) => s.openModal)
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
   const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
   const updateStatus = useAppStore((s) => s.updateStatus)
-  const setupProgress = useSetupGuideProgress(true, false, false)
 
   const settingsShortcut = useShortcutKeyDetails('app.settings')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -105,13 +98,9 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
   // Retain the mounted dialog through its closing animation.
   const [feedbackDialogMounted, setFeedbackDialogMounted] = useState(false)
   const [isRestartingOrca, setIsRestartingOrca] = useState(false)
-  const lastShowOnboardingAtRef = React.useRef(0)
   const updateCheckModifiersRef = React.useRef(NO_UPDATE_CHECK_MODIFIERS)
   const mountedRef = useMountedRef()
   const updateCheckHint = getUpdateCheckHint()
-
-  const showMilestones =
-    setupProgress.ready && setupProgress.coreDoneCount < setupProgress.coreTotal
 
   const handleMenuOpenChange = (open: boolean): void => {
     setMenuOpen(open)
@@ -125,15 +114,6 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
   const handleOpenFeedback = (): void => {
     setFeedbackDialogMounted(true)
     setFeedbackOpen(true)
-  }
-
-  const handleShowOnboarding = (): void => {
-    const now = Date.now()
-    if (now - lastShowOnboardingAtRef.current < 500) {
-      return
-    }
-    lastShowOnboardingAtRef.current = now
-    void showOnboardingFromRenderer()
   }
 
   const handleRestartOrca = (): void => {
@@ -178,10 +158,6 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
     const modifiers = updateCheckModifiersRef.current
     updateCheckModifiersRef.current = NO_UPDATE_CHECK_MODIFIERS
     void window.api.updater.check(getUpdateCheckClickOptions(modifiers))
-  }
-
-  const openMilestones = (): void => {
-    openModal('setup-guide', { telemetrySource: 'help_menu' })
   }
 
   return (
@@ -252,37 +228,6 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
               {translate(
                 'auto.components.sidebar.SidebarSettingsHelpMenu.4cf5b868d7',
                 'Send Feedback'
-              )}
-            </DropdownMenuItem>
-            {showMilestones ? (
-              <DropdownMenuItem onSelect={openMilestones}>
-                <img
-                  src={logo}
-                  alt=""
-                  aria-hidden="true"
-                  className="size-3.5 object-contain invert opacity-55 dark:invert-0"
-                />
-                {translate(
-                  'auto.components.sidebar.SidebarSettingsHelpMenu.f8a2c91d4e',
-                  'Milestones'
-                )}
-                <SetupGuideProgressRing
-                  done={setupProgress.coreDoneCount}
-                  total={setupProgress.coreTotal}
-                  sizeClassName="size-4"
-                  className="ml-auto"
-                />
-              </DropdownMenuItem>
-            ) : null}
-            <DropdownMenuItem
-              className="whitespace-nowrap"
-              onClick={handleShowOnboarding}
-              onSelect={handleShowOnboarding}
-            >
-              <School className="size-3.5" />
-              {translate(
-                'auto.components.sidebar.SidebarSettingsHelpMenu.b7e4d2a19c',
-                'Onboarding'
               )}
             </DropdownMenuItem>
             <ExternalMenuItem
