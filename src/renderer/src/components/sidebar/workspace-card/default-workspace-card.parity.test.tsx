@@ -5,7 +5,6 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { GlobalSettings } from '../../../../../shared/global-settings-types'
-import type { HostedReviewInfo } from '../../../../../shared/hosted-review'
 import type { Repo } from '../../../../../shared/repo-types'
 import type { WorktreeCardProperty } from '../../../../../shared/ui-chrome-types'
 import type { Worktree } from '../../../../../shared/worktree/types'
@@ -128,20 +127,6 @@ function makeWorktree(overrides: Partial<Worktree> = {}): Worktree {
   }
 }
 
-function review(overrides: Partial<HostedReviewInfo> = {}): HostedReviewInfo {
-  return {
-    provider: 'github',
-    number: 456,
-    title: 'Card plugins',
-    state: 'open',
-    url: 'https://github.com/acme/orca/pull/456',
-    status: 'failure',
-    updatedAt: '2026-11-02T00:00:00.000Z',
-    mergeable: 'CONFLICTING',
-    ...overrides
-  }
-}
-
 type Case = {
   worktree?: Partial<Worktree>
   repo?: Partial<Repo> | null
@@ -177,40 +162,7 @@ const CASES: Record<string, Case> = {
       }
     }
   },
-  prFailing: {
-    worktree: { linkedPR: 456 },
-    state: {
-      hostedReviewCache: {
-        'local::repo-1::feature/card-plugins': { data: review(), fetchedAt: 1 }
-      }
-    }
-  },
-  details: {
-    worktree: {
-      linkedIssue: 12,
-      linkedLinearIssue: 'ORC-1',
-      comment: 'Waiting on review',
-      automationProvenance: {
-        kind: 'created-by-automation',
-        automationId: 'a1',
-        automationNameSnapshot: 'Nightly',
-        automationRunId: 'r1',
-        automationRunTitleSnapshot: 'Nightly run',
-        createdAt: 1,
-        executionTargetType: 'local',
-        executionTargetId: 'local',
-        projectId: 'repo-1'
-      }
-    }
-  },
-  twoAttachments: {
-    worktree: {
-      linkedItems: [
-        { type: 'pr', provider: 'github', number: 1, url: 'https://github.com/a/b/pull/1' },
-        { type: 'pr', provider: 'github', number: 2, url: 'https://github.com/a/b/pull/2' }
-      ]
-    }
-  },
+  details: { worktree: { comment: 'Waiting on review' } },
   cacheTimer: { cacheStartedAt: 1000 },
   deleteQuickAction: { deleteModifier: true },
   ssh: { repo: { connectionId: 'ssh-1' } },
@@ -235,7 +187,6 @@ const CASES: Record<string, Case> = {
     }
   },
   affiliate: { props: { affiliateListMode: true } },
-  activeLinear: { props: { isActive: true }, worktree: { linkedLinearIssue: 'ORC-2' } },
   flushIndented: { props: { flushSurface: true, contentIndent: 24 } },
   indented: { props: { contentIndent: 16 } }
 }
@@ -250,8 +201,7 @@ const SHOWS: Partial<Record<keyof typeof CASES, string>> = {
   cacheTimer: 'data-cache-timer',
   deleteQuickAction: 'Delete workspace',
   lineage: 'data-lineage-toggle',
-  details: 'Waiting on review',
-  activeLinear: 'Linear'
+  details: 'Waiting on review'
 }
 
 const STYLES: Record<string, Partial<GlobalSettings>> = {

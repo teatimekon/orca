@@ -294,6 +294,19 @@ describe('SidebarNav', () => {
     expect(shouldShowAutomationsButton({})).toBe(true)
   })
 
+  it('renders no Tasks entry, even with showTasksButton', async () => {
+    setSidebarState({
+      settings: {
+        ...getDefaultSettings('/tmp'),
+        showTasksButton: true
+      }
+    })
+
+    const container = await renderSidebarNav()
+
+    expect(queryButtonByText(container, 'Tasks')).toBeNull()
+  })
+
   it('renders no Automations entry, even with showAutomationsButton', async () => {
     setSidebarState({
       settings: {

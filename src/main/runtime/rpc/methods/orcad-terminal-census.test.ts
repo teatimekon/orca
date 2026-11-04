@@ -29,20 +29,6 @@ afterEach(() => {
 })
 
 describe('orcad.terminalCensus', () => {
-  it('lets an update through on a host whose only terminals are finished automation shells', async () => {
-    vi.useFakeTimers()
-    // Three idle run shells, closed by the release; the daemon drops them a moment later.
-    collect
-      .mockResolvedValueOnce({ ...idle, liveSessions: 3 })
-      .mockResolvedValueOnce({ ...idle, liveSessions: 3 })
-      .mockResolvedValue(idle)
-    const { runtime, result } = call({ releaseFinishedAutomationTerminals: true }, 3)
-    await vi.advanceTimersByTimeAsync(1_000)
-
-    await expect(result).resolves.toEqual(idle)
-    expect(runtime.releaseFinishedAutomationRunTerminals).toHaveBeenCalledOnce()
-  })
-
   it('answers unverifiable, still closed, when a spawn started before the close never settles', async () => {
     vi.useFakeTimers()
     const admission = new TerminalUpdateAdmission(async () => [])

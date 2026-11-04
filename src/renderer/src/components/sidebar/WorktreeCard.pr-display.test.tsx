@@ -451,6 +451,34 @@ describe('WorktreeCard linked PR display', () => {
     expect(markup).not.toContain('Reviewer handoff note')
   })
 
+  it('renders no linked-issue row for GitHub or Linear links', async () => {
+    gate.HOSTED_SOURCE_CONTROL_ENABLED = false
+    worktreeCardProperties = ['status', 'issue', 'linear-issue', 'comment']
+    const { default: WorktreeCard } = await import('./WorktreeCard')
+
+    const markup = renderWorktreeCardMarkup(
+      <WorktreeCard
+        worktree={makeWorktree({
+          linkedIssue: 123,
+          linkedLinearIssue: 'ENG-123',
+          linkedItems: [
+            {
+              provider: 'github',
+              type: 'issue',
+              number: 123,
+              url: 'https://github.com/a/b/issues/123'
+            }
+          ]
+        })}
+        repo={makeRepo()}
+        isActive={false}
+      />
+    )
+
+    expect(markup).not.toContain('Linked issue #123')
+    expect(markup).not.toContain('Linked Linear ENG-123')
+  })
+
   it('hides individual metadata surfaces when their card properties are disabled', async () => {
     worktreeCardProperties = []
     const { default: WorktreeCard } = await import('./WorktreeCard')
@@ -475,7 +503,7 @@ describe('WorktreeCard linked PR display', () => {
     expect(markup).not.toContain('Reviewer handoff note')
   })
 
-  it('shows automation-created workspaces as a metadata icon property', async () => {
+  it('renders no automation badge for automation-created workspaces, even with the property on', async () => {
     worktreeCardProperties = ['status', 'automation']
     const { default: WorktreeCard } = await import('./WorktreeCard')
 
@@ -501,7 +529,7 @@ describe('WorktreeCard linked PR display', () => {
       />
     )
 
-    expect(countAutomationCreatedLabels(markup)).toBe(1)
+    expect(countAutomationCreatedLabels(markup)).toBe(0)
     expect(markup).not.toContain('>Automation</span>')
   }, 20_000)
 
@@ -537,7 +565,7 @@ describe('WorktreeCard linked PR display', () => {
     expect(markup).not.toContain('Nightly triage automation')
   }, 20_000)
 
-  it('shows the automation metadata icon in compact card mode when manually enabled', async () => {
+  it('renders no automation badge in compact card mode, even when manually enabled', async () => {
     settings = { compactWorktreeCards: true }
     worktreeCardProperties = ['status', 'automation']
     const { default: WorktreeCard } = await import('./WorktreeCard')
@@ -564,7 +592,7 @@ describe('WorktreeCard linked PR display', () => {
       />
     )
 
-    expect(countAutomationCreatedLabels(markup)).toBe(1)
+    expect(countAutomationCreatedLabels(markup)).toBe(0)
     expect(markup).not.toContain('>Automation</span>')
   }, 20_000)
 
