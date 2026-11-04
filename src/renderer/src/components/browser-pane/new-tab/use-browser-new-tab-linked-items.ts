@@ -28,8 +28,6 @@ export function useBrowserNewTabLinkedItems(
     deleteState: foundation.deleteState,
     branch: review.branch,
     issueEntry: review.issueEntry,
-    linearIssueEntry: review.linearIssueEntry,
-    linearIssueFallbackEntry: review.linearIssueFallbackEntry,
     prDisplay: review.prDisplay
   })
   // Why details open: the page shows titles and states up front, as the card's hover does.
@@ -47,21 +45,14 @@ export function useBrowserNewTabLinkedItems(
     fetchHostedReviewForBranch: foundation.fetchHostedReviewForBranch,
     shouldRefreshHostedReview: false,
     newCardStyle: true,
-    hoverDetailsOpen: true,
-    showIssue: true,
-    issueCacheKey: review.issueCacheKey,
-    fetchIssue: foundation.fetchIssue,
-    showLinearIssue: true,
-    fetchLinearIssue: foundation.fetchLinearIssue,
-    linearSourceContext: review.linearSourceContext,
-    linearWorkspaceId: review.linearWorkspaceId
+    hoverDetailsOpen: true
   })
   const rows = getWorkspaceLinkedItemRows(
     worktree,
     {
       review: review.prDisplay,
       issue: linked.issueDisplay,
-      linearIssue: linked.linearIssue,
+      linearIssue: linked.linearIssueDisplay,
       jiraIssue: linked.jiraIssueDisplay
     },
     // Why no per-item details: their lookup routes by the focused server, which this page must not.

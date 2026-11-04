@@ -1,15 +1,11 @@
 import { worktreeMatchesGitHubNumber } from '@/lib/github-work-item-workspace-attachment'
 import { getPaletteWorktreeExecutionHostId } from '@/lib/palette-repo-resolution'
 import { findRepoForHost } from '@/store/slices/repo-host-identity'
-import {
-  parseGitHubIssueOrPRLink,
-  parseGitHubIssueOrPRNumber
-} from '../../../../shared/github/links'
+import { parseGitHubIssueOrPRNumber } from '../../../../shared/github/links'
 import {
   getLinkedWorkItemSuggestedName,
   getLinkedWorkItemWorkspaceName
 } from '../../../../shared/workspace-name'
-import type { LinkedWorkItemSummary } from '@/lib/new-workspace'
 import type { WorktreeJumpPaletteCreateWorktreeInput } from './worktree-jump-palette-create-worktree-input'
 import { lookupGitHubWorkItemForSource } from '@/lib/github-work-item-source-lookup'
 import { activateAndRevealWorkspace } from '@/lib/worktree-activation'
@@ -18,7 +14,6 @@ import { getRepoMapFromState } from '@/store/selectors'
 import { useAppStore } from '@/store/index'
 import { isGitRepoKind } from '../../../../shared/repo-kind'
 import { buildTaskSourceContextFromRepo } from '../../../../shared/task-source-context'
-import { buildLinearIssueComposerData } from '@/lib/linear-linked-work-item'
 import { isWorktreePaletteCreateActivationAllowed } from '@/lib/worktree-palette-create-action'
 
 export function createWorktreeJumpPaletteWorktreeHandler({
@@ -26,21 +21,15 @@ export function createWorktreeJumpPaletteWorktreeHandler({
   closeModal,
   createLookupGuard,
   createWorktreeName,
-  currentGitHubWorkItemPreview,
   focusFallbackSurface,
-  githubLookupRef,
   liveQueryRef,
-  linearIssueUrlIntent,
-  linearLookupRef,
   openModal,
   prefetchCreateWorkspaceBaseForComposer,
   preserveCreateLookupOnCloseRef,
   recordFeatureInteraction,
   repoMap,
   selectionMovedByUserRef,
-  skipRestoreFocusRef,
-  taskSourceUrl,
-  taskUrlCreatePreview
+  skipRestoreFocusRef
 }: WorktreeJumpPaletteCreateWorktreeInput): () => void {
   return () => {
     const trimmed = createWorktreeName.trim()
@@ -49,14 +38,13 @@ export function createWorktreeJumpPaletteWorktreeHandler({
     }
     if (
       !isWorktreePaletteCreateActivationAllowed({
-        hasTaskUrlIntent: taskSourceUrl !== null,
+        hasTaskUrlIntent: false,
         hasCreateName: trimmed.length > 0,
         selectionMovedByUser: selectionMovedByUserRef.current
       })
     ) {
       return
     }
-    const ghLink = parseGitHubIssueOrPRLink(trimmed)
     const ghNumber = parseGitHubIssueOrPRNumber(trimmed)
     const openComposer = (data: Record<string, unknown>): void => {
       skipRestoreFocusRef.current = true
@@ -68,115 +56,6 @@ export function createWorktreeJumpPaletteWorktreeHandler({
       queueMicrotask(() =>
         openModal('new-workspace-composer', { ...data, telemetrySource: 'command_palette' })
       )
-    }
-
-    if (linearIssueUrlIntent) {
-      const lookup = linearLookupRef.current
-      if (!lookup || lookup.query !== trimmed) {
-        return
-      }
-      const lease = lookup.lease
-      let unsubscribe = () => {}
-      const schedule = () => {
-        const view = lease.currentView()
-        if (view.kind === 'abandoned') {
-          unsubscribe()
-          return
-        }
-        if (view.kind === 'loading') {
-          return
-        }
-        queueMicrotask(() => {
-          lease.commit(view, false, (_, preview) => {
-            if (
-              !preview ||
-              linearLookupRef.current !== lookup ||
-              liveQueryRef.current.trim() !== trimmed ||
-              useAppStore.getState().activeModal !== 'worktree-palette'
-            ) {
-              return false
-            }
-            const data = preview.issue
-              ? {
-                  ...buildLinearIssueComposerData(preview.issue, preview.sourceContext),
-                  ...(preview.initialRepoId ? { initialRepoId: preview.initialRepoId } : {})
-                }
-              : preview.initialRepoId
-                ? { prefilledName: trimmed, initialRepoId: preview.initialRepoId }
-                : { prefilledName: trimmed }
-            unsubscribe()
-            skipRestoreFocusRef.current = true
-            prefetchCreateWorkspaceBaseForComposer(
-              typeof data.initialRepoId === 'string' ? data.initialRepoId : undefined
-            )
-            closeModal()
-            recordFeatureInteraction('cmd-j-create-workspace')
-            openModal('new-workspace-composer', { ...data, telemetrySource: 'command_palette' })
-            return true
-          })
-        })
-      }
-      unsubscribe = lease.subscribe(schedule)
-      schedule()
-      return
-    }
-
-    if (ghLink) {
-      const lookup = githubLookupRef.current
-      const resolve = async (): Promise<void> => {
-        const preview = currentGitHubWorkItemPreview?.loading
-          ? await lookup?.promise
-          : (currentGitHubWorkItemPreview ?? (await lookup?.promise))
-        if (
-          !preview ||
-          lookup?.query !== trimmed ||
-          githubLookupRef.current !== lookup ||
-          liveQueryRef.current.trim() !== trimmed ||
-          useAppStore.getState().activeModal !== 'worktree-palette'
-        ) {
-          return
-        }
-        const item = preview.item
-        if (item) {
-          const linkedWorkItem: LinkedWorkItemSummary = {
-            provider: 'github',
-            type: item.type,
-            number: item.number,
-            title: item.title,
-            url: item.url,
-            ...(item.repoId ? { repoId: item.repoId } : {})
-          }
-          openComposer({
-            prefilledName:
-              getLinkedWorkItemWorkspaceName(linkedWorkItem)?.seedName ??
-              getLinkedWorkItemSuggestedName({ title: item.title }),
-            linkedWorkItem,
-            initialGitHubWorkItem: item,
-            ...(preview.initialRepoId ? { initialRepoId: preview.initialRepoId } : {}),
-            ...(preview.sourceContext ? { taskSourceContext: preview.sourceContext } : {})
-          })
-        } else {
-          openComposer({
-            prefilledName: trimmed,
-            ...(preview.initialRepoId ? { initialRepoId: preview.initialRepoId } : {})
-          })
-        }
-      }
-      void resolve()
-      return
-    }
-
-    if (taskUrlCreatePreview) {
-      const state = useAppStore.getState()
-      const eligibleRepos = state.repos.filter((repo) => isGitRepoKind(repo))
-      const repo =
-        (state.activeRepoId &&
-          eligibleRepos.find((candidate) => candidate.id === state.activeRepoId)) ||
-        eligibleRepos[0]
-      openComposer(
-        repo ? { prefilledName: trimmed, initialRepoId: repo.id } : { prefilledName: trimmed }
-      )
-      return
     }
 
     if (ghNumber !== null) {

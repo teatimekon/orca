@@ -1,7 +1,5 @@
 import { useCallback } from 'react'
 import type React from 'react'
-import { toast } from 'sonner'
-import { translate } from '@/i18n/i18n'
 import { lookupGitHubWorkItemByOwnerRepoForSource } from '@/lib/github-work-item-source-lookup'
 import {
   applyWorkspaceEmojiSuggestion,
@@ -47,12 +45,9 @@ export function useSmartWorkspaceNameFieldActions(
   presentation: Presentation
 ) {
   const {
-    resolveRow,
     onBranchSelect,
     onGitHubItemSelect,
     onGitLabItemSelect,
-    onJiraIssueSelect,
-    onLinearIssueSelect,
     onValueChange,
     setOpen,
     selectedSource,
@@ -72,14 +67,10 @@ export function useSmartWorkspaceNameFieldActions(
     repoSlugCacheRef
   } = foundation
   const addRepo = useAppStore((s) => s.addRepo)
-  const { selectJiraAccount, activeEmojiShortcode } = presentation
+  const { activeEmojiShortcode } = presentation
 
   const handleSelect = useCallback(
     (row: RowEntry) => {
-      if (row.kind === 'jira-account') {
-        selectJiraAccount(row.site.id)
-        return
-      }
       // Why: held rows remain selectable while the live query leads debounce.
       if (row.kind === 'use-name' || row.kind === 'create-branch') {
         onValueChange(row.name)
@@ -89,34 +80,10 @@ export function useSmartWorkspaceNameFieldActions(
         onGitLabItemSelect?.(row.item)
       } else if (row.kind === 'branch') {
         onBranchSelect(row.refName, row.localBranchName)
-      } else if (row.kind === 'jira') {
-        const sourceContext = resolveRow(row)?.taskSourceContext
-        if (!sourceContext) {
-          toast.error(
-            translate(
-              'auto.components.new.workspace.SmartWorkspaceNameField.jiraSelectBindFailed',
-              'Couldn’t link this Jira issue. Pick the matching site or reconnect Jira, then try again.'
-            )
-          )
-          return
-        }
-        onJiraIssueSelect?.(row.issue, sourceContext)
-      } else {
-        onLinearIssueSelect(row.issue)
       }
       setOpen(false)
     },
-    [
-      resolveRow,
-      onBranchSelect,
-      onGitHubItemSelect,
-      onGitLabItemSelect,
-      onJiraIssueSelect,
-      onLinearIssueSelect,
-      onValueChange,
-      setOpen,
-      selectJiraAccount
-    ]
+    [onBranchSelect, onGitHubItemSelect, onGitLabItemSelect, onValueChange, setOpen]
   )
   const openSelectedSource = useCallback((): void => {
     if (selectedSource?.url) {

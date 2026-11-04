@@ -7,11 +7,8 @@ import {
   GitMerge,
   GitPullRequest
 } from 'lucide-react'
-import { LinearIcon } from '@/components/icons/LinearIcon'
-import { JiraIcon } from '@/components/icons/JiraIcon'
 import { Trans } from 'react-i18next'
 import { i18n, translate } from '@/i18n/i18n'
-import type { JiraSite } from '../../../../shared/jira/jira-types'
 import type { RowEntry, SmartWorkspaceNameSelection } from './smart-workspace-name-field-model'
 
 export function RowIcon({ row }: { row: RowEntry }): React.JSX.Element {
@@ -38,10 +35,7 @@ export function RowIcon({ row }: { row: RowEntry }): React.JSX.Element {
   if (row.kind === 'branch') {
     return <GitBranch className="size-3.5 shrink-0 text-muted-foreground" />
   }
-  if (row.kind === 'jira' || row.kind === 'jira-account') {
-    return <JiraIcon className="size-3.5 shrink-0 text-muted-foreground" />
-  }
-  return <LinearIcon className="size-3.5 shrink-0 text-muted-foreground" />
+  return <CircleDot className="size-3.5 shrink-0 text-muted-foreground" />
 }
 
 export function SelectionIcon({
@@ -58,24 +52,10 @@ export function SelectionIcon({
   if (kind === 'github-issue' || kind === 'gitlab-issue') {
     return <CircleDot className="size-3.5 shrink-0 text-muted-foreground" />
   }
-  if (kind === 'branch') {
-    return <GitBranch className="size-3.5 shrink-0 text-muted-foreground" />
-  }
-  if (kind === 'jira') {
-    return <JiraIcon className="size-3.5 shrink-0 text-muted-foreground" />
-  }
-  return <LinearIcon className="size-3.5 shrink-0 text-muted-foreground" />
+  return <GitBranch className="size-3.5 shrink-0 text-muted-foreground" />
 }
 
-export function RowLabel({
-  row,
-  jiraSite = null,
-  showJiraSiteContext = false
-}: {
-  row: RowEntry
-  jiraSite?: JiraSite | null
-  showJiraSiteContext?: boolean
-}): React.JSX.Element {
+export function RowLabel({ row }: { row: RowEntry }): React.JSX.Element {
   if (row.kind === 'use-name') {
     return (
       <span className="min-w-0 truncate">
@@ -130,30 +110,5 @@ export function RowLabel({
   if (row.kind === 'branch') {
     return <span className="min-w-0 truncate font-mono text-2xs">{row.refName}</span>
   }
-  if (row.kind === 'jira') {
-    const siteLabel = jiraSite
-      ? `${jiraSite.displayName} — ${jiraSite.email || jiraSite.siteUrl}`
-      : row.issue.siteName
-    return (
-      <span className="min-w-0 truncate">
-        <span className="font-medium text-foreground">{row.issue.key}</span> {row.issue.title}
-        {showJiraSiteContext && siteLabel ? (
-          <span className="text-muted-foreground"> — {siteLabel}</span>
-        ) : null}
-      </span>
-    )
-  }
-  if (row.kind === 'jira-account') {
-    return (
-      <span className="min-w-0 truncate">
-        <span className="font-medium text-foreground">{row.site.displayName}</span>
-        {row.site.email ? ` — ${row.site.email}` : ''}
-      </span>
-    )
-  }
-  return (
-    <span className="min-w-0 truncate">
-      <span className="font-medium text-foreground">{row.issue.identifier}</span> {row.issue.title}
-    </span>
-  )
+  return <span className="min-w-0 truncate" />
 }

@@ -149,7 +149,6 @@ function decisionInputs(
     remoteStatusesByWorktree: {},
     hostedReviewCache: {},
     issueCache: {},
-    linearIssueCache: {},
     settings: null,
     activeWorktreeId: null,
     activeWorkspaceExecutionHostId: null,

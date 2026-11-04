@@ -203,12 +203,6 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
       },
       { type: 'separator' },
       {
-        label: translateMain('menu.showTasksButton', 'Show Tasks Button'),
-        type: 'checkbox',
-        checked: appearance.showTasksButton,
-        click: () => onToggleAppearance('showTasksButton')
-      },
-      {
         label: translateMain('menu.showAutomationsButton', 'Show Automations Button'),
         type: 'checkbox',
         checked: appearance.showAutomationsButton,

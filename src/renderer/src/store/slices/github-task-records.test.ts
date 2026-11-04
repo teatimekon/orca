@@ -6,12 +6,7 @@ import type { GitHubProjectTable } from '../../../../shared/github/project-types
 import { createTestStore, mockApi, resetRemoteRuntimeMocks } from './github-slice-test-harness'
 import { getTaskPageRepoSourceContext } from '@/lib/task-repo-source-context'
 import { projectViewCacheKey } from '../github/cache-identity'
-import { getRegistryMergedTaskPageGitHubWorkItem } from '@/components/task-page/github/task-page-github-work-item-mutation-composition'
-import {
-  setConfirmedListSnapshot,
-  setLastConfirmedClientValue,
-  resetTaskPageGitHubMutationRegistryForTests
-} from '@/components/task-page/github/task-page-github-work-item-mutation-registry'
+import { resetTaskPageGitHubMutationRegistryForTests } from '@/components/task-page/github/task-page-github-work-item-mutation-registry'
 
 const lookup = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/github-work-item-source-lookup', () => ({
@@ -259,18 +254,6 @@ describe('shared GitHub task records through production store actions', () => {
     expect(cache.acceptSearch([unknown], binding)[0].assignees).toEqual([user])
     expect(await cache.readCanonical(row, binding, async () => row)).toBe(false)
     expect(cache.projectItem(row).title).toBe('Newer')
-  })
-
-  it('retires relevant confirmed masks while preserving unrelated PR controls', async () => {
-    const { cache, binding } = setup()
-    setConfirmedListSnapshot(null, row.repoId, row.id, 'assignees', [user])
-    setLastConfirmedClientValue(null, row.repoId, row.id, 'state', 'closed')
-    setLastConfirmedClientValue(null, row.repoId, row.id, 'autoMerge', true)
-    await cache.readCanonical(row, binding, async () => row)
-    const merged = getRegistryMergedTaskPageGitHubWorkItem(cache.projectItem(row), null)
-    expect(merged.assignees).toEqual([])
-    expect(merged.state).toBe('open')
-    expect(merged.autoMergeEnabled).toBe(true)
   })
 
   it('disposes an account incarnation and rejects its deferred result after A to B to A', async () => {

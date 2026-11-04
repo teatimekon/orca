@@ -9,7 +9,6 @@ import {
   runtimeEnvironmentCall
 } from './github-slice-test-harness'
 import { projectRelationsTableFixture } from '../../../../shared/github/project-relations.test-fixture'
-import { projectRelationCellText } from '../../components/github-project/ProjectCell.test-fixture'
 import { sortRows, groupRows } from '../../../../shared/github/project-group-sort'
 
 function makeTable(title = 'Roadmap'): GitHubProjectTable {
@@ -85,10 +84,6 @@ describe('createGitHubSlice.fetchProjectViewTable coordination', () => {
       expect(cached).toEqual(table)
       const groups = groupRows(cached, sortRows(cached, cached.rows))
       expect(groups.map((group) => group.label)).toEqual(['1', '2'])
-      expect(groups.flatMap((group) => group.rows.map(projectRelationCellText))).toEqual([
-        ['', ''],
-        ['#12 +2 more', '1/2 (50%)']
-      ])
       expect(cached.rows[1].content).not.toHaveProperty('linkedPullRequests')
       expect(cached.rows[1].content).not.toHaveProperty('subIssuesProgress')
       expect(await store.getState().fetchProjectViewTable(target, request)).toEqual(envelope)

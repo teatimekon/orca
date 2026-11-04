@@ -49,11 +49,7 @@ export function renderSmartWorkspaceNameInput(
     rows,
     resolvedCommandValue,
     handleSelect,
-    jiraSource,
     placeholder,
-    jiraStatusId,
-    linearStatusId,
-    unresolvedLinearUrlIntent,
     blockingTaskUrlResolution,
     handleEmojiPickerOpenChange,
     handleEmojiPickerValueChange
@@ -265,7 +261,7 @@ export function renderSmartWorkspaceNameInput(
               handleEmojiSelect(selectedEmojiSuggestion)
               return
             }
-            if (unresolvedLinearUrlIntent || blockingTaskUrlResolution) {
+            if (blockingTaskUrlResolution) {
               event.preventDefault()
               return
             }
@@ -276,10 +272,6 @@ export function renderSmartWorkspaceNameInput(
                 handleSelect(row)
                 return
               }
-            }
-            if (mode === 'jira' || jiraSource.intent) {
-              event.preventDefault()
-              return
             }
             onPlainEnter?.()
           }
@@ -301,10 +293,6 @@ export function renderSmartWorkspaceNameInput(
         }}
         placeholder={placeholder}
         disabled={disabled}
-        aria-busy={(jiraSource.intent && jiraSource.loading) || unresolvedLinearUrlIntent}
-        aria-describedby={
-          jiraSource.intent ? jiraStatusId : unresolvedLinearUrlIntent ? linearStatusId : undefined
-        }
         adornment={showEmojiPickerButton ? 'trailing' : 'none'}
         className="h-9 bg-background pl-8 text-sm"
       />

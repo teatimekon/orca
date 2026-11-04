@@ -9,7 +9,6 @@ import { useWorkspaceKanbanCreateWorktree } from './use-workspace-kanban-create-
 import { useWorkspaceKanbanSelection } from './use-workspace-kanban-selection'
 import { useWorkspaceKanbanShiftWheelScroll } from './use-workspace-kanban-shift-wheel-scroll'
 import { useWorkspaceKanbanOutsideDismiss } from './use-workspace-kanban-outside-dismiss'
-import { useWorkspaceBoardTaskStatusSync } from './use-workspace-board-task-status-sync'
 import { useWorkspaceKanbanStatusActions } from './use-workspace-kanban-status-actions'
 import { useWorkspaceKanbanWorktreeActions } from './use-workspace-kanban-worktree-actions'
 import type { Worktree } from '../../../../shared/worktree/types'
@@ -22,10 +21,7 @@ import { useWorkspaceKanbanRenderLifecycle } from './use-workspace-kanban-render
 import { useWorkspaceKanbanDrawerLingering } from './use-workspace-kanban-drawer-lingering'
 import { buildWorktreeManualOrderCatalog } from './worktree-manual-order-catalog'
 import { selectFolderWorkspaces } from '@/store/workspace-record-selectors'
-import {
-  useAllOfferedWorkspaceStatuses,
-  useWorkspaceBoardStatuses
-} from './use-workspace-board-statuses'
+import { useWorkspaceBoardStatuses } from './use-workspace-board-statuses'
 
 type WorkspaceKanbanDrawerProps = {
   leftSidebarStyle?: React.CSSProperties
@@ -66,7 +62,6 @@ function WorkspaceKanbanDrawerContent({
   const updateWorktreesMeta = useAppStore((s) => s.updateWorktreesMeta)
   const localWorkspaceStatuses = useAppStore((s) => s.workspaceStatuses)
   const boardStatuses = useWorkspaceBoardStatuses()
-  const offeredStatuses = useAllOfferedWorkspaceStatuses()
   const setWorkspaceStatuses = useAppStore((s) => s.setWorkspaceStatuses)
   const syncTaskStatusFromWorkspaceBoard = useAppStore((s) => s.syncTaskStatusFromWorkspaceBoard)
   const setSyncTaskStatusFromWorkspaceBoard = useAppStore(
@@ -124,11 +119,8 @@ function WorkspaceKanbanDrawerContent({
   })
   const { columnWidth, isResizingColumn, onColumnResizeStart, onColumnResizeKeyDown } =
     useWorkspaceKanbanColumnResize(workspaceBoardColumnWidth, setWorkspaceBoardColumnWidth)
-  const maybeSyncWorkspaceBoardTaskStatuses = useWorkspaceBoardTaskStatusSync({
-    enabled: syncTaskStatusFromWorkspaceBoard,
-    worktreesByKey: worktreeByKey,
-    workspaceStatuses: offeredStatuses
-  })
+  // zyx/orca-pure: Linear and Jira are removed, so a board move has no tracker status to sync.
+  const maybeSyncWorkspaceBoardTaskStatuses = (): void => {}
   const {
     dropPointerDraggedWorktreesInStatus,
     dropWorktreesAtEndOfStatus,

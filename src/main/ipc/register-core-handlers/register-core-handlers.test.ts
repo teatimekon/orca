@@ -49,9 +49,6 @@ const {
   setTrustedBrowserRendererWebContentsIdMock,
   registerFilesystemWatcherHandlersMock,
   registerAppHandlersMock,
-  registerLinearHandlersMock,
-  registerJiraHandlersMock,
-  registerJiraIssueSummaryGenerationHandlersMock,
   registerBitbucketHandlersMock,
   registerGitLabHandlersMock,
   registerHostedReviewHandlersMock,
@@ -121,9 +118,6 @@ const {
   setTrustedBrowserRendererWebContentsIdMock: vi.fn(),
   registerFilesystemWatcherHandlersMock: vi.fn(),
   registerAppHandlersMock: vi.fn(),
-  registerLinearHandlersMock: vi.fn(),
-  registerJiraHandlersMock: vi.fn(),
-  registerJiraIssueSummaryGenerationHandlersMock: vi.fn(),
   registerBitbucketHandlersMock: vi.fn(),
   registerGitLabHandlersMock: vi.fn(),
   registerHostedReviewHandlersMock: vi.fn(),
@@ -420,18 +414,6 @@ vi.mock('../terminal-render-desync-evidence', () => ({
   registerTerminalRenderDesyncEvidenceHandler: registerTerminalRenderDesyncEvidenceHandlerMock
 }))
 
-vi.mock('../linear/register-handlers', () => ({
-  registerLinearHandlers: registerLinearHandlersMock
-}))
-
-vi.mock('../jira/register-handlers', () => ({
-  registerJiraHandlers: registerJiraHandlersMock
-}))
-
-vi.mock('../jira/issue-summary-generation', () => ({
-  registerJiraIssueSummaryGenerationHandlers: registerJiraIssueSummaryGenerationHandlersMock
-}))
-
 vi.mock('../source-control/bitbucket', () => ({
   registerBitbucketHandlers: registerBitbucketHandlersMock
 }))
@@ -512,9 +494,6 @@ describe('registerCoreHandlers', () => {
     setTrustedBrowserRendererWebContentsIdMock.mockReset()
     registerFilesystemWatcherHandlersMock.mockReset()
     registerAppHandlersMock.mockReset()
-    registerLinearHandlersMock.mockReset()
-    registerJiraHandlersMock.mockReset()
-    registerJiraIssueSummaryGenerationHandlersMock.mockReset()
     registerBitbucketHandlersMock.mockReset()
     registerGitLabHandlersMock.mockReset()
     registerHostedReviewHandlersMock.mockReset()

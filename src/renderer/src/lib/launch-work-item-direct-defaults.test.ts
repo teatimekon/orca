@@ -15,10 +15,6 @@ import { useAppStore } from '@/store'
 import { RUNTIME_CAPABILITIES } from '../../../shared/protocol-version'
 import { projectSourceControlActionLaunch } from '../../../shared/source-control-action-launch-preferences'
 import { tokenizeStartupCommand } from '../../../shared/tui-agent-startup-shell'
-import { runSourceControlAgentActionStart } from '../components/right-sidebar/runSourceControlAgentActionStart'
-import { startFixChecksFromDialog } from '../components/pull-request-page/checks/fix-launch'
-import { sourceControlActionRecipeEntry } from '../../../shared/source-control-action-selection'
-import { pr } from '@/hooks/composer-state/composer-review-base-test-fixture'
 import { launchWorkItemDirect } from './launch-work-item-direct'
 import { beginDirectWorkItemStructuredLaunch } from './launch-work-item-direct-agent-routing'
 
@@ -84,55 +80,6 @@ describe('direct workspace defaults', () => {
     })
     expect(plan).not.toHaveProperty('requestedSurface')
     expect(plan?.chatLaunchOptions).toBeUndefined()
-    expect(mocks.openModalFallback).not.toHaveBeenCalled()
-  })
-
-  it('dispatches saved Chat through the actual custom Checks runner with its paired native alternative', async () => {
-    stageChat()
-    mocks.store.settings = { defaultTuiAgent: 'codex', nativeChatProviders: { codex: false } }
-    const recipe = sourceControlActionRecipeEntry({
-      agentId: 'codex',
-      surface: 'chat',
-      agentArgs: `-c 'model="true"'`,
-      launchPreferences: {
-        agentId: 'codex',
-        modelSelection: {
-          base: 'default',
-          options: { effort: { agentId: 'codex', value: 'high' } }
-        }
-      }
-    })
-    await expect(
-      runSourceControlAgentActionStart({
-        recipe,
-        selectedAgent: 'codex',
-        trimmedCommandInput: 'Fix checks',
-        saveTargetValue: 'none',
-        actionId: 'fixChecks',
-        repoId: 'repo-1',
-        repo: null,
-        settings: useAppStore.getState().settings,
-        promptDelivery: 'submit-after-ready',
-        launchPlatform: 'darwin',
-        launchSource: 'task_page',
-        onStart: (launch) =>
-          startFixChecksFromDialog({
-            ...launch,
-            targetRepoId: 'repo-1',
-            item: { ...pr, repoId: 'repo-1' }
-          }),
-        onClose: vi.fn()
-      })
-    ).resolves.toBe(true)
-    const plan = vi.mocked(beginDirectWorkItemStructuredLaunch).mock.lastCall?.[0].plan
-    expect(plan).toMatchObject({
-      agent: 'codex',
-      route: 'structured-native-chat',
-      launchOptions: { effort: 'high' },
-      chatLaunchOptions: { model: 'true', effort: 'high' }
-    })
-    expect(plan).not.toHaveProperty('requestedSurface')
-    expect(mocks.createWorktree).toHaveBeenCalledOnce()
     expect(mocks.openModalFallback).not.toHaveBeenCalled()
   })
 

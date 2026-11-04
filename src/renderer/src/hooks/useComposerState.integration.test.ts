@@ -95,9 +95,6 @@ describe('useComposerState integrated lifecycle', () => {
       })
     )
     expect(composer.result.current.cardProps.selectedRepo).toBe(runtimeRepo)
-    expect(composer.result.current.cardProps.smartNameJiraSourceContext?.hostId).toBe(
-      'runtime:remote'
-    )
     composer.unmount()
   })
 

@@ -39,7 +39,6 @@ export function WorkspaceAttachmentSearch({
   onQueryChange,
   kind,
   onKindChange,
-  onRetry,
   ...props
 }: Omit<WorkspaceAttachmentComposerProps, 'onQueryChange'> & {
   query: string
@@ -53,9 +52,7 @@ export function WorkspaceAttachmentSearch({
   const contexts = useMemo(
     () => ({
       github: getWorkspaceAttachmentSourceContext('github', props.repo, props.workspace),
-      gitlab: getWorkspaceAttachmentSourceContext('gitlab', props.repo, props.workspace),
-      linear: getWorkspaceAttachmentSourceContext('linear', props.repo, props.workspace),
-      jira: getWorkspaceAttachmentSourceContext('jira', props.repo, props.workspace)
+      gitlab: getWorkspaceAttachmentSourceContext('gitlab', props.repo, props.workspace)
     }),
     [props.repo, props.workspace]
   )
@@ -70,11 +67,7 @@ export function WorkspaceAttachmentSearch({
   }
   const changeMode = useCallback(
     (mode: SmartNameMode): void => {
-      if (mode === 'linear') {
-        onKindChange('linear-issue')
-      } else if (mode === 'jira') {
-        onKindChange('jira-issue')
-      } else if (mode === 'gitlab') {
+      if (mode === 'gitlab') {
         onKindChange(kind === 'gitlab-issue' ? 'gitlab-issue' : 'gitlab-mr')
       } else if (mode === 'github' && kind !== 'github-pr' && kind !== 'github-issue') {
         onKindChange('github-issue')
@@ -91,9 +84,7 @@ export function WorkspaceAttachmentSearch({
     repoBackedSourcesDisabled: !props.repo,
     crossRepoSwitchTarget: 'task-source',
     githubSourceContext: contexts.github,
-    linearSourceContext: contexts.linear,
-    gitlabSourceContext: contexts.gitlab,
-    jiraSourceContext: contexts.jira
+    gitlabSourceContext: contexts.gitlab
   })
   const toAttachment = controller.resolveRow
   const linked = (row: RowEntry): boolean => {
@@ -102,10 +93,6 @@ export function WorkspaceAttachmentSearch({
   }
   const selectRow = (row: RowEntry): void => {
     if (controller.isQueryStale) {
-      return
-    }
-    if (row.kind === 'jira-account') {
-      controller.selectJiraAccount(row.site.id)
       return
     }
     const item = toAttachment(row)
@@ -129,21 +116,12 @@ export function WorkspaceAttachmentSearch({
   const scopeError = direct ? props.getScopeError(direct) : null
   const directValue = direct ? `attachment-direct:${getWorkspaceAttachmentKey(direct)}` : ''
   const ambiguousNumber = /^#?\d+$/.test(query.trim())
-  const taskUrlProvider =
-    /^https?:\/\//i.test(query.trim()) &&
-    (parsedDirect?.provider === 'linear' || parsedDirect?.provider === 'jira')
-      ? parsedDirect.provider
-      : null
   const directEnabled = Boolean(
     direct &&
     !props.disabled &&
     !directLinked &&
     !scopeError &&
     !controller.blockingTaskUrlResolution &&
-    (!taskUrlProvider || resolvedDirectRow) &&
-    (taskUrlProvider !== 'jira' ||
-      (!controller.jiraSource.loading && !controller.jiraSource.errorKind)) &&
-    !controller.unresolvedLinearUrlIntent &&
     (!ambiguousNumber || (!controller.isQueryStale && !controller.loading))
   )
   const actionableRows = controller.isQueryStale ? [] : rows.filter((row) => !linked(row))
@@ -259,10 +237,7 @@ export function WorkspaceAttachmentSearch({
         <div className="mt-2 flex max-h-60 min-h-0 shrink flex-col overflow-hidden">
           <SmartWorkspaceSourceResultList
             focusBehavior="page"
-            // Jira URL status owns its message; a Linear read of that URL cannot diagnose it.
-            model={
-              taskUrlProvider === 'jira' ? { ...controller, linearReadError: null } : controller
-            }
+            model={controller}
             onSelect={selectRow}
             isLinked={linked}
             isRowDisabled={() => props.disabled || controller.isQueryStale}
@@ -301,10 +276,7 @@ export function WorkspaceAttachmentSearch({
         <div className="mt-2 flex shrink-0 items-center justify-between gap-3">
           <WorkspaceAttachmentSourceStatus
             controller={controller}
-            taskUrlProvider={taskUrlProvider}
-            resolved={Boolean(resolvedDirectRow)}
             error={props.error ?? scopeError}
-            onRetry={onRetry}
           />
           {/^[#!]?\d+$|^[a-z][a-z0-9]*-\d+$/i.test(query.trim()) ? (
             <DropdownMenu modal={false}>
@@ -324,7 +296,9 @@ export function WorkspaceAttachmentSearch({
                     }
                   }}
                 >
-                  {ATTACHMENT_INPUT_KINDS.map((option) => (
+                  {ATTACHMENT_INPUT_KINDS.filter(
+                    (option) => option.value !== 'linear-issue' && option.value !== 'jira-issue'
+                  ).map((option) => (
                     <DropdownMenuRadioItem key={option.value} value={option.value}>
                       {option.label()}
                     </DropdownMenuRadioItem>

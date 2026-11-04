@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react'
+import { removedTrackerCheck } from '../pure-removed-tracker-stubs'
 import { Check } from 'lucide-react'
 import type {
   FeatureWallSetupStep,
@@ -232,8 +233,8 @@ function NotificationAction(): React.JSX.Element {
 
 function TaskSourcesAction(): React.JSX.Element {
   const refreshPreflightStatus = useAppStore((s) => s.refreshPreflightStatus)
-  const checkJiraConnection = useAppStore((s) => s.checkJiraConnection)
-  const checkLinearConnection = useAppStore((s) => s.checkLinearConnection)
+  const checkJiraConnection = removedTrackerCheck
+  const checkLinearConnection = removedTrackerCheck
   const settings = useAppStore((s) => s.settings)
   const providerRuntimeContextKey = getProviderRuntimeContextKey(settings)
 

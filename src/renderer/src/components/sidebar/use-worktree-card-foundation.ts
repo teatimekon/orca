@@ -26,7 +26,6 @@ export function useWorktreeCardFoundation({
   repo
 }: Pick<WorktreeCardProps, 'worktree' | 'repo'>) {
   const openModal = useAppStore((s) => s.openModal)
-  const openTaskPage = useAppStore((s) => s.openTaskPage)
   const openAutomationsPage = useAppStore((s) => s.openAutomationsPage)
   const setPendingAutomationRunNavigation = useAppStore((s) => s.setPendingAutomationRunNavigation)
   const updateWorktreeMeta = useAppStore((s) => s.updateWorktreeMeta)
@@ -38,7 +37,6 @@ export function useWorktreeCardFoundation({
   const fetchHostedReviewForBranch = useAppStore((s) => s.fetchHostedReviewForBranch)
   const settings = useAppStore((s) => s.settings)
   const fetchIssue = useAppStore((s) => s.fetchIssue)
-  const fetchLinearIssue = useAppStore((s) => s.fetchLinearIssue)
   const cardProps = useAppStore((s) => s.worktreeCardProperties)
   const agentActivityDisplayMode =
     useAppStore((s) => s.agentActivityDisplayMode) ?? DEFAULT_AGENT_ACTIVITY_DISPLAY_MODE
@@ -211,7 +209,6 @@ export function useWorktreeCardFoundation({
 
   return {
     openModal,
-    openTaskPage,
     updateWorktreeMeta,
     setWorkspaceUnreadByUser,
     deleteFolderWorkspace,
@@ -221,7 +218,6 @@ export function useWorktreeCardFoundation({
     fetchHostedReviewForBranch,
     settings,
     fetchIssue,
-    fetchLinearIssue,
     cardProps,
     agentActivityDisplayMode,
     projectGroups,

@@ -8,7 +8,6 @@ import {
   generateBranchName
 } from './source-control-text-generation-requests'
 import { generateConversationName } from './conversation-name-generation-request'
-import { generateJiraIssueSummaryFromContext } from './jira-issue-summary-text-generation'
 
 import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
 import { rm } from 'node:fs/promises'
@@ -212,18 +211,6 @@ const consumers: Consumer[] = [
       }),
     output: '# Title: "Trace lighthouse signal"\nextra commentary',
     expected: { name: 'Trace lighthouse signal' }
-  },
-  {
-    label: 'Jira summary',
-    run: (params, spawnAgent) =>
-      generateJiraIssueSummaryFromContext(
-        { description: 'Trace lighthouse signal' },
-        params,
-        contractTarget,
-        spawnAgent
-      ),
-    output: '"Trace lighthouse signal"\nextra commentary',
-    expected: { summary: 'Trace lighthouse signal' }
   }
 ]
 

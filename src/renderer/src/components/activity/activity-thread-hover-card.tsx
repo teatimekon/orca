@@ -111,8 +111,6 @@ function ActivityThreadHoverCardContent({
     deleteState: foundation.deleteState,
     branch: review.branch,
     issueEntry: review.issueEntry,
-    linearIssueEntry: review.linearIssueEntry,
-    linearIssueFallbackEntry: review.linearIssueFallbackEntry,
     prDisplay: review.prDisplay
   })
 
@@ -130,14 +128,7 @@ function ActivityThreadHoverCardContent({
     fetchHostedReviewForBranch: foundation.fetchHostedReviewForBranch,
     shouldRefreshHostedReview: false,
     newCardStyle: true,
-    hoverDetailsOpen: detailsHoverControl.hoverOpen,
-    showIssue: true,
-    issueCacheKey: review.issueCacheKey,
-    fetchIssue: foundation.fetchIssue,
-    showLinearIssue: true,
-    fetchLinearIssue: foundation.fetchLinearIssue,
-    linearSourceContext: review.linearSourceContext,
-    linearWorkspaceId: review.linearWorkspaceId
+    hoverDetailsOpen: detailsHoverControl.hoverOpen
   })
 
   const secondary = useWorktreeCardSecondaryDetails({
@@ -154,7 +145,6 @@ function ActivityThreadHoverCardContent({
     showComment: true,
     showPorts: true,
     issueDisplay: linked.issueDisplay,
-    linearIssue: linked.linearIssue,
     linearIssueDisplay: linked.linearIssueDisplay,
     jiraIssueDisplay: linked.jiraIssueDisplay,
     prDisplay: review.prDisplay,
@@ -167,16 +157,13 @@ function ActivityThreadHoverCardContent({
     cardDetails: foundation.cardDetails,
     agentActivityDisplayMode: foundation.agentActivityDisplayMode,
     workspacePorts: foundation.workspacePorts,
-    openTaskPage: foundation.openTaskPage,
     updateWorktreeMeta: foundation.updateWorktreeMeta,
     settings: foundation.settings
   })
 
   const taskActions = getWorktreeCardTaskActions(detailsHoverControl.closeHover, {
     onEditIssue: foundation.handleEditIssue,
-    onOpenGitHubIssueInOrca: secondary.handleOpenGitHubIssueInOrca,
-    onOpenIssueInBrowser: secondary.handleOpenIssueInBrowser,
-    onOpenLinearIssueInOrca: secondary.handleOpenLinearIssueInOrca
+    onOpenIssueInBrowser: secondary.handleOpenIssueInBrowser
   })
 
   const dismissAndRun = useCallback(
@@ -213,7 +200,6 @@ function ActivityThreadHoverCardContent({
           onManageLinks={dismissAndRun(foundation.handleManageLinks)}
           reviewMenuOpen={detailsHoverControl.reviewMenuOpen}
           onReviewMenuOpenChange={detailsHoverControl.handleReviewMenuOpenChange}
-          onOpenReviewInOrca={secondary.handleOpenReviewInOrca}
           onOpenLink={onOpenLink}
           onUnlinkReview={secondary.canUnlinkReview ? secondary.handleUnlinkReview : undefined}
           closeHover={detailsHoverControl.closeHover}

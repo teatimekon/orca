@@ -65,7 +65,7 @@ export function WorktreeCardMetaDetailsHover({
   card: WorktreeCardController
   children: React.ReactElement
 }): React.JSX.Element {
-  const { worktree, repo, affiliateListMode, metaIssue, metaReview, workspacePorts } = card
+  const { worktree, affiliateListMode, metaIssue, metaReview, workspacePorts } = card
   return (
     <WorktreeCardDetailsHover
       workspace={worktree}
@@ -82,16 +82,9 @@ export function WorktreeCardMetaDetailsHover({
       hoverControl={card.detailsHoverControl}
       onEditIssue={affiliateListMode ? undefined : card.handleEditIssue}
       onEditComment={affiliateListMode ? undefined : card.handleEditComment}
-      onOpenGitHubIssueInOrca={
-        metaIssue && 'url' in metaIssue && metaIssue.url
-          ? card.handleOpenGitHubIssueInOrca
-          : undefined
-      }
       onOpenIssueInBrowser={
         metaIssue && 'url' in metaIssue && metaIssue.url ? card.handleOpenIssueInBrowser : undefined
       }
-      onOpenLinearIssueInOrca={card.linearIssue?.url ? card.handleOpenLinearIssueInOrca : undefined}
-      onOpenReviewInOrca={repo ? card.handleOpenReviewInOrca : undefined}
       onOpenReviewInBrowser={metaReview?.url ? card.handleOpenReviewInBrowser : undefined}
       onOpenAutomation={affiliateListMode ? undefined : card.handleOpenAutomation}
       onOpenAutomationRun={affiliateListMode ? undefined : card.handleOpenAutomationRun}
@@ -114,7 +107,7 @@ export function WorktreeCardIdentityHover({
   workspaceTitle: string | undefined
   children: React.ReactElement<React.RefAttributes<HTMLElement>>
 }): React.JSX.Element {
-  const { worktree, repo, affiliateListMode, hoverIssue, hoverReview, workspacePorts } = card
+  const { worktree, affiliateListMode, hoverIssue, hoverReview, workspacePorts } = card
   const identityRef = React.useRef<HTMLElement>(null)
   const ref = useComposedRefs(children.props.ref, identityRef)
   const hoverControl = card.detailsHoverControl
@@ -153,18 +146,11 @@ export function WorktreeCardIdentityHover({
       onRenameWorkspaceTitle={affiliateListMode ? undefined : card.handleRenameTitle}
       onEditIssue={affiliateListMode ? undefined : card.handleEditIssue}
       onEditComment={affiliateListMode ? undefined : card.handleEditComment}
-      onOpenGitHubIssueInOrca={
-        hoverIssue && 'url' in hoverIssue && hoverIssue.url
-          ? card.handleOpenGitHubIssueInOrca
-          : undefined
-      }
       onOpenIssueInBrowser={
         hoverIssue && 'url' in hoverIssue && hoverIssue.url
           ? card.handleOpenIssueInBrowser
           : undefined
       }
-      onOpenLinearIssueInOrca={card.linearIssue?.url ? card.handleOpenLinearIssueInOrca : undefined}
-      onOpenReviewInOrca={repo ? card.handleOpenReviewInOrca : undefined}
       onOpenReviewInBrowser={hoverReview?.url ? card.handleOpenReviewInBrowser : undefined}
       onOpenAutomation={affiliateListMode ? undefined : card.handleOpenAutomation}
       onOpenAutomationRun={affiliateListMode ? undefined : card.handleOpenAutomationRun}

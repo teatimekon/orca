@@ -73,7 +73,6 @@ export async function renderCard(
         onSmartGitHubItemSelect={() => {}}
         onSmartGitLabItemSelect={() => {}}
         onSmartBranchSelect={() => {}}
-        onSmartLinearIssueSelect={() => {}}
         smartNameSelection={null}
         onClearSmartNameSelection={() => {}}
         canReuseSelectedBranch={false}

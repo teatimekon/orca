@@ -11,7 +11,6 @@ import {
   sharedEntry
 } from '../bundled-skill-plan-fixtures.test-support'
 import { AgentSkillSetupPanel } from './AgentSkillSetupPanel'
-import { LinearAgentSkillInstallCta } from './linear-agent-skill-install-cta'
 import { BrowserAction } from '../../feature-wall/FeatureWallBrowserAction'
 import { AgentCapabilitiesSetupAction } from '../../feature-wall/AgentCapabilitiesSetupAction'
 
@@ -87,9 +86,7 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
-function renderSurface(
-  surface: 'panel' | 'guided-panel' | 'linear' | 'browser' | 'capabilities'
-): void {
+function renderSurface(surface: 'panel' | 'guided-panel' | 'browser' | 'capabilities'): void {
   render(
     surface === 'panel' || surface === 'guided-panel' ? (
       <AgentSkillSetupPanel
@@ -102,8 +99,6 @@ function renderSurface(
         error={null}
         onRecheck={mocks.refresh}
       />
-    ) : surface === 'linear' ? (
-      <LinearAgentSkillInstallCta settings={null} />
     ) : surface === 'browser' ? (
       <BrowserAction done />
     ) : (
@@ -115,12 +110,12 @@ function renderSurface(
   )
 }
 
-for (const surface of ['panel', 'linear', 'browser', 'capabilities'] as const) {
+for (const surface of ['panel', 'browser', 'capabilities'] as const) {
   describe(`${surface} blocked setup`, () => {
     it.each([false, true])(
       'shows Needs attention without executing an unreadable replacement (other work: %s)',
       async (otherWork) => {
-        const name = surface === 'linear' ? 'orca-linear' : 'orca-cli'
+        const name = 'orca-cli'
         const path = `/home/u/.agents/skills/${name}`
         const agentPath = `/home/u/.claude/skills/${name}`
         const edited = planOf([
@@ -164,7 +159,7 @@ for (const surface of ['panel', 'linear', 'browser', 'capabilities'] as const) {
     )
 
     it('executes the explicit replacement plan using its full-identity digest', async () => {
-      const name = surface === 'linear' ? 'orca-linear' : 'orca-cli'
+      const name = 'orca-cli'
       const path = `/home/u/.agents/skills/${name}`
       const edited = planOf([sharedEntry(name, 'leave', { reason: 'edited', replaceable: true })])
       const replacement = planOf(
@@ -202,7 +197,7 @@ for (const surface of ['panel', 'linear', 'browser', 'capabilities'] as const) {
     it.each(['edited', 'other'] as const)(
       'offers Replace without forcing a preview of a %s copy',
       async (reason) => {
-        const name = surface === 'linear' ? 'orca-linear' : 'orca-cli'
+        const name = 'orca-cli'
         mocks.plan.mockResolvedValue({
           kind: 'plan',
           plan: planOf([sharedEntry(name, 'leave', { reason, replaceable: true })])
@@ -224,7 +219,7 @@ for (const surface of ['panel', 'linear', 'browser', 'capabilities'] as const) {
     it.each(['unwritable', 'busy'] as const)(
       'offers Retry when an absent skill is %s',
       async (reason) => {
-        const name = surface === 'linear' ? 'orca-linear' : 'orca-cli'
+        const name = 'orca-cli'
         mocks.plan.mockResolvedValue({
           kind: 'plan',
           plan: planOf([sharedEntry(name, 'leave', { reason })])

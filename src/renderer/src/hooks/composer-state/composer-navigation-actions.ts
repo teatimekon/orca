@@ -9,13 +9,10 @@ type ComposerNavigationActionsInput = Pick<
   | 'openSettingsPage'
   | 'openSettingsTarget'
   | 'selectedProjectGroup'
-  | 'setActiveRuntimeEnvironmentPreference'
-  | 'smartNameJiraSourceContext'
   | 'sourceIntentBlocksCreate'
 >
 
 import { useCallback } from 'react'
-import { getTaskSourceRuntimeSettings } from '../../../../shared/task-source-context'
 
 export function useComposerNavigationActions(input: ComposerNavigationActionsInput) {
   const {
@@ -26,8 +23,6 @@ export function useComposerNavigationActions(input: ComposerNavigationActionsInp
     openSettingsPage,
     openSettingsTarget,
     selectedProjectGroup,
-    setActiveRuntimeEnvironmentPreference,
-    smartNameJiraSourceContext,
     sourceIntentBlocksCreate
   } = input
 
@@ -36,27 +31,6 @@ export function useComposerNavigationActions(input: ComposerNavigationActionsInp
     openSettingsPage()
     closeModal()
   }, [closeModal, openSettingsPage, openSettingsTarget])
-
-  const handleOpenJiraSettings = useCallback((): void => {
-    const runtimeEnvironmentId = getTaskSourceRuntimeSettings(
-      smartNameJiraSourceContext
-    ).activeRuntimeEnvironmentId
-    const targetRuntimeEnvironmentId = runtimeEnvironmentId ?? null
-    void setActiveRuntimeEnvironmentPreference(targetRuntimeEnvironmentId).then((selected) => {
-      if (!selected) {
-        return
-      }
-      openSettingsTarget({ pane: 'integrations', repoId: null })
-      openSettingsPage()
-      closeModal()
-    })
-  }, [
-    closeModal,
-    openSettingsPage,
-    openSettingsTarget,
-    setActiveRuntimeEnvironmentPreference,
-    smartNameJiraSourceContext
-  ])
 
   const folderCreateDisabled =
     creating ||
@@ -67,7 +41,6 @@ export function useComposerNavigationActions(input: ComposerNavigationActionsInp
 
   return {
     handleOpenAgentSettings,
-    handleOpenJiraSettings,
     folderCreateDisabled
   }
 }

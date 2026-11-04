@@ -1,4 +1,9 @@
 import { useAppStore } from '@/store'
+import {
+  REMOVED_TRACKER_CHECKED,
+  REMOVED_TRACKER_CONTEXT_KEY,
+  REMOVED_TRACKER_STATUS
+} from '../pure-removed-tracker-stubs'
 import { getLocalPreflightContext, localPreflightContextKey } from '@/lib/local-preflight-context'
 import { getProviderRuntimeContextKey } from '@/lib/provider-runtime-context'
 
@@ -204,12 +209,12 @@ export function useIntegrationConnectionStatus(): IntegrationConnectionStatus {
   const preflightStatusContextKey = useAppStore((s) => s.preflightStatusContextKey)
   const preflightStatusError = useAppStore((s) => s.preflightStatusError)
   const preflightStatusLoading = useAppStore((s) => s.preflightStatusLoading)
-  const linearStatus = useAppStore((s) => s.linearStatus)
-  const linearStatusChecked = useAppStore((s) => s.linearStatusChecked)
-  const linearStatusContextKey = useAppStore((s) => s.linearStatusContextKey)
-  const jiraStatus = useAppStore((s) => s.jiraStatus)
-  const jiraStatusChecked = useAppStore((s) => s.jiraStatusChecked)
-  const jiraStatusContextKey = useAppStore((s) => s.jiraStatusContextKey)
+  const linearStatus = REMOVED_TRACKER_STATUS
+  const linearStatusChecked = REMOVED_TRACKER_CHECKED
+  const linearStatusContextKey = REMOVED_TRACKER_CONTEXT_KEY
+  const jiraStatus = REMOVED_TRACKER_STATUS
+  const jiraStatusChecked = REMOVED_TRACKER_CHECKED
+  const jiraStatusContextKey = REMOVED_TRACKER_CONTEXT_KEY
   const settings = useAppStore((s) => s.settings)
   const expectedPreflightContextKey = useAppStore((s) =>
     localPreflightContextKey(getLocalPreflightContext(s))

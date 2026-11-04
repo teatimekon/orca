@@ -101,11 +101,7 @@ export function WorkspaceSpaceStatusBadge({
       </Badge>
     )
   }
-  if (
-    decisionDetails?.reviewLabel ||
-    decisionDetails?.issueLabel ||
-    decisionDetails?.linearIssueLabel
-  ) {
+  if (decisionDetails?.reviewLabel || decisionDetails?.issueLabel) {
     return (
       <Badge variant="outline">
         {translate(

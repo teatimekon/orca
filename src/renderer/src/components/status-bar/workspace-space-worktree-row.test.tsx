@@ -61,8 +61,7 @@ const decisionDetails: WorkspaceDecisionDetails = {
   changedFileCount: 0,
   branchStatus: null,
   reviewLabel: null,
-  issueLabel: null,
-  linearIssueLabel: null
+  issueLabel: null
 }
 
 afterEach(() => {

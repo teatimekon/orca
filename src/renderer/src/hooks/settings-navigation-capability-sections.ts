@@ -1,10 +1,7 @@
-import { LinearIcon } from '@/components/icons/LinearIcon'
 import { getAccountsPaneSearchEntries } from '@/components/settings/accounts/accounts-search'
 import { getAgentsPaneSearchEntries } from '@/components/settings/agents/agents-search'
 import { getComputerUsePaneSearchEntries } from '@/components/settings/computer-use/computer-use-search'
 import { getGeneralPaneSearchEntries } from '@/components/settings/general/general-search'
-import { getIntegrationsPaneSearchEntries } from '@/components/settings/integrations/integrations-search'
-import { getLinearAgentSkillPaneSearchEntries } from '@/components/settings/skills/linear/linear-agent-skill-search'
 import { getMobileSettingsPaneSearchEntries } from '@/components/settings/mobile/mobile-settings-search'
 import { getOrcaAccountSettingsSearchEntries } from '@/components/settings/accounts/orca/orca-account-settings-search'
 import { OrcaLogoSettingsIcon } from '@/components/settings/page/orca-logo-settings-icon'
@@ -13,7 +10,6 @@ import { getVoicePaneSearchEntries } from '@/components/settings/voice/voice-pan
 import { translate } from '@/i18n/i18n'
 import type { SettingsNavSection } from '@/lib/settings-navigation-types'
 import {
-  Blocks,
   Bot,
   CircleUserRound,
   Mic,
@@ -27,8 +23,7 @@ import type { SettingsNavigationBuildOptions } from './settings-navigation-build
 
 export function buildCapabilitySettingsSections({
   isLocalWindowsHost,
-  isWebClient,
-  isLinearConnected
+  isWebClient
 }: SettingsNavigationBuildOptions): SettingsNavSection[] {
   const showDesktopOnlySettings = !isWebClient
   return [
@@ -77,22 +72,6 @@ export function buildCapabilitySettingsSections({
       }),
       group: 'capabilities'
     },
-    // Expose only with connected Linear; its skill needs linked provider capability.
-    ...(isLinearConnected
-      ? [
-          {
-            id: 'linear',
-            title: translate('auto.hooks.useSettingsNavigationMetadata.linearTitle', 'Linear'),
-            description: translate(
-              'auto.hooks.useSettingsNavigationMetadata.linearDescription',
-              'How Linear works in Orca, setup checklist, agent skill, and example prompts.'
-            ),
-            icon: LinearIcon,
-            searchEntries: getLinearAgentSkillPaneSearchEntries(),
-            group: 'capabilities'
-          }
-        ]
-      : []),
     ...(showDesktopOnlySettings
       ? [
           {
@@ -185,17 +164,6 @@ export function buildSetupSettingsSections({
       ),
       icon: SlidersHorizontal,
       searchEntries: getGeneralPaneSearchEntries({ includeProjectRuntime: isLocalWindowsHost }),
-      group: 'setup'
-    },
-    {
-      id: 'integrations',
-      title: translate('auto.hooks.useSettingsNavigationMetadata.2b043783ef', 'Integrations'),
-      description: translate(
-        'auto.hooks.useSettingsNavigationMetadata.33a5e1d597',
-        'Connect GitHub, GitLab, Linear, and source-hosting services.'
-      ),
-      icon: Blocks,
-      searchEntries: getIntegrationsPaneSearchEntries(),
       group: 'setup'
     },
     ...(showDesktopOnlySettings

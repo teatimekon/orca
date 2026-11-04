@@ -2,7 +2,6 @@ import { SessionHistorySettingsPane } from '../session-history/SessionHistorySet
 import { ArtifactsSettingsPane } from '../artifacts/ArtifactsSettingsPane'
 import { AutomationsSettingsPane } from '../automations/AutomationsSettingsPane'
 import { GeneralPane } from '../general/GeneralPane'
-import { IntegrationsPane } from '../integrations/IntegrationsPane'
 import { MobileSettingsPane } from '../mobile/MobileSettingsPane'
 import { OrcaAccountSettingsPane } from '../accounts/orca/OrcaAccountSettingsPane'
 import { SettingsSetupGuidePane } from '../setup-guide/SettingsSetupGuidePane'
@@ -73,26 +72,6 @@ export function renderGeneralSettingsSection(context: SettingsRenderContext): Re
           wslCapabilitiesLoading={terminal.localWindowsRuntimeCapabilities.isLoading}
         />
       ) : null}
-    </SettingsSection>
-  )
-}
-
-export function renderIntegrationsSettingsSection(
-  context: SettingsRenderContext
-): React.JSX.Element {
-  const { navigation, view } = context
-  return (
-    <SettingsSection
-      id="integrations"
-      title={translate('auto.components.settings.Settings.c9ca101a3b', 'Integrations')}
-      description={translate(
-        'auto.components.settings.Settings.b07041697f',
-        'Connect GitHub, GitLab, Linear, and source-hosting services.'
-      )}
-      searchEntries={navigation.getSectionSearchEntries('integrations')}
-      bodyClassName="rounded-none border-0 bg-transparent p-0 shadow-none"
-    >
-      {view.isSectionMounted('integrations') ? <IntegrationsPane /> : null}
     </SettingsSection>
   )
 }

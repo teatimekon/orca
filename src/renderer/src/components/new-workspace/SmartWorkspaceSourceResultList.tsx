@@ -1,9 +1,7 @@
 import React from 'react'
-import { isIntegrationCredentialDecryptionError } from '../../../../shared/integration-credential-errors'
 import { Button } from '@/components/ui/button'
 import { CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
 import { translate } from '@/i18n/i18n'
-import { cn } from '@/lib/utils'
 import { getSmartWorkspaceEmptyHint } from '../../../../shared/new-workspace/smart-workspace-source-results'
 import { RowIcon, RowLabel } from './smart-workspace-source-row-content'
 import type { RowEntry } from './smart-workspace-name-field-model'
@@ -25,16 +23,8 @@ export function SmartWorkspaceSourceResultList({
     | 'mrStateFilter'
     | 'setMrStateFilter'
     | 'typedTextActionRow'
-    | 'jiraSource'
     | 'loading'
     | 'searchResultRows'
-    | 'linearStatusChecked'
-    | 'linearStatus'
-    | 'linearReadError'
-    | 'showJiraSiteContext'
-    | 'jiraConnectionStatus'
-    | 'reserveLinearLoadingResults'
-    | 'showLinearUrlLoadingFeedback'
   >
   onSelect: (row: RowEntry) => void
   isLinked?: (row: RowEntry) => boolean
@@ -49,21 +39,9 @@ export function SmartWorkspaceSourceResultList({
     mrStateFilter,
     setMrStateFilter,
     typedTextActionRow,
-    jiraSource,
     loading,
-    searchResultRows,
-    linearStatusChecked,
-    linearStatus,
-    showJiraSiteContext,
-    jiraConnectionStatus,
-    reserveLinearLoadingResults,
-    showLinearUrlLoadingFeedback,
-    linearReadError
+    searchResultRows
   } = model
-  // Why: only the Linear tab speaks for Linear; Smart lists what the other sources return.
-  const visibleLinearReadError = mode === 'linear' ? linearReadError : null
-  const credentialError =
-    visibleLinearReadError && isIntegrationCredentialDecryptionError(visibleLinearReadError)
   return (
     <>
       {mode === 'gitlab' ? (
@@ -109,59 +87,15 @@ export function SmartWorkspaceSourceResultList({
             </CommandItem>
           </div>
         ) : null}
-        {visibleLinearReadError && !jiraSource.intent && !loading ? (
-          <div role="status" aria-live="polite" className="px-3 py-6 text-center text-xs">
-            {credentialError ? (
-              <>
-                <p className="font-medium text-foreground">
-                  {translate(
-                    'auto.components.new.workspace.SmartWorkspaceNameField.linearLoginUnreadableTitle',
-                    'Reconnect Linear'
-                  )}
-                </p>
-                <p className="mt-0.5 text-muted-foreground">
-                  {translate(
-                    'auto.components.new.workspace.SmartWorkspaceNameField.linearLoginUnreadableBody',
-                    'Unable to read saved Linear login. Reconnect it in Settings.'
-                  )}
-                </p>
-              </>
-            ) : (
-              <p className="text-muted-foreground">{visibleLinearReadError}</p>
-            )}
-          </div>
-        ) : null}
-        {jiraSource.errorKind ? null : reserveLinearLoadingResults ? (
-          <div
-            aria-hidden="true"
-            className={cn('space-y-1 p-1', !showLinearUrlLoadingFeedback && 'invisible')}
-          >
-            {[0, 1, 2].map((index) => (
-              <div
-                key={index}
-                className={cn(
-                  'h-8 rounded bg-muted/40',
-                  showLinearUrlLoadingFeedback && 'animate-pulse'
-                )}
-              />
-            ))}
-          </div>
-        ) : loading && searchResultRows.length === 0 ? (
+        {loading && searchResultRows.length === 0 ? (
           <div className="space-y-1 p-1">
             {[0, 1, 2].map((index) => (
               <div key={index} className="h-8 animate-pulse rounded bg-muted/40" />
             ))}
           </div>
-        ) : searchResultRows.length === 0 && !typedTextActionRow && !visibleLinearReadError ? (
+        ) : searchResultRows.length === 0 && !typedTextActionRow ? (
           <div className="px-3 py-6 text-center text-xs text-muted-foreground">
-            {jiraSource.intent
-              ? null
-              : mode === 'linear' && linearStatusChecked && !linearStatus.connected
-                ? translate(
-                    'auto.components.new.workspace.SmartWorkspaceNameField.3e8bb1176a',
-                    'Connect Linear in Settings to search issues.'
-                  )
-                : (emptyHint ?? getSmartWorkspaceEmptyHint(mode))}
+            {emptyHint ?? getSmartWorkspaceEmptyHint(mode)}
           </div>
         ) : searchResultRows.length > 0 ? (
           <CommandGroup>
@@ -175,17 +109,7 @@ export function SmartWorkspaceSourceResultList({
                 density="workspace"
               >
                 <RowIcon row={row} />
-                <RowLabel
-                  row={row}
-                  jiraSite={
-                    showJiraSiteContext && row.kind === 'jira'
-                      ? (jiraConnectionStatus?.sites?.find(
-                          (site) => site.id === row.issue.siteId
-                        ) ?? null)
-                      : null
-                  }
-                  showJiraSiteContext={showJiraSiteContext}
-                />
+                <RowLabel row={row} />
                 {isLinked?.(row) ? (
                   <span className="ml-auto shrink-0 text-xs text-muted-foreground">
                     {translate('workspace.links.linkedResult', 'Linked')}

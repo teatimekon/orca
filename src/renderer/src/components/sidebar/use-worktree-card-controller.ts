@@ -37,8 +37,6 @@ export function useWorktreeCardController(props: ResolvedWorktreeCardProps) {
       deleteState: foundation.deleteState,
       branch: review.branch,
       issueEntry: review.issueEntry,
-      linearIssueEntry: review.linearIssueEntry,
-      linearIssueFallbackEntry: review.linearIssueFallbackEntry,
       prDisplay: review.prDisplay
     })
   )
@@ -82,14 +80,7 @@ export function useWorktreeCardController(props: ResolvedWorktreeCardProps) {
     fetchHostedReviewForBranch: foundation.fetchHostedReviewForBranch,
     shouldRefreshHostedReview,
     newCardStyle: foundation.newCardStyle,
-    hoverDetailsOpen,
-    showIssue,
-    issueCacheKey: review.issueCacheKey,
-    fetchIssue: foundation.fetchIssue,
-    showLinearIssue,
-    linearSourceContext: review.linearSourceContext,
-    linearWorkspaceId: review.linearWorkspaceId,
-    fetchLinearIssue: foundation.fetchLinearIssue
+    hoverDetailsOpen
   })
 
   const activation = useWorktreeCardActivationActions({
@@ -147,7 +138,6 @@ export function useWorktreeCardController(props: ResolvedWorktreeCardProps) {
     showComment,
     showPorts,
     issueDisplay: linked.issueDisplay,
-    linearIssue: linked.linearIssue,
     linearIssueDisplay: linked.linearIssueDisplay,
     jiraIssueDisplay: linked.jiraIssueDisplay,
     prDisplay: review.prDisplay,
@@ -160,7 +150,6 @@ export function useWorktreeCardController(props: ResolvedWorktreeCardProps) {
     cardDetails: foundation.cardDetails,
     agentActivityDisplayMode: foundation.agentActivityDisplayMode,
     workspacePorts: foundation.workspacePorts,
-    openTaskPage: foundation.openTaskPage,
     updateWorktreeMeta: foundation.updateWorktreeMeta,
     settings: foundation.settings
   })

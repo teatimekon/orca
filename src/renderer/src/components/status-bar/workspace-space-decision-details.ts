@@ -33,7 +33,6 @@ export type WorkspaceDecisionDetails = {
   branchStatus: string | null
   reviewLabel: string | null
   issueLabel: string | null
-  linearIssueLabel: string | null
 }
 
 export type WorkspaceDecisionInputs = {
@@ -66,10 +65,6 @@ export type WorkspaceDecisionInputs = {
     }
   >
   issueCache: Record<string, { data?: { number: number; title: string; state: string } | null }>
-  linearIssueCache: Record<
-    string,
-    { data?: { identifier: string; title: string; state?: { name: string } } | null }
-  >
   settings: Parameters<typeof getHostedReviewCacheKey>[2]
   activeWorktreeId: string | null
   activeWorkspaceExecutionHostId: ExecutionHostId | null
@@ -186,18 +181,6 @@ export function getWorkspaceDecisionDetails(
       ? `#${issue.number} ${issue.state}: ${issue.title}`
       : `#${linkedIssue}`
     : null
-  const linkedLinearIssue = workspaceRecord?.linkedLinearIssue ?? null
-  const linearIssue = linkedLinearIssue
-    ? (inputs.linearIssueCache[`selected::${linkedLinearIssue}`]?.data ??
-      inputs.linearIssueCache[linkedLinearIssue]?.data)
-    : null
-  const linearIssueLabel = linkedLinearIssue
-    ? linearIssue
-      ? `${linearIssue.identifier}${
-          linearIssue.state?.name ? ` ${linearIssue.state.name}` : ''
-        }: ${linearIssue.title}`
-      : linkedLinearIssue
-    : null
 
   return {
     isActive:
@@ -225,7 +208,6 @@ export function getWorkspaceDecisionDetails(
     changedFileCount: gitEntries ? gitEntries.length : null,
     branchStatus: getBranchStatus(inputs.remoteStatusesByWorktree[worktree.worktreeId]),
     reviewLabel,
-    issueLabel,
-    linearIssueLabel
+    issueLabel
   }
 }

@@ -4,34 +4,8 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
 import type { GitHubPrStartPoint } from '../../../../shared/worktree/types'
-import type { LinearIssue } from '../../../../shared/linear/issue-types'
-import type { JiraIssue } from '../../../../shared/jira/jira-types'
 import { pr, mr, useReviewBaseSelectionFixture } from './composer-review-base-test-fixture'
 
-const linear: LinearIssue = {
-  id: 'linear-9',
-  identifier: 'ENG-9',
-  title: 'Current task',
-  url: 'https://linear.app/fixture/issue/ENG-9',
-  state: { name: 'Open', type: 'unstarted', color: '' },
-  team: { id: 'engineering', name: 'Engineering', key: 'ENG' },
-  labels: [],
-  labelIds: [],
-  priority: 0,
-  updatedAt: ''
-}
-const jira: JiraIssue = {
-  id: '9',
-  key: 'APP-9',
-  title: 'Current task',
-  url: 'https://jira.example/browse/APP-9',
-  project: { id: 'app', key: 'APP', name: 'App' },
-  issueType: { id: 'bug', name: 'Bug' },
-  status: { id: 'open', name: 'Open', categoryKey: 'new', categoryName: 'To do' },
-  labels: [],
-  updatedAt: '',
-  createdAt: ''
-}
 const staleBase: GitHubPrStartPoint = {
   baseBranch: 'stale-review-base',
   compareBaseRef: 'origin/stale-review-base',
@@ -124,8 +98,6 @@ const actions = [
   'unlink',
   'github-issue',
   'gitlab-issue',
-  'linear',
-  'jira',
   'manual-base',
   'repo-change',
   'repo-preserve-source',
@@ -172,17 +144,6 @@ describe('review base selection ownership', () => {
             type: 'issue',
             number: 347,
             url: 'https://gitlab.com/fixture/repo/-/issues/347'
-          })
-        }
-        if (action === 'linear') {
-          state.handleSmartLinearIssueSelect(linear)
-        }
-        if (action === 'jira') {
-          state.handleSmartJiraIssueSelect(jira, {
-            kind: 'task-source',
-            provider: 'jira',
-            projectId: 'app',
-            hostId: 'local'
           })
         }
         if (action === 'manual-base') {

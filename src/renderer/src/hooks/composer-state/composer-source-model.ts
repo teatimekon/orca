@@ -1,9 +1,6 @@
 import type { GitLabWorkItem } from '../../../../shared/gitlab-types'
 import type { GitHubWorkItem } from '../../../../shared/github/work-item-types'
 import type { GitPushTarget } from '../../../../shared/worktree/types'
-import type { JiraIssue } from '../../../../shared/jira/jira-types'
-import type { TaskSourceContext } from '../../../../shared/task-source-context'
-import type { LinearIssue } from '../../../../shared/linear/issue-types'
 import type { SparsePreset } from '../../../../shared/worktree/create-types'
 import type { PendingSmartGitHubSubmitResolution } from './source-selection-decisions'
 import type { SmartWorkspaceNameSelection } from '@/components/new-workspace/smart-workspace-name-field-model'
@@ -41,7 +38,6 @@ export type ComposerSourceModel = {
   handleLinkPopoverChange: (open: boolean) => void
   handleNameValueChange: (nextName: string) => void
   handleOpenAgentSettings: () => void
-  handleOpenJiraSettings: () => void
   handleProjectChange: (projectId: string) => void
   handleProjectHostSetupChange: (setupId: string) => void
   handleRemoveLinkedWorkItem: () => void
@@ -54,8 +50,6 @@ export type ComposerSourceModel = {
   handleSmartBranchSelect: (refName: string, localBranchName: string) => void
   handleSmartGitHubItemSelect: (item: GitHubWorkItem) => void
   handleSmartGitLabItemSelect: (item: GitLabWorkItem) => void
-  handleSmartJiraIssueSelect: (issue: JiraIssue, sourceContext: TaskSourceContext) => void
-  handleSmartLinearIssueSelect: (issue: LinearIssue) => void
   handleSparseSelectPreset: (preset: SparsePreset | null) => void
   insertComposerFolderPaths: (folderPaths: string[]) => void
   onConnectSelectedProjectGroup: () => Promise<void>

@@ -15,7 +15,6 @@ it('lets a browser command read the URL its RPC params expect, for that call onl
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: these hosts are only used by commands the test never calls.
   const hosts = {
     browserHost: {},
-    jiraHost: {},
     screencast: {},
     emulatorHost: {}
   } as unknown as ConstructorParameters<typeof RuntimeEdgeCommandController>[0]

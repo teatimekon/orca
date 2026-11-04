@@ -38,15 +38,6 @@ export type ComposerSourceState = {
     ComposerModel,
     'handleSmartBranchSelect' | 'handleReuseSelectedBranchChange'
   >
-  issueSourceActions: Pick<
-    ComposerModel,
-    | 'handleSmartLinearIssueSelect'
-    | 'handleSmartJiraIssueSelect'
-    | 'handleClearSmartNameSelection'
-    | 'smartNameSelection'
-  >
-  composerNavigationActions: Pick<
-    ComposerModel,
-    'handleOpenAgentSettings' | 'handleOpenJiraSettings' | 'folderCreateDisabled'
-  >
+  issueSourceActions: Pick<ComposerModel, 'handleClearSmartNameSelection' | 'smartNameSelection'>
+  composerNavigationActions: Pick<ComposerModel, 'handleOpenAgentSettings' | 'folderCreateDisabled'>
 }

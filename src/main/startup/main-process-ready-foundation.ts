@@ -39,7 +39,6 @@ import {
 } from '../browser/browser-session-proxy'
 import { installDocPreviewProtocolHandler } from '../browser/doc-preview-protocol'
 import { installMediaPreviewProtocolHandler } from '../media/media-preview-protocol'
-import { installJiraImageProtocolHandler } from '../jira/attachments/image-protocol'
 import { registerDocPreviewGrantHandlers } from '../ipc/doc-preview-grant-ipc'
 import { initializeBrowserSessionsForApp } from '../browser/browser-session-startup'
 import { initializeBrowserExtensionSupport } from '../browser/extensions/browser-extension-startup'
@@ -280,7 +279,6 @@ export async function initializeReadyFoundation(): Promise<void> {
   setBrowserNetworkProxySettingsResolver(() => state.store!.getSettings())
   // Protocol-scoped preview handlers must exist before webview attachment.
   installMediaPreviewProtocolHandler()
-  installJiraImageProtocolHandler()
   installDocPreviewProtocolHandler()
   registerDocPreviewGrantHandlers()
   // Session setup needs the extension support decision before loading profiles.

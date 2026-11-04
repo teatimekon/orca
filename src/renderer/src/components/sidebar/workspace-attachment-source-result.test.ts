@@ -81,7 +81,7 @@ describe('attachment source conversion', () => {
           author: null
         }
       },
-      { github, gitlab: null, linear: null, jira: null }
+      { github, gitlab: null }
     )
     expect(item).toMatchObject({
       title: 'Seven',

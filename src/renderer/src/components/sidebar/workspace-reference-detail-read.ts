@@ -1,5 +1,3 @@
-import type { LinearIssue } from '../../../../shared/linear/issue-types'
-import { consumeLinearIssueRead } from '@/store/slices/linear/linear-issue-publication'
 import { useAppStore } from '@/store'
 import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../../../shared/pure-hosted-source-control'
 import type { AppState } from '@/store/types'
@@ -10,7 +8,6 @@ import { canReadWorkspaceReferenceReview } from './workspace-reference-review-so
 import { isWorkspaceRepositoryAttachment } from './worktree-attachment-editing'
 import {
   matchesWorkspaceReferenceUrl,
-  getWorkspaceReferenceLinearWorkspaceId,
   matchWorkspaceReferenceReview,
   type WorkspaceReferenceDetails,
   type WorkspaceReferenceRequest
@@ -68,68 +65,6 @@ export function getWorkspaceReferenceLookup(request: WorkspaceReferenceRequest, 
     return null
   }
   const scope = getTaskSourceCacheScope(sourceContext)
-  const identifier = item.identifier ?? item.linearIdentifier ?? item.jiraIdentifier
-  if (item.provider === 'linear' && identifier && sourceContext.provider === 'linear') {
-    const workspaceId = getWorkspaceReferenceLinearWorkspaceId(
-      item.linearWorkspaceId,
-      sourceContext
-    )
-    return lookup(
-      state.linearIssueCache?.[`${scope}::${workspaceId}::${identifier}`],
-      async (signal) => {
-        let issue: LinearIssue | null = null
-        await consumeLinearIssueRead(
-          state.fetchLinearIssue(identifier, workspaceId, { sourceContext }),
-          () => !signal?.aborted,
-          (data) => {
-            issue = data
-          },
-          signal
-        )
-        return issue
-      },
-      (issue) =>
-        issue.identifier.toLowerCase() === identifier.toLowerCase() &&
-        matchesWorkspaceReferenceUrl(item, issue.url) &&
-        (workspaceId === 'all' || issue.workspaceId === workspaceId)
-          ? {
-              title: issue.title,
-              url: issue.url,
-              stateName: issue.state.name,
-              stateType: issue.state.type
-            }
-          : null
-    )
-  }
-  if (item.provider === 'jira' && identifier && sourceContext.provider === 'jira') {
-    const identity = sourceContext.providerIdentity
-    const siteId = identity?.provider === 'jira' ? identity.siteId : null
-    if (!siteId) {
-      return null
-    }
-    return lookup(
-      state.jiraIssueSummaryCache?.[`${scope}::${siteId}::${identifier.toUpperCase()}`],
-      () => state.lookupJiraIssueSummary(sourceContext, identifier, siteId),
-      (issue) =>
-        issue.key.toLowerCase() === identifier.toLowerCase() &&
-        issue.siteId === siteId &&
-        matchesWorkspaceReferenceUrl(item, issue.url)
-          ? {
-              title: issue.title,
-              url: issue.url,
-              stateName: issue.status.name,
-              stateType:
-                issue.status.categoryKey === 'done'
-                  ? 'completed'
-                  : issue.status.categoryKey === 'indeterminate'
-                    ? 'started'
-                    : issue.status.categoryKey === 'new'
-                      ? 'unstarted'
-                      : undefined
-            }
-          : null
-    )
-  }
   if (
     item.provider === 'github' &&
     repo &&

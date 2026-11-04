@@ -461,19 +461,12 @@ describe('AppearancePane', () => {
     ).toBeTruthy()
   })
 
-  it('reveals an advanced sidebar control when its search matches, even though it is hidden by default', async () => {
-    // Search must reveal matching controls hidden in the advanced disclosure.
-    mocks.state.settingsSearchQuery = ''
-    const collapsedContainer = await renderAppearancePane(getDefaultSettings('/tmp'))
-    expect(
-      collapsedContainer.querySelector('button[role="switch"][aria-label="Show Tasks Button"]')
-    ).toBeNull()
-
+  it('offers no Tasks button switch, even when searching for it', async () => {
     mocks.state.settingsSearchQuery = 'tasks'
-    const searchedContainer = await renderAppearancePane(getDefaultSettings('/tmp'))
+    const container = await renderAppearancePane(getDefaultSettings('/tmp'))
     expect(
-      searchedContainer.querySelector('button[role="switch"][aria-label="Show Tasks Button"]')
-    ).not.toBeNull()
+      container.querySelector('button[role="switch"][aria-label="Show Tasks Button"]')
+    ).toBeNull()
   })
 
   it('shows and updates the menu bar icon preference on desktop macOS', async () => {

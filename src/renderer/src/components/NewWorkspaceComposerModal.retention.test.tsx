@@ -165,7 +165,6 @@ vi.mock('@/hooks/useComposerState', () => ({
       onSmartGitHubItemSelect: noOp,
       onSmartGitLabItemSelect: noOp,
       onSmartBranchSelect: noOp,
-      onSmartLinearIssueSelect: noOp,
       smartNameSelection: null,
       onClearSmartNameSelection: noOp,
       canReuseSelectedBranch: false,

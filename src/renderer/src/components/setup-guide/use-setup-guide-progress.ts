@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import * as removed from '../pure-removed-tracker-stubs'
 import { useAppStore } from '@/store'
 import { isGitRepoKind } from '../../../../shared/repo-kind'
 import { getRepoExecutionHostId } from '../../../../shared/execution-host'
@@ -34,7 +35,6 @@ import {
   setSetupScriptProbeCache,
   subscribeSetupScriptProbeCache
 } from './setup-script-probe-cache'
-
 const SETUP_SCRIPT_PROBE_SETTLE_TIMEOUT_MS = 15_000
 
 export function useSetupGuideProgress(
@@ -52,14 +52,14 @@ export function useSetupGuideProgress(
   const preflightStatusLoading = useAppStore((s) => s.preflightStatusLoading)
   const refreshPreflightStatus = useAppStore((s) => s.refreshPreflightStatus)
   const activeSkillRuntime = useActiveProjectSkillRuntime()
-  const linearStatus = useAppStore((s) => s.linearStatus)
-  const linearStatusChecked = useAppStore((s) => s.linearStatusChecked)
-  const linearStatusContextKey = useAppStore((s) => s.linearStatusContextKey)
-  const checkLinearConnection = useAppStore((s) => s.checkLinearConnection)
-  const jiraStatus = useAppStore((s) => s.jiraStatus)
-  const jiraStatusChecked = useAppStore((s) => s.jiraStatusChecked)
-  const jiraStatusContextKey = useAppStore((s) => s.jiraStatusContextKey)
-  const checkJiraConnection = useAppStore((s) => s.checkJiraConnection)
+  const linearStatus = removed.REMOVED_TRACKER_STATUS
+  const linearStatusChecked = removed.REMOVED_TRACKER_CHECKED
+  const linearStatusContextKey = removed.REMOVED_TRACKER_CONTEXT_KEY
+  const checkLinearConnection = removed.removedTrackerCheck
+  const jiraStatus = removed.REMOVED_TRACKER_STATUS
+  const jiraStatusChecked = removed.REMOVED_TRACKER_CHECKED
+  const jiraStatusContextKey = removed.REMOVED_TRACKER_CONTEXT_KEY
+  const checkJiraConnection = removed.removedTrackerCheck
   const repos = useAppStore((s) => s.repos)
   const activeRepoId = useAppStore((s) => s.activeRepoId)
   const expectedPreflightContextKey = useAppStore((s) =>
@@ -273,7 +273,6 @@ export function useSetupGuideProgress(
     computerUseSkillInstalled,
     computerUsePermissionStatusChecked: currentComputerUsePermissionStatusChecked
   })
-
   const { rawProgress, preBrowserSetupComplete } = useMemo(
     () =>
       getSetupGuideProgressSnapshot({

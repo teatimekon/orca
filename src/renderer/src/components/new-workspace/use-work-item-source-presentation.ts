@@ -2,12 +2,6 @@ import { useEffect, useMemo } from 'react'
 import { CaseSensitive, LoaderCircle, Search } from 'lucide-react'
 import { parseGitHubIssueOrPRLink } from '@/lib/github-links'
 import { parseGitLabIssueOrMRLink } from '@/lib/gitlab-links'
-import {
-  isSmartWorkspaceLinearIssueIntentMatch,
-  parseBoundedSmartWorkspaceLinearIssueInput,
-  parseBoundedSmartWorkspaceLinearIssueUrlIntent,
-  prioritizeSmartWorkspaceLinearIssueResults
-} from '../../../../shared/new-workspace/smart-workspace-linear-intent'
 import { resolveSmartWorkspaceCommandValue } from './smart-workspace-command-value'
 import {
   buildSmartWorkspaceSourceRows,
@@ -25,16 +19,8 @@ function isTypedTextSourceRow(row: RowEntry): boolean {
   return row.kind === 'use-name' || row.kind === 'create-branch'
 }
 
-export function useWorkItemSourcePresentation(
-  foundation: Foundation,
-  options?: {
-    linearUrlIntent?: ReturnType<typeof parseBoundedSmartWorkspaceLinearIssueUrlIntent>
-    linearUrlIntentOwnsInput?: boolean
-    linearQuery?: string
-  }
-) {
+export function useWorkItemSourcePresentation(foundation: Foundation) {
   const {
-    jiraSource,
     branches,
     mode,
     branchResultsSource,
@@ -44,32 +30,12 @@ export function useWorkItemSourcePresentation(
     debouncedQuery,
     gitlabSourceAvailable,
     gitlabItems,
-    jiraIssues,
-    linearAvailable,
-    linearStatusChecked,
-    linearIssues,
     commandValue,
     setCommandValue,
     githubLoading,
     gitlabLoading,
-    branchesLoading,
-    linearLoading,
-    jiraLoading,
-    linearUrlLoadingFeedbackQuery,
-    settledLinearUrlQuery
+    branchesLoading
   } = foundation
-  const linearUrlIntent =
-    options?.linearUrlIntent ?? parseBoundedSmartWorkspaceLinearIssueUrlIntent(value)
-  const linearUrlIntentOwnsInput =
-    options?.linearUrlIntentOwnsInput ??
-    (linearUrlIntent !== null && (mode === 'smart' || mode === 'linear'))
-  const linearQuery = options?.linearQuery ?? (linearUrlIntentOwnsInput ? value : debouncedQuery)
-  const linearUrlLookupFailed =
-    linearUrlIntentOwnsInput &&
-    linearAvailable &&
-    settledLinearUrlQuery === linearQuery.trim() &&
-    !linearLoading &&
-    linearIssues.length === 0
   const githubUrlIntent = useMemo(
     () =>
       isSmartWorkspaceSourceQueryWithinLimit(value) && (mode === 'smart' || mode === 'github')
@@ -85,13 +51,6 @@ export function useWorkItemSourcePresentation(
     [mode, value]
   )
   const rows = useMemo<RowEntry[]>(() => {
-    if (jiraSource.intent && jiraSource.accountChoices.length > 0) {
-      return jiraSource.accountChoices.map((site) => ({
-        kind: 'jira-account' as const,
-        value: `jira-account-${site.id}`,
-        site
-      }))
-    }
     const results = buildSmartWorkspaceSourceRows({
       branches: getVisibleBranchResults({
         branches,
@@ -112,23 +71,8 @@ export function useWorkItemSourcePresentation(
         value,
         debouncedQuery
       }),
-      jiraIntent: jiraSource.intent,
-      jiraIssue: jiraSource.issue,
-      jiraIssues: getVisibleHeldProviderResults({
-        items: jiraIssues,
-        value,
-        debouncedQuery
-      }),
-      linearAvailable: linearAvailable && !linearUrlLookupFailed,
-      linearIssues: prioritizeSmartWorkspaceLinearIssueResults(
-        value,
-        getVisibleHeldProviderResults({
-          items: linearIssues,
-          value,
-          debouncedQuery: linearUrlIntentOwnsInput ? value : debouncedQuery
-        })
-      ),
-      linearUrlIntentOwnsResults: true,
+      linearAvailable: false,
+      linearIssues: [],
       githubUrlIntent,
       gitlabUrlIntent,
       mode,
@@ -148,14 +92,6 @@ export function useWorkItemSourcePresentation(
     gitlabSourceAvailable,
     gitlabItems,
     gitlabUrlIntent,
-    jiraSource.accountChoices,
-    jiraSource.intent,
-    jiraSource.issue,
-    jiraIssues,
-    linearAvailable,
-    linearIssues,
-    linearUrlIntentOwnsInput,
-    linearUrlLookupFailed,
     mode,
     selectedRepo?.id,
     value
@@ -173,10 +109,9 @@ export function useWorkItemSourcePresentation(
   const debouncedQueryWithinSourceLimit = isSmartWorkspaceSourceQueryWithinLimit(debouncedQuery)
   const trimmedValue = valueWithinSourceLimit ? value.trim() : ''
   const trimmedDebouncedQuery = debouncedQueryWithinSourceLimit ? debouncedQuery.trim() : ''
-  const isQueryStale =
-    !linearUrlIntentOwnsInput && trimmedValue.length > 0 && trimmedDebouncedQuery !== trimmedValue
+  const isQueryStale = trimmedValue.length > 0 && trimmedDebouncedQuery !== trimmedValue
   // Why: unambiguous refs highlight their source row instead of the typed-text fallback.
-  const sourceIntent = useMemo<'github' | 'gitlab' | 'linear' | 'jira' | null>(() => {
+  const sourceIntent = useMemo<'github' | 'gitlab' | null>(() => {
     if (!isSmartWorkspaceSourceQueryWithinLimit(value)) {
       return null
     }
@@ -184,37 +119,16 @@ export function useWorkItemSourcePresentation(
     if (!trimmed) {
       return null
     }
-    if (jiraSource.intent) {
-      return 'jira'
-    }
     if (/^#\d+$/.test(trimmed) || parseGitHubIssueOrPRLink(trimmed) !== null) {
       return 'github'
     }
     if (parseGitLabIssueOrMRLink(trimmed) !== null) {
       return 'gitlab'
     }
-    if (linearAvailable) {
-      const linearIntent = parseBoundedSmartWorkspaceLinearIssueInput(trimmed)
-      if (
-        linearIntent &&
-        rows.some(
-          (row) =>
-            row.kind === 'linear' && isSmartWorkspaceLinearIssueIntentMatch(linearIntent, row.issue)
-        )
-      ) {
-        return 'linear'
-      }
-    }
     return null
-  }, [jiraSource.intent, linearAvailable, rows, value])
-  // Why: a slow host status read must not let Enter accept a pasted Linear URL as plain text.
-  const unresolvedLinearUrlIntent =
-    linearUrlIntentOwnsInput &&
-    sourceIntent !== 'linear' &&
-    (!linearStatusChecked ||
-      (linearAvailable && (linearLoading || settledLinearUrlQuery !== linearQuery.trim())))
+  }, [value])
   const blockingTaskUrlResolution = isBlockingTaskUrlResolution({
-    sourceIntent: sourceIntent === 'github' || sourceIntent === 'gitlab' ? sourceIntent : null,
+    sourceIntent,
     isQueryStale,
     githubLoading,
     gitlabLoading
@@ -232,13 +146,7 @@ export function useWorkItemSourcePresentation(
     }
     setCommandValue(resolvedCommandValue)
   }, [commandValue, resolvedCommandValue, setCommandValue])
-  const showLinearUrlLoadingFeedback =
-    linearLoading && linearUrlIntentOwnsInput && linearUrlLoadingFeedbackQuery === linearQuery
-  const visibleLinearLoading =
-    linearLoading && (!linearUrlIntentOwnsInput || showLinearUrlLoadingFeedback)
-  const loading = jiraSource.intent
-    ? jiraSource.loading
-    : githubLoading || gitlabLoading || branchesLoading || visibleLinearLoading || jiraLoading
+  const loading = githubLoading || gitlabLoading || branchesLoading
   // Why: only spin on first load, not refreshes with retained rows.
   const showSearchSpinner = loading && searchResultRows.length === 0
   const ActiveInputIcon =
@@ -252,15 +160,7 @@ export function useWorkItemSourcePresentation(
     resolvedCommandValue,
     loading,
     showSearchSpinner,
-    linearUrlIntent,
-    linearUrlIntentOwnsInput,
-    linearQuery,
-    unresolvedLinearUrlIntent,
     blockingTaskUrlResolution,
-    showLinearUrlLoadingFeedback,
-    reserveLinearLoadingResults: unresolvedLinearUrlIntent && searchResultRows.length === 0,
-    ActiveInputIcon,
-    selectJiraAccount: jiraSource.selectAccount,
-    jiraBoundSourceContext: jiraSource.boundSourceContext
+    ActiveInputIcon
   }
 }

@@ -16,7 +16,7 @@ import type { RuntimeSkillCommandSurface } from '../runtime-skill-command-contra
 import type { RuntimeEdgeCommandSurface } from '../runtime-edge-command-controller'
 import type { OrcaRuntimeWithListManagedWorktrees as ListManagedWorktrees } from '../workspaces/managed-workspace-operations'
 import type { ProjectExecutionRuntimeResolution } from '../../../shared/project-execution-runtime'
-import { OrcaRuntimeWithLinearCommands } from '../integrations/linear/linear-commands'
+import { OrcaRuntimeWithFileCommands } from './runtime-file-command-state'
 
 import type { RuntimeStore } from '../runtime-store-contract'
 import { installGitHubProjectAccounts } from '../../github/github-project-account'
@@ -49,7 +49,7 @@ import { setPRConflictSummaryRemoteFetches } from '../../github/conflict-summary
 import { DESKTOP_TERMINAL_SCROLLBACK_ROWS_DEFAULT } from '../../../shared/terminal-scrollback-policy'
 
 // oxlint-disable-next-line typescript/no-unsafe-declaration-merging -- SAFETY: The constructor installs every checked canonical surface.
-export abstract class OrcaRuntimeWithStateFields extends OrcaRuntimeWithLinearCommands {
+export abstract class OrcaRuntimeWithStateFields extends OrcaRuntimeWithFileCommands {
   declare protected readonly getLocalProviderFn: HostServices['getLocalProviderFn']
   declare readonly onPtyStopped: HostServices['onPtyStopped']
   declare protected readonly onTerminalAgentStatus: HostServices['onTerminalAgentStatus']

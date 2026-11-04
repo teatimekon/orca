@@ -9,21 +9,16 @@ import type { SettingsRenderContext } from './settings-render-context'
 import {
   renderAccountsSettingsSection,
   renderAgentsSettingsSection,
-  renderLinearSettingsSection,
   renderOrchestrationSettingsSection
 } from './settings-capability-section-renderers'
 import {
   renderAutomationsSettingsSection,
   renderGeneralSettingsSection,
-  renderIntegrationsSettingsSection,
   renderMobileSettingsSection,
   renderOrcaAccountSettingsSection,
   renderShareSkillsSettingsSection
 } from './settings-setup-workflow-section-renderers'
-import {
-  renderGitSettingsSection,
-  renderTasksSettingsSection
-} from './settings-git-task-section-renderers'
+import { renderGitSettingsSection } from './settings-git-task-section-renderers'
 import {
   renderBrowserSettingsSection,
   renderFloatingWorkspaceSettingsSection,
@@ -131,15 +126,12 @@ export function renderSettingsPage(context: SettingsRenderContext): React.JSX.El
                   {renderAgentsSettingsSection(context)}
                   {renderAccountsSettingsSection(context)}
                   {renderOrchestrationSettingsSection(context)}
-                  {renderLinearSettingsSection(context)}
                   {renderOrcaAccountSettingsSection(context)}
                   {renderGeneralSettingsSection(context)}
-                  {renderIntegrationsSettingsSection(context)}
                   {renderMobileSettingsSection(context)}
                   {renderAutomationsSettingsSection(context)}
                   {renderShareSkillsSettingsSection(context)}
                   {renderGitSettingsSection(context)}
-                  {renderTasksSettingsSection(context)}
                   {renderTerminalSettingsSection(context)}
                   {renderQuickCommandsSettingsSection(context)}
                   {renderBrowserSettingsSection(context)}

@@ -1,12 +1,10 @@
-import React, { useCallback } from 'react'
+import { useCallback } from 'react'
 import type { WorkspaceAttachment } from '../../../../shared/worktree/types'
 import { getWorkspaceAttachmentKey } from '../../../../shared/workspace-attachment-normalization'
 import { buildWorkspaceAttachmentEdits } from './worktree-attachment-editing'
-import type { WorktreeCardPrDisplay } from './worktree-card-pr-display'
 import { getWorkspaceAttachments } from '../../../../shared/workspace-attachments'
 import { toast } from 'sonner'
 
-import type { GitHubWorkItem } from '../../../../shared/github/work-item-types'
 import { translate } from '@/i18n/i18n'
 import { openWorkspaceBrowserTab } from '@/lib/workspace-browser-tab-open'
 import { hasWorktreeCardDetails } from './WorktreeCardMeta'
@@ -23,7 +21,6 @@ type ReviewDetails = ReturnType<typeof useWorktreeCardReviewDetails>
 
 export function useWorktreeCardSecondaryDetails({
   worktree,
-  repo,
   statusPrDisplay,
   showStatus,
   showIssue,
@@ -35,7 +32,6 @@ export function useWorktreeCardSecondaryDetails({
   showComment,
   showPorts,
   issueDisplay,
-  linearIssue,
   linearIssueDisplay,
   jiraIssueDisplay,
   prDisplay,
@@ -48,7 +44,6 @@ export function useWorktreeCardSecondaryDetails({
   cardDetails,
   agentActivityDisplayMode,
   workspacePorts,
-  openTaskPage,
   updateWorktreeMeta,
   settings
 }: Pick<WorktreeCardProps, 'worktree' | 'repo' | 'statusPrDisplay'> &
@@ -59,11 +54,10 @@ export function useWorktreeCardSecondaryDetails({
     | 'cardDetails'
     | 'agentActivityDisplayMode'
     | 'workspacePorts'
-    | 'openTaskPage'
     | 'updateWorktreeMeta'
     | 'settings'
   > &
-  Pick<LinkedDetails, 'issueDisplay' | 'linearIssue' | 'linearIssueDisplay' | 'jiraIssueDisplay'> &
+  Pick<LinkedDetails, 'issueDisplay' | 'linearIssueDisplay' | 'jiraIssueDisplay'> &
   Pick<
     ReviewDetails,
     'prDisplay' | 'linkedGitLabMR' | 'linkedBitbucketPR' | 'linkedAzureDevOpsPR' | 'linkedGiteaPR'
@@ -103,52 +97,6 @@ export function useWorktreeCardSecondaryDetails({
     agentActivityDisplayMode === 'compact' &&
     compactInlineAgentRows.length > 0
   const showAggregateCacheTimer = !compactCards && !compactInlineAgentRowsVisible
-  const handleOpenGitHubIssueInOrca = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      const issueUrl = hoverIssue && 'url' in hoverIssue ? hoverIssue.url : undefined
-      if (!repo || !hoverIssue || !issueUrl) {
-        return
-      }
-      const item: GitHubWorkItem = {
-        id: issueUrl,
-        type: 'issue',
-        number: hoverIssue.number,
-        title: hoverIssue.title,
-        state: 'state' in hoverIssue ? (hoverIssue.state ?? 'open') : 'open',
-        url: issueUrl,
-        labels: 'labels' in hoverIssue ? (hoverIssue.labels ?? []) : [],
-        updatedAt: new Date().toISOString(),
-        author: null,
-        repoId: repo.id
-      }
-      openTaskPage({ taskSource: 'github', preselectedRepoId: repo.id, openGitHubWorkItem: item })
-    },
-    [hoverIssue, openTaskPage, repo]
-  )
-  const handleOpenReviewInOrca = useCallback(
-    (e: React.MouseEvent, review: WorktreeCardPrDisplay | null = hoverReview) => {
-      e.stopPropagation()
-      if (!repo || !review?.url || review.provider !== 'github') {
-        return
-      }
-      const item: GitHubWorkItem = {
-        id: review.url,
-        type: 'pr',
-        number: review.number,
-        title: review.title,
-        state: review.state ?? 'open',
-        url: review.url,
-        labels: [],
-        updatedAt: 'updatedAt' in review ? review.updatedAt : new Date().toISOString(),
-        author: null,
-        headSha: 'headSha' in review ? review.headSha : undefined,
-        repoId: repo.id
-      }
-      openTaskPage({ taskSource: 'github', preselectedRepoId: repo.id, openGitHubWorkItem: item })
-    },
-    [hoverReview, openTaskPage, repo]
-  )
   const openLinkedUrlInBrowser = useCallback(
     (url: string): void => {
       void openWorkspaceBrowserTab({
@@ -247,16 +195,6 @@ export function useWorktreeCardSecondaryDetails({
     },
     [hoverReview, hoverReviewProvider, updateWorktreeMeta, worktree]
   )
-  const handleOpenLinearIssueInOrca = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation()
-      if (!linearIssue) {
-        return
-      }
-      openTaskPage({ taskSource: 'linear', openLinearIssue: linearIssue })
-    },
-    [linearIssue, openTaskPage]
-  )
   const hasDetails =
     getWorkspaceAttachments(worktree).length > 0 ||
     hasWorktreeCardDetails({
@@ -290,14 +228,11 @@ export function useWorktreeCardSecondaryDetails({
     metaComment,
     showInlineAgentList,
     compactInlineAgentRows,
-    handleOpenGitHubIssueInOrca,
     handleOpenIssueInBrowser,
-    handleOpenReviewInOrca,
     canUnlinkReview,
     handleOpenReviewInBrowser,
     hasExplicitLinkedReview,
     handleUnlinkReview,
-    handleOpenLinearIssueInOrca,
     hasDetails,
     hasPorts,
     cacheStartedAt,

@@ -7,10 +7,6 @@ import { useWorkspaceReferenceDetails } from './use-workspace-reference-details'
 import { useVisibleHostedReviewRefresh } from '@/app-shell/use-visible-hosted-review-refresh'
 import { readWorkspaceReferenceDetails } from './workspace-reference-detail-read'
 import { getWorkspaceReferenceRequest } from './workspace-reference-details'
-import {
-  normalizeTaskSourceContext,
-  getTaskSourceCacheScope
-} from '../../../../shared/task-source-context'
 import { getWorkspaceAttachmentKey } from '../../../../shared/workspace-attachment-normalization'
 import { _clearHostedReviewRequestGenerationsForTest } from '@/store/slices/hosted-review-request-state'
 import { getHostedReviewCacheKey } from '@/store/slices/hosted-review-cache-identity'
@@ -18,8 +14,7 @@ import {
   referenceAttachment,
   referenceRepo,
   referenceReview,
-  referenceWorkspace,
-  referenceLinearIssue
+  referenceWorkspace
 } from './workspace-reference-fixtures.test-support'
 
 vi.mock('@/store', async () => {
@@ -66,8 +61,6 @@ beforeEach(() => {
     activeWorktreeId: null,
     hostedReviewCache: {},
     prCache: {},
-    linearIssueCache: {},
-    jiraIssueSummaryCache: {},
     issueCache: {},
     tabsByWorktree: {},
     ptyIdsByTabId: {},
@@ -252,49 +245,4 @@ it('does not revive primary success after an exact lookup returns unavailable', 
     useWorkspaceReferenceDetails(workspace, referenceRepo, referenceReview(1), false)
   )
   expect(hook.result.current[getWorkspaceAttachmentKey(request.item)]).toBeUndefined()
-})
-
-it('projects task mutations directly from the source provider cache', () => {
-  const source = normalizeTaskSourceContext({
-    provider: 'linear',
-    projectId: 'project',
-    hostId: 'local'
-  })
-  if (!source) {
-    throw new Error('Invalid fixture')
-  }
-  const item = {
-    provider: 'linear',
-    type: 'issue',
-    number: 0,
-    identifier: 'ENG-1',
-    taskSourceContext: source
-  } as const
-  const key = `${getTaskSourceCacheScope(source)}::all::ENG-1`
-  useAppStore.setState({
-    linearIssueCache: { [key]: { data: referenceLinearIssue(), fetchedAt: Date.now() } }
-  })
-  const hook = renderHook(() =>
-    useWorkspaceReferenceDetails({ ...workspace, linkedItems: [item] }, referenceRepo, null, false)
-  )
-  expect(hook.result.current[getWorkspaceAttachmentKey(item)]?.title).toBe('Task')
-  act(() =>
-    useAppStore.setState({
-      linearIssueCache: {
-        [key]: { data: referenceLinearIssue({ title: 'Edited' }), fetchedAt: Date.now() }
-      }
-    })
-  )
-  expect(hook.result.current[getWorkspaceAttachmentKey(item)]?.title).toBe('Edited')
-  const otherAccount = { ...item, taskSourceContext: { ...source, accountLabel: 'other' } }
-  const other = renderHook(() =>
-    useWorkspaceReferenceDetails(
-      { ...workspace, linkedItems: [otherAccount] },
-      referenceRepo,
-      null,
-      false
-    )
-  )
-  expect(other.result.current[getWorkspaceAttachmentKey(otherAccount)]).toBeUndefined()
-  expect(read).not.toHaveBeenCalled()
 })

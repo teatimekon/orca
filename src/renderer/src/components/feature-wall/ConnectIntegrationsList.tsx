@@ -9,13 +9,10 @@ import {
   GitHubIntegrationCard,
   GitLabIntegrationCard
 } from '@/components/integrations/source-control/cli-source-control-integration-cards'
-import { JiraIntegrationCard } from '@/components/integrations/task-trackers/jira-integration-card'
-import { LinearIntegrationCard } from '@/components/integrations/task-trackers/linear-integration-card'
 import {
   IntegrationCardGroup,
   IntegrationCardPresentationProvider
 } from '@/components/integrations/presentation/integration-card-presentation'
-import { useIntegrationProviderStatusRefresh } from '@/hooks/use-integration-provider-status-refresh'
 import { IntegrationStep } from './connect-integration-step'
 import {
   deriveIntegrationFlowState,
@@ -50,7 +47,6 @@ function TaskSourceNameList(props: { names: readonly string[] }): React.JSX.Elem
 
 // Recommend review before tasks without gating either; completion follows real provider status.
 export function ConnectIntegrationsList(): React.JSX.Element {
-  useIntegrationProviderStatusRefresh()
   const status = useIntegrationConnectionStatus()
   const [reviewReopened, setReviewReopened] = useState(false)
 
@@ -157,10 +153,6 @@ export function ConnectIntegrationsList(): React.JSX.Element {
             })
           }
         >
-          <IntegrationCardGroup>
-            <LinearIntegrationCard />
-            <JiraIntegrationCard />
-          </IntegrationCardGroup>
           <p className="px-1 pt-0.5 text-[12px] leading-snug text-muted-foreground">
             {translate(
               'auto.components.feature.wall.ConnectIntegrationsList.code_host_tasks_caption',

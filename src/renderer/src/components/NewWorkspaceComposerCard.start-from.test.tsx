@@ -100,8 +100,7 @@ function renderCard(
         onSmartGitHubItemSelect={() => {}}
         onSmartGitLabItemSelect={() => {}}
         onSmartBranchSelect={() => {}}
-        onSmartLinearIssueSelect={() => {}}
-        smartNameSelection={{ kind: 'jira', label: 'ERP-1491' }}
+        smartNameSelection={{ kind: 'github-issue', label: 'ERP-1491' }}
         onClearSmartNameSelection={() => {}}
         canReuseSelectedBranch={false}
         reuseSelectedBranch={false}

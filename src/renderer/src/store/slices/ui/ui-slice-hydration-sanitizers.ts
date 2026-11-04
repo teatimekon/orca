@@ -180,7 +180,12 @@ export function sanitizeHydratedGroupBy(value: unknown): UISlice['groupBy'] {
 
 export function sanitizeHydratedActiveView(value: PersistedUIState['activeView']): TopLevelView {
   // Why: older data (pre-activeView) or a view a different build doesn't have falls back to terminal rather than rendering nothing.
-  if (!isTopLevelView(value) || value === 'activity' || value === 'artifacts') {
+  if (
+    !isTopLevelView(value) ||
+    value === 'activity' ||
+    value === 'artifacts' ||
+    value === 'tasks'
+  ) {
     return 'terminal'
   }
   return value

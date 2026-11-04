@@ -274,9 +274,6 @@ export function useComposerSourceState(
     openSettingsPage: target.composerTargetStore.openSettingsPage,
     openSettingsTarget: target.composerTargetStore.openSettingsTarget,
     selectedProjectGroup: target.initialTargetState.selectedProjectGroup,
-    setActiveRuntimeEnvironmentPreference:
-      target.composerTargetStore.setActiveRuntimeEnvironmentPreference,
-    smartNameJiraSourceContext: target.sourceContextState.smartNameJiraSourceContext,
     sourceIntentBlocksCreate: target.workspaceIdentityState.sourceIntentBlocksCreate
   })
   return {

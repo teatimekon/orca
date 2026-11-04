@@ -524,9 +524,7 @@ describe('registerAppMenu', () => {
 
     const appearanceSubmenu = (appearanceEntry?.submenu ??
       []) as Electron.MenuItemConstructorOptions[]
-    const tasksItem = appearanceSubmenu.find((item) => item.label === 'Show Tasks Button')
-    expect(tasksItem?.type).toBe('checkbox')
-    expect(tasksItem?.checked).toBe(false)
+    expect(appearanceSubmenu.map((item) => item.label)).not.toContain('Show Tasks Button')
 
     const automationsItem = appearanceSubmenu.find(
       (item) => item.label === 'Show Automations Button'
@@ -554,9 +552,6 @@ describe('registerAppMenu', () => {
       []) as Electron.MenuItemConstructorOptions[]
 
     appearanceSubmenu
-      .find((item) => item.label === 'Show Tasks Button')
-      ?.click?.({} as never, {} as never, {} as never)
-    appearanceSubmenu
       .find((item) => item.label === 'Show Automations Button')
       ?.click?.({} as never, {} as never, {} as never)
     appearanceSubmenu
@@ -566,7 +561,6 @@ describe('registerAppMenu', () => {
       .find((item) => item.label === 'Show Titlebar App Name')
       ?.click?.({} as never, {} as never, {} as never)
 
-    expect(options.onToggleAppearance).toHaveBeenCalledWith('showTasksButton')
     expect(options.onToggleAppearance).toHaveBeenCalledWith('showAutomationsButton')
     expect(options.onToggleAppearance).toHaveBeenCalledWith('showMobileButton')
     expect(options.onToggleAppearance).toHaveBeenCalledWith('showTitlebarAppName')

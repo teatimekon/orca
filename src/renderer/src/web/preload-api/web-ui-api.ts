@@ -3,7 +3,6 @@ import type { AgentSessionAttachmentClipboardTarget } from '../../../../shared/a
 import { saveClipboardImageAsWebAgentSessionAttachment } from './web-agent-session-attachment-upload'
 import { savePastedTextAsWebAgentSessionAttachment } from './web-pasted-text-upload'
 import { createWebExplorerRootSync } from './web-explorer-root-sync'
-import { createWebJiraFilterStateApi } from './web-jira-filter-state-api'
 import type { PreloadApi } from '../../../../preload/api-types'
 import { assertClipboardTextWithinLimitWithYield } from '../../../../shared/clipboard-text'
 import type { ReadClipboardTextOptions } from '../../../../shared/clipboard-text'
@@ -43,7 +42,6 @@ export function createWebUiApi(): NonNullable<Partial<PreloadApi>['ui']> {
   }
   let zoomLevel = readLocalWebUIState().uiZoomLevel
   return {
-    ...createWebJiraFilterStateApi(),
     /** Hydrates from the active host after replaying pending roots, falling back to local state on failure or host changes. */
     get: async () => {
       try {

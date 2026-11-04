@@ -4,15 +4,9 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { Suspense, useMemo } from 'react'
 import { toast } from 'sonner'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { buildCmdJBrowserNavigationAction } from '../cmd-j/browser-navigation-action'
-import {
-  CREATE_WORKTREE_ITEM_ID,
-  createWorktreePaletteRequestGuard
-} from '@/lib/worktree-palette-create-action'
-import { parseCmdJTaskSourceUrl } from '@/lib/worktree-palette-task-url-match'
+import { createWorktreePaletteRequestGuard } from '@/lib/worktree-palette-create-action'
 import { useAppStore } from '@/store/index'
 import { useWorktreeJumpPaletteController } from './use-worktree-jump-palette-controller'
-import { useWorktreeJumpPaletteListEntries } from './use-worktree-jump-palette-list-entries'
 import {
   makeRecentTabState,
   makeRepo,
@@ -20,7 +14,6 @@ import {
   makeUnifiedTab,
   makeWorktree
 } from './worktree-jump-palette-test-fixtures'
-import type { QuickActionPaletteItem } from './worktree-jump-palette-model'
 import {
   drawTabsFromMain,
   type TabsDrawnFromMain
@@ -48,67 +41,6 @@ vi.mock(import('@/lib/workspace-browser-tab-open'), async (importOriginal) => ({
 }))
 
 const initialAppState = useAppStore.getInitialState()
-
-type ListInput = Parameters<typeof useWorktreeJumpPaletteListEntries>[0]
-
-function navigationItem(query: string): QuickActionPaletteItem {
-  const action = buildCmdJBrowserNavigationAction(query)
-  if (!action) {
-    throw new Error(`Expected a navigable URL: ${query}`)
-  }
-  return {
-    id: `quick-action:${action.id}`,
-    type: 'quick-action',
-    result: { ...action, order: 0, qualityClass: 'exact-intent' }
-  }
-}
-
-function listInput(query: string, overrides: Partial<ListInput> = {}): ListInput {
-  return {
-    hasQuery: true,
-    openTabsLeadSections: true,
-    middleLeadsSections: true,
-    recentTabShortcutIndexByItem: new Map(),
-    recentTabShortcutIndexById: new Map(),
-    digitShortcutModifiers: [],
-    paletteSections: {
-      hasExactEntityDestination: false,
-      visibleWorktreeItems: [],
-      worktreeOverflowCount: 0,
-      visibleProjectTargetItems: [],
-      projectTargetOverflowCount: 0,
-      visibleMiddleItems: [navigationItem(query)],
-      middleOverflowCount: 0,
-      visibleOpenTabItems: [],
-      openTabOverflowCount: 0,
-      multiPrimaryFirstScreen: false,
-      multiPrimaryLayout: null
-    },
-    showCreateAction: true,
-    createWorktreeName: query,
-    autoSelectedItemIdRef: { current: null },
-    taskSourceUrl: null,
-    handleExpandSection: vi.fn(),
-    taskItems: [],
-    ...overrides
-  }
-}
-
-describe('Cmd+J website placement', () => {
-  it('preserves issue/PR creation ahead of website navigation', () => {
-    const query = 'https://github.com/acme/project/pull/42'
-    const { result } = renderHook(() =>
-      useWorktreeJumpPaletteListEntries(
-        listInput(query, { taskSourceUrl: parseCmdJTaskSourceUrl(query) })
-      )
-    )
-
-    expect(result.current.listEntries.map((entry) => entry.id)).toEqual([
-      CREATE_WORKTREE_ITEM_ID,
-      'quick-action:navigate-to-url'
-    ])
-  })
-})
 
 function usePalette() {
   const createLookupGuard = useMemo(() => createWorktreePaletteRequestGuard(), [])

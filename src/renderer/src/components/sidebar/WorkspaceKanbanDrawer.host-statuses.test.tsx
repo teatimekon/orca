@@ -23,11 +23,10 @@ type HeaderCapture = {
   onRemoveStatus: (statusId: string) => void
 }
 
-const { gridState, headerState, syncState } = vi.hoisted(() => {
+const { gridState, headerState } = vi.hoisted(() => {
   const grid: { current: GridCapture | null } = { current: null }
   const header: { current: HeaderCapture | null } = { current: null }
-  const sync: { statuses: readonly WorkspaceStatusDefinition[] } = { statuses: [] }
-  return { gridState: grid, headerState: header, syncState: sync }
+  return { gridState: grid, headerState: header }
 })
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
@@ -71,14 +70,6 @@ vi.mock('@/components/contextual-tours/use-contextual-tour', () => ({
   useContextualTour: vi.fn()
 }))
 vi.mock('./use-workspace-status-drop', () => ({ useWorkspaceStatusDocumentDrop: vi.fn() }))
-vi.mock('./use-workspace-board-task-status-sync', () => ({
-  useWorkspaceBoardTaskStatusSync: (args: {
-    workspaceStatuses: readonly WorkspaceStatusDefinition[]
-  }) => {
-    syncState.statuses = args.workspaceStatuses
-    return vi.fn()
-  }
-}))
 
 const hostCard = makeWorktree({
   id: 'repo-r::/today',
@@ -214,13 +205,6 @@ describe('WorkspaceKanbanDrawer paired host columns', () => {
     const added = setWorkspaceStatuses.mock.calls[0]?.[0] ?? []
     expect(added.map((status) => status.id)).toEqual(['in-progress', expect.any(String)])
     expect(added[1]?.id).not.toBe('status-2')
-  })
-
-  it("lets task sync find a host column no card uses yet, as the card's menu offers it", () => {
-    renderDrawer()
-
-    expect(syncState.statuses.map((status) => status.id)).toContain('status-7')
-    expect(gridState.current?.statuses.map((status) => status.id)).not.toContain('status-7')
   })
 
   it('drops a removed host’s columns', () => {

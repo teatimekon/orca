@@ -3,7 +3,6 @@ import type { WorktreeJumpPaletteLocalState } from './use-worktree-jump-palette-
 import type { WorktreeJumpPaletteQuickActions } from './use-worktree-jump-palette-quick-actions'
 import type { WorktreeJumpPaletteSelectionLifecycle } from './use-worktree-jump-palette-selection-lifecycle'
 import type { WorktreeJumpPaletteStoreState } from './use-worktree-jump-palette-store-state'
-import type { WorktreeJumpPaletteTaskUrl } from './use-worktree-jump-palette-task-url'
 
 export type WorktreeJumpPaletteCreateWorktreeInput = Pick<
   WorktreeJumpPaletteStoreState,
@@ -18,15 +17,6 @@ export type WorktreeJumpPaletteCreateWorktreeInput = Pick<
     | 'preserveCreateLookupOnCloseRef'
     | 'selectionMovedByUserRef'
     | 'skipRestoreFocusRef'
-    | 'taskSourceUrl'
   > &
   Pick<WorktreeJumpPaletteQuickActions, 'prefetchCreateWorkspaceBaseForComposer'> &
-  Pick<WorktreeJumpPaletteSelectionLifecycle, 'focusFallbackSurface'> &
-  Pick<
-    WorktreeJumpPaletteTaskUrl,
-    | 'currentGitHubWorkItemPreview'
-    | 'githubLookupRef'
-    | 'linearIssueUrlIntent'
-    | 'linearLookupRef'
-    | 'taskUrlCreatePreview'
-  >
+  Pick<WorktreeJumpPaletteSelectionLifecycle, 'focusFallbackSurface'>

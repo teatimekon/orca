@@ -1,7 +1,5 @@
 import type { SessionOptionValue } from '../../shared/native-chat/input/native-chat-session-options'
 import { conversationRecordReader } from './orchestration/structured-session-lineage'
-import type { RuntimeLinearCommandSurface } from './runtime-linear-command-surface'
-import { installRuntimeLinearCommandSurface } from './runtime-linear-command-surface'
 import { publishNativeChatFollowUpChanges } from './runtime-native-chat-follow-up-events'
 import { publishWorkspaceViewChanges } from './runtime-workspace-view-change-events'
 import {
@@ -297,17 +295,12 @@ class OrcaRuntimeService extends OrcaRuntimeSidebarBase {
     return peekOpenedAgentSessionRecordStore()
   }
 }
-// Linear installs these methods on the final runtime prototype below.
-// oxlint-disable-next-line typescript/consistent-type-definitions -- SAFETY: This merge models the installed Linear API.
-interface OrcaRuntimeService extends RuntimeLinearCommandSurface {}
-
 type OrcaRuntimeServiceExport = RuntimeCommandSurfaceHost<OrcaRuntimeService>
 const OrcaRuntimeServiceExport: {
   new (...args: ConstructorParameters<typeof OrcaRuntimeService>): OrcaRuntimeServiceExport
   readonly prototype: OrcaRuntimeServiceExport
 } = OrcaRuntimeService
 export { OrcaRuntimeServiceExport as OrcaRuntimeService }
-installRuntimeLinearCommandSurface(OrcaRuntimeServiceExport.prototype)
 
 export type { LegacyWorkerTerminalRecoveryResult } from './runtime-legacy-worker-terminal-recovery-types'
 export type {

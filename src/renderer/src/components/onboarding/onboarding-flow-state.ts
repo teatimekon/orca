@@ -1,3 +1,4 @@
+import type { RemovedTrackerStatus } from '../pure-removed-tracker-stubs'
 import { toast } from 'sonner'
 import type { AppState } from '@/store/types'
 import { translate } from '@/i18n/i18n'
@@ -68,7 +69,7 @@ export function getGitHubTaskSourceStatus(
 }
 
 export function getLinearTaskSourceStatus(
-  status: AppState['linearStatus'],
+  status: RemovedTrackerStatus,
   checked: boolean
 ): TaskSourcesLinearStatus {
   if (status.connected) {

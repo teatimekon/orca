@@ -29,7 +29,6 @@ function BranchReusePreview({
         onSmartGitHubItemSelect={() => {}}
         onSmartGitLabItemSelect={() => {}}
         onSmartBranchSelect={() => {}}
-        onSmartLinearIssueSelect={() => {}}
         smartNameSelection={{
           kind: 'branch',
           label: remote ? `origin/${existingBranch}` : existingBranch

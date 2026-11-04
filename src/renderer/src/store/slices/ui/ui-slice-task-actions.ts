@@ -10,8 +10,6 @@ import { PER_REPO_FETCH_LIMIT } from '../../../../../shared/work-items'
 import { isGitRepoKind } from '../../../../../shared/repo-kind'
 import { presetToQuery } from './ui-slice-hydration-sanitizers'
 
-const LINEAR_TASK_PREFETCH_LIMIT = 36
-
 export function createUiTaskActions(set: UISliceSet, get: UISliceGet): Partial<UISlice> {
   return {
     activeView: 'terminal',
@@ -113,7 +111,7 @@ export function createUiTaskActions(set: UISliceSet, get: UISliceGet): Partial<U
         preferredVisibleTaskProviders,
         {
           gitlabInstalled: state.preflightStatus?.glab?.installed === true,
-          linearConnected: state.linearStatus?.connected === true
+          linearConnected: false
         },
         state.settings?.defaultTaskSource
       )
@@ -155,28 +153,6 @@ export function createUiTaskActions(set: UISliceSet, get: UISliceGet): Partial<U
                 ? data.openGitHubSourceContext
                 : null
           })
-        }
-      }
-      if (resolvedSource === 'linear' && typeof state.prefetchLinearIssues === 'function') {
-        const resume = state.taskResumeState
-        const query = (resume?.linearQuery ?? '').trim()
-        const sourceContext =
-          data.openLinearSourceContext?.provider === 'linear' ? data.openLinearSourceContext : null
-        if (query) {
-          state.prefetchLinearIssues(
-            { kind: 'search', query, limit: LINEAR_TASK_PREFETCH_LIMIT },
-            { sourceContext }
-          )
-        } else {
-          // Why: TaskPage no longer exposes Linear preset filters; keep prefetch aligned with the default unsearched issue list.
-          state.prefetchLinearIssues(
-            {
-              kind: 'list',
-              filter: 'all',
-              limit: LINEAR_TASK_PREFETCH_LIMIT
-            },
-            { sourceContext }
-          )
         }
       }
     },

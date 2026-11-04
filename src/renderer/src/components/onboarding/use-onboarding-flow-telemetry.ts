@@ -1,3 +1,4 @@
+import type { RemovedTrackerStatus } from '../pure-removed-tracker-stubs'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { applyDocumentTheme } from '@/lib/document-theme'
 import { track } from '@/lib/telemetry'
@@ -17,7 +18,7 @@ type OnboardingTelemetryArgs = {
   paintedThemeRef: { current: GlobalSettings['theme'] }
   preflightStatus: AppState['preflightStatus']
   preflightStatusLoading: boolean
-  linearStatus: AppState['linearStatus']
+  linearStatus: RemovedTrackerStatus
   linearStatusChecked: boolean
 }
 

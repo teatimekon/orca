@@ -3,8 +3,6 @@ import type { useAppStore } from '@/store'
 import type { parseGitHubIssueOrPRLink, RepoSlug } from '@/lib/github-links'
 import type { GitHubWorkItem } from '../../../../shared/github/work-item-types'
 import type { GitLabWorkItem } from '../../../../shared/gitlab-types'
-import type { JiraIssue, JiraSite } from '../../../../shared/jira/jira-types'
-import type { LinearIssue } from '../../../../shared/linear/issue-types'
 import type { BaseRefSearchResult } from '../../../../shared/repo-types'
 import type { TaskSourceContext } from '../../../../shared/task-source-context'
 import type {
@@ -25,15 +23,10 @@ export type SmartWorkspaceNameFieldProps = {
   /** Optional; when omitted, GitLab paste-URL detection is silently skipped. */
   onGitLabItemSelect?: (item: GitLabWorkItem) => void
   onBranchSelect: (refName: string, localBranchName: string) => void
-  onLinearIssueSelect: (issue: LinearIssue) => void
-  onJiraIssueSelect?: (issue: JiraIssue, sourceContext: TaskSourceContext) => void
-  onOpenJiraSettings?: () => void
   selectedSource: SmartWorkspaceNameSelection | null
   onClearSelectedSource: () => void
   gitlabSourceContext?: TaskSourceContext | null
-  linearSourceContext?: TaskSourceContext | null
   githubSourceContext?: TaskSourceContext | null
-  jiraSourceContext?: TaskSourceContext | null
   inputRef?: React.RefObject<HTMLInputElement | null>
   onPlainEnter?: () => void
   disabled?: boolean
@@ -48,14 +41,12 @@ export type SmartWorkspaceNameFieldProps = {
 }
 
 export type SmartWorkspaceNameSelection = {
-  kind: 'github-pr' | 'github-issue' | 'gitlab-mr' | 'gitlab-issue' | 'branch' | 'linear' | 'jira'
+  kind: 'github-pr' | 'github-issue' | 'gitlab-mr' | 'gitlab-issue' | 'branch'
   label: string
   url?: string
 }
 
-export type RowEntry =
-  | SmartWorkspaceSourceRow
-  | { kind: 'jira-account'; value: string; site: JiraSite }
+export type RowEntry = SmartWorkspaceSourceRow
 
 export type RepoBackedSearchTarget = {
   repo: RepoOption
@@ -79,8 +70,6 @@ export type SmartWorkspaceNameFieldSearchState = {
   gitlabItems: GitLabWorkItem[]
   branches: BaseRefSearchResult[]
   branchResultsSource: { repoId: string; query: string } | null
-  linearIssues: LinearIssue[]
-  jiraIssues: JiraIssue[]
 }
 
 export type CachedRepoSlug = RepoSlug
@@ -103,13 +92,10 @@ export type WorkItemSourceSearchProps = Pick<
   | 'crossRepoSwitchTarget'
   | 'githubSourceContext'
   | 'gitlabSourceContext'
-  | 'linearSourceContext'
-  | 'jiraSourceContext'
 > & {
   sourceSelected?: boolean
   gitlabEnabled?: boolean
   typedTextEnabled?: boolean
-  defaultLinearWorkspaceId?: string
 }
 export type NormalizedWorkItemSourceSearchProps = WorkItemSourceSearchProps & {
   disabled: boolean
@@ -118,5 +104,4 @@ export type NormalizedWorkItemSourceSearchProps = WorkItemSourceSearchProps & {
   repoBackedSourcesDisabled: boolean
   repoBackedSearchRepos: readonly RepoOption[]
   crossRepoSwitchTarget: 'project' | 'task-source'
-  jiraSourceContext: TaskSourceContext | null
 }

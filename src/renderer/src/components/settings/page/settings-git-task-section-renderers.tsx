@@ -1,6 +1,5 @@
 import { CommitMessageAiPane } from '../source-control/CommitMessageAiPane'
 import { GitPane } from '../source-control/GitPane'
-import { TasksPane } from '../tasks/TasksPane'
 import { SettingsSection } from '../section-layout/SettingsSection'
 import { translate } from '@/i18n/i18n'
 import type { SettingsRenderContext } from './settings-render-context'
@@ -39,25 +38,6 @@ export function renderGitSettingsSection(context: SettingsRenderContext): React.
             settingsSearchQuery={model.settingsSearchQuery}
           />
         </>
-      ) : null}
-    </SettingsSection>
-  )
-}
-
-export function renderTasksSettingsSection(context: SettingsRenderContext): React.JSX.Element {
-  const { model, navigation, view } = context
-  return (
-    <SettingsSection
-      id="tasks"
-      title={translate('auto.components.settings.Settings.11faa2f7dd', 'Task Sources')}
-      description={translate(
-        'auto.components.settings.Settings.tasksDescription',
-        'Connect providers, install the Linear skill, and choose what appears in Tasks.'
-      )}
-      searchEntries={navigation.getSectionSearchEntries('tasks')}
-    >
-      {view.isSectionMounted('tasks') ? (
-        <TasksPane settings={model.settings} updateSettings={model.updateSettings} />
       ) : null}
     </SettingsSection>
   )

@@ -17,12 +17,9 @@ import type { WorktreeJumpPaletteSections } from './use-worktree-jump-palette-se
 import type { WorktreeJumpPaletteWorktrees } from './use-worktree-jump-palette-worktrees'
 import type { WorktreeJumpPaletteLocalState } from './use-worktree-jump-palette-local-state'
 
-import type { WorktreeJumpPaletteTaskSearch } from './use-worktree-jump-palette-task-search'
-
 type WorktreeJumpPaletteListEntriesInput = WorktreeJumpPaletteSections &
-  Pick<WorktreeJumpPaletteTaskSearch, 'taskItems'> &
   Pick<WorktreeJumpPaletteWorktrees, 'hasQuery'> &
-  Pick<WorktreeJumpPaletteLocalState, 'autoSelectedItemIdRef' | 'taskSourceUrl'> &
+  Pick<WorktreeJumpPaletteLocalState, 'autoSelectedItemIdRef'> &
   Pick<WorktreeJumpPaletteSections, 'middleLeadsSections' | 'handleExpandSection'>
 
 export function useWorktreeJumpPaletteListEntries({
@@ -31,10 +28,8 @@ export function useWorktreeJumpPaletteListEntries({
   paletteSections,
   showCreateAction,
   autoSelectedItemIdRef,
-  taskSourceUrl,
   handleExpandSection,
-  middleLeadsSections,
-  taskItems
+  middleLeadsSections
 }: WorktreeJumpPaletteListEntriesInput) {
   const languageRevision = useUiLanguageRevision()
   const listEntries = useMemo<PaletteListEntry[]>(() => {
@@ -51,25 +46,13 @@ export function useWorktreeJumpPaletteListEntries({
       multiPrimaryFirstScreen,
       multiPrimaryLayout
     } = paletteSections
-    // Exact entity matches keep priority; issue/PR URLs keep their jump and create rows first.
-    const browserNavigationItem =
-      taskSourceUrl || !paletteSections.hasExactEntityDestination
-        ? middleItems.find(
-            (item) =>
-              item.type === 'quick-action' && item.result.id === BROWSER_NAVIGATION_ACTION_ID
-          )
-        : undefined
+    // Exact entity matches keep priority.
+    const browserNavigationItem = !paletteSections.hasExactEntityDestination
+      ? middleItems.find(
+          (item) => item.type === 'quick-action' && item.result.id === BROWSER_NAVIGATION_ACTION_ID
+        )
+      : undefined
     const visibleMiddleItems = middleItems.filter((item) => item !== browserNavigationItem)
-    const pushTasks = (): void => {
-      if (taskItems.length) {
-        entries.push({
-          id: '__header_tasks__',
-          type: 'section-header',
-          label: translate('worktreeJumpPalette.tasksHeader', 'Tasks')
-        })
-        appendPaletteListEntries(entries, taskItems)
-      }
-    }
     const pushOverflowHint = (id: string, overflowCount: number, onSeeMore?: () => void): void => {
       if (overflowCount > 0) {
         entries.push({
@@ -167,19 +150,6 @@ export function useWorktreeJumpPaletteListEntries({
         )
       }
     }
-    // Issue/PR URLs put linked worktrees first for Enter-to-jump while keeping create underneath.
-    if (taskSourceUrl) {
-      if (visibleWorktreeItems.length > 0) {
-        pushWorktreeSection()
-      }
-      if (showCreateAction) {
-        entries.push({ id: CREATE_WORKTREE_ITEM_ID, type: 'create-worktree' })
-      }
-      if (browserNavigationItem) {
-        entries.push(browserNavigationItem)
-      }
-      return entries
-    }
     if (!hasQuery) {
       pushOpenTabSection()
       pushWorktreeSection()
@@ -236,7 +206,6 @@ export function useWorktreeJumpPaletteListEntries({
         handleExpandSection(trailingSectionKey)
       )
       pushProjectAndMiddleSections()
-      pushTasks()
       if (showCreateAction) {
         entries.push({ id: CREATE_WORKTREE_ITEM_ID, type: 'create-worktree' })
       }
@@ -255,7 +224,6 @@ export function useWorktreeJumpPaletteListEntries({
     if (!openTabsLeadSections) {
       pushOpenTabSection()
     }
-    pushTasks()
     if (showCreateAction) {
       entries.push({ id: CREATE_WORKTREE_ITEM_ID, type: 'create-worktree' })
     }
@@ -268,8 +236,6 @@ export function useWorktreeJumpPaletteListEntries({
     openTabsLeadSections,
     paletteSections,
     showCreateAction,
-    taskSourceUrl,
-    taskItems,
     languageRevision
   ])
   const selectableItems = useMemo<PaletteItem[]>(

@@ -6,7 +6,6 @@ import { getVisibleWorktreeShortcutTargets } from '@/components/sidebar/visible-
 import { activateAndRevealWorkspace } from '@/lib/worktree-activation'
 import { deleteHoveredWorkspaceImmediately } from '@/components/sidebar/hovered-workspace-delete'
 import { isFloatingWorkspacePanelFocused } from '@/lib/floating-workspace-terminal-actions'
-import { isGitRepoKind } from '../../../../shared/repo-kind'
 import { runBuiltInOrReplacement } from '@/lib/plugin-command-replacements'
 import { useAppStore } from '../../store'
 import { openNewWorkspaceFromShortcut } from './new-workspace-command'
@@ -59,16 +58,6 @@ export function registerWorkspaceShortcutIpcBridge(unsubs: (() => void)[]): void
       })
     )
   }
-
-  unsubs.push(
-    window.api.ui.onOpenTasks(() => {
-      const store = useAppStore.getState()
-      if (store.activeView === 'settings' || !store.repos.some((repo) => isGitRepoKind(repo))) {
-        return
-      }
-      runBuiltInOrReplacement('view.tasks', () => store.openTaskPage())
-    })
-  )
 
   unsubs.push(
     window.api.ui.onJumpToWorktreeIndex((index) => {

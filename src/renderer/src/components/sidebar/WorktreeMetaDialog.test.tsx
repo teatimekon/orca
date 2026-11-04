@@ -7,8 +7,6 @@ import type { GitHubWorkItem } from '../../../../shared/github/work-item-types'
 import type { Worktree } from '../../../../shared/worktree/types'
 import type { WorktreeMeta } from '../../../../shared/worktree/meta-types'
 import type { WorktreeMetaUpdateOptions } from '@/store/slices/worktree-helpers'
-import type { FolderWorkspace } from '../../../../shared/folder-workspace-types'
-import { folderWorkspaceKey } from '../../../../shared/workspace-scope'
 
 vi.mock('@/components/ui/tooltip', () => ({
   Tooltip: ({ children }: { children?: ReactNode }) => <>{children}</>,
@@ -39,9 +37,6 @@ vi.mock('@/components/ui/dropdown-menu', () => {
     }
   }
 })
-vi.mock('@/runtime/runtime-linear-client', () => ({
-  linearStatus: vi.fn(async () => ({ connected: false, viewer: null }))
-}))
 import WorktreeMetaDialog from './WorktreeMetaDialog'
 
 const initialState = useAppStore.getInitialState()
@@ -138,10 +133,7 @@ describe('workspace linked work editor', () => {
     useAppStore.setState({
       fetchWorkItems: vi.fn(async () => []),
       getCachedWorkItems: vi.fn(() => []),
-      refreshPreflightStatus: vi.fn(async () => {}),
-      checkLinearConnection: vi.fn(async () => {}),
-      readJiraStatus: vi.fn(async () => ({ connected: false, viewer: null, sites: [] })),
-      linearStatusChecked: true
+      refreshPreflightStatus: vi.fn(async () => {})
     })
     Element.prototype.scrollIntoView = vi.fn()
     updateWorktreeMeta.mockReset().mockResolvedValue({ ok: true })
@@ -150,23 +142,6 @@ describe('workspace linked work editor', () => {
   })
   afterEach(cleanup)
 
-  it('adds multiple reviews and tasks without displacing existing links', async () => {
-    openDialog({ linkedPR: 1, linkedIssue: 2 })
-    await add('3', 'GitHub PR')
-    await add('STA-4', 'Linear task')
-    expect(screen.getByText('PR #1')).toBeTruthy()
-    expect(screen.getByText('PR #3')).toBeTruthy()
-    expect(screen.getByText('Issue #2')).toBeTruthy()
-    expect(screen.getByText('STA-4')).toBeTruthy()
-    await save()
-    expect(updateWorktreeMeta.mock.calls[0]?.[1].linkedItems).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ provider: 'github', type: 'pr', number: 1 }),
-        expect.objectContaining({ provider: 'github', type: 'pr', number: 3 }),
-        expect.objectContaining({ provider: 'linear', identifier: 'STA-4' })
-      ])
-    )
-  })
   it('adds a pasted URL according to its provider and type', async () => {
     openDialog()
     act(() =>
@@ -282,14 +257,6 @@ describe('workspace linked work editor', () => {
       linkedItems: []
     })
   })
-  it('omits untouched links on comment-only saves', async () => {
-    openDialog({ linkedIssue: 1, linkedLinearIssue: 'STA-2' })
-    fireEvent.change(screen.getByPlaceholderText('Notes about this worktree...'), {
-      target: { value: 'new note' }
-    })
-    await save()
-    expect(updateWorktreeMeta.mock.calls[0]?.[1]).toEqual({ comment: 'new note' })
-  })
   it('keeps the draft and error visible after a failed save', async () => {
     updateWorktreeMeta.mockResolvedValue({ ok: false, error: 'Host is disconnected' })
     openDialog()
@@ -300,31 +267,6 @@ describe('workspace linked work editor', () => {
     expect(alert.parentElement?.contains(screen.getByRole('button', { name: 'Save' }))).toBe(true)
     expect(screen.getByText('Issue #4')).toBeTruthy()
     expect(useAppStore.getState().activeModal).toBe('edit-meta')
-  })
-  it('supports folder workspace links', async () => {
-    const folder: FolderWorkspace = {
-      id: 'folder-1',
-      projectGroupId: 'group',
-      name: 'Docs',
-      folderPath: '/docs',
-      linkedTask: null,
-      comment: '',
-      isArchived: false,
-      isUnread: false,
-      isPinned: false,
-      sortOrder: 0,
-      lastActivityAt: 1,
-      createdAt: 1,
-      updatedAt: 1
-    }
-    useAppStore.setState({ folderWorkspaces: [folder] })
-    openDialog({}, { worktreeId: folderWorkspaceKey(folder.id), repoId: undefined })
-    await add('STA-5', 'Linear task')
-    await save()
-    expect(updateWorktreeMeta.mock.calls[0]?.[0]).toBe(folderWorkspaceKey(folder.id))
-    expect(updateWorktreeMeta.mock.calls[0]?.[1].linkedItems).toEqual([
-      expect.objectContaining({ provider: 'linear', identifier: 'STA-5' })
-    ])
   })
   it('preserves the execution host in a metadata save', async () => {
     openDialog({ hostId: 'runtime:host-1' }, { executionHostId: 'runtime:host-1' })

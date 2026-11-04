@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { REMOVED_TRACKER_CHECKED, REMOVED_TRACKER_STATUS } from '../pure-removed-tracker-stubs'
 import { toast } from 'sonner'
 import { getAgentCatalog } from '@/lib/agent-catalog'
 import { useAppStore } from '@/store'
@@ -44,8 +45,8 @@ export function useOnboardingFlow(
   const preflightStatusChecked = useAppStore((s) => s.preflightStatusChecked)
   const preflightStatusLoading = useAppStore((s) => s.preflightStatusLoading)
   const refreshPreflightStatus = useAppStore((s) => s.refreshPreflightStatus)
-  const linearStatus = useAppStore((s) => s.linearStatus)
-  const linearStatusChecked = useAppStore((s) => s.linearStatusChecked)
+  const linearStatus = REMOVED_TRACKER_STATUS
+  const linearStatusChecked = REMOVED_TRACKER_CHECKED
   // Why: renderToStaticMarkup uses Zustand's initial snapshot; the sync read keeps tests and the first client render aligned.
   const effectivePreflightStatus = preflightStatus ?? useAppStore.getState().preflightStatus
 

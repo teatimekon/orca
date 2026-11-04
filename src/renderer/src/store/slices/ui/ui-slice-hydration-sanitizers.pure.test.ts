@@ -8,6 +8,7 @@ describe('sanitizeHydratedActiveView in the pure build', () => {
   it('falls back to terminal for removed views', () => {
     expect(sanitizeHydratedActiveView('activity')).toBe('terminal')
     expect(sanitizeHydratedActiveView('artifacts')).toBe('terminal')
+    expect(sanitizeHydratedActiveView('tasks')).toBe('terminal')
   })
 
   it('keeps other views unchanged', () => {

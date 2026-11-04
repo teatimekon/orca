@@ -70,7 +70,7 @@ export function WorkspaceDecisionHoverCard({
 }): React.JSX.Element {
   const deleteDecision = getDeleteDecisionLabel(worktree, details)
   const issueLabel =
-    [details.issueLabel, details.linearIssueLabel].filter(Boolean).join(' · ') ||
+    details.issueLabel ||
     translate('auto.components.status.bar.workspaceSpaceDecision.noLinkedIssue', 'No linked issue')
   return (
     <HoverCardContent

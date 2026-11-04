@@ -25,7 +25,6 @@ function branchProps(): React.ComponentProps<typeof NewWorkspaceComposerNameSect
     onSmartGitHubItemSelect: vi.fn(),
     onSmartGitLabItemSelect: vi.fn(),
     onSmartBranchSelect: vi.fn(),
-    onSmartLinearIssueSelect: vi.fn(),
     smartNameSelection: { kind: 'branch', label: 'origin/feature/payments' },
     onClearSmartNameSelection: vi.fn(),
     selectedRepoRequiresConnection: false,

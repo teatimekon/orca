@@ -36,7 +36,6 @@ export function pickSpaceWindowState(state: AppState) {
     remoteStatusesByWorktree: state.remoteStatusesByWorktree,
     hostedReviewCache: state.hostedReviewCache,
     issueCache: state.issueCache,
-    linearIssueCache: state.linearIssueCache,
     activeWorktreeId: state.activeWorktreeId,
     activeWorkspaceExecutionHostId: state.activeWorkspaceExecutionHostId,
     deleteStateByWorktreeId: state.deleteStateByWorktreeId,

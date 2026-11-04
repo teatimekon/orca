@@ -1,7 +1,8 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { stripComments } from '../../shared/source-scan/source-tree-scan'
+import { PURE_DELETED_PATHS, pureDeletedPathMatcher } from './pure-deleted-paths'
 
 const SRC = join(__dirname, '../..')
 const read = (file: string): string => stripComments(readFileSync(join(SRC, file), 'utf8'))
@@ -185,17 +186,6 @@ const REMOVED: readonly (readonly [string, string])[] = [
   ],
   ['renderer/src/components/right-sidebar/use-right-sidebar-activity-items.ts', "id: 'checks'"],
   ['renderer/src/components/right-sidebar/use-right-sidebar-activity-items.ts', "id: 'pr-checks'"],
-  ['renderer/src/components/settings/integrations/IntegrationsPane.tsx', 'GitHubIntegrationCard'],
-  ['renderer/src/components/settings/integrations/IntegrationsPane.tsx', 'GitLabIntegrationCard'],
-  [
-    'renderer/src/components/settings/integrations/IntegrationsPane.tsx',
-    'BitbucketIntegrationCard'
-  ],
-  [
-    'renderer/src/components/settings/integrations/IntegrationsPane.tsx',
-    'AzureDevOpsIntegrationCard'
-  ],
-  ['renderer/src/components/settings/integrations/IntegrationsPane.tsx', 'GiteaIntegrationCard'],
   [
     'renderer/src/components/settings/page/settings-git-task-section-renderers.tsx',
     'GitProviderApiBudgetPane'
@@ -212,7 +202,58 @@ const REMOVED: readonly (readonly [string, string])[] = [
   [
     'renderer/src/components/settings/page/settings-interface-primary-section-renderers.tsx',
     'onOpenComputerUse'
-  ]
+  ],
+  // O14a task page, Linear and Jira (deleted)
+  ['renderer/src/app-shell/AppWorkspaceShell.tsx', 'TaskPage'],
+  ['renderer/src/components/sidebar/SidebarNav.tsx', 'SidebarTaskNavButton'],
+  ['renderer/src/app-shell/app-command-handlers.ts', 'openTaskPage'],
+  ['renderer/src/hooks/ipc-events/workspace-shortcut-ipc-bridge.ts', 'openTaskPage'],
+  ['renderer/src/components/sidebar/use-worktree-card-foundation.ts', 'openTaskPage'],
+  ['renderer/src/components/sidebar/use-worktree-card-lifecycle-effects.ts', 'fetchLinearIssue'],
+  [
+    'renderer/src/components/sidebar/use-worktree-card-lifecycle-effects.ts',
+    'consumeLinearIssueRead'
+  ],
+  ['renderer/src/components/sidebar/use-worktree-card-lifecycle-effects.ts', 'intervalMs'],
+  ['renderer/src/components/settings/page/settings-git-task-section-renderers.tsx', 'TasksPane'],
+  [
+    'renderer/src/components/settings/page/settings-capability-section-renderers.tsx',
+    'LinearAgentSkillPane'
+  ],
+  [
+    'renderer/src/components/settings/page/settings-setup-workflow-section-renderers.tsx',
+    'IntegrationsPane'
+  ],
+  ['renderer/src/hooks/settings-navigation-workflow-sections.ts', 'getTasksPaneSearchEntries'],
+  [
+    'renderer/src/hooks/settings-navigation-capability-sections.ts',
+    'getLinearAgentSkillPaneSearchEntries'
+  ],
+  [
+    'renderer/src/hooks/settings-navigation-capability-sections.ts',
+    'getIntegrationsPaneSearchEntries'
+  ],
+  ['renderer/src/hooks/composer-state/composer-navigation-actions.ts', 'handleOpenJiraSettings'],
+  [
+    'renderer/src/components/settings/appearance/AppearanceWindowSidebarSection.tsx',
+    'showTasksButton'
+  ],
+  ['renderer/src/store/index.ts', 'createLinearSlice'],
+  ['renderer/src/store/index.ts', 'createJiraSlice'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerLinearHandlers'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerJiraHandlers'],
+  [
+    'main/ipc/register-core-handlers/register-core-handlers.ts',
+    'registerJiraIssueSummaryGenerationHandlers'
+  ],
+  ['main/startup/main-process-ready-foundation.ts', 'installJiraImageProtocolHandler'],
+  ['main/startup/privileged-custom-schemes.ts', 'JIRA_IMAGE_CUSTOM_SCHEME'],
+  ['main/runtime/orca-runtime.ts', 'installRuntimeLinearCommandSurface'],
+  ['main/runtime/construction/runtime-construction.ts', 'OrcaRuntimeWithLinearCommands'],
+  ['main/runtime/runtime-edge-command-controller.ts', 'RuntimeJiraCommands'],
+  ['main/menu/register-app-menu.ts', "onToggleAppearance('showTasksButton')"],
+  ['preload/index.ts', 'linearApi'],
+  ['preload/index.ts', 'jiraApi']
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -281,12 +322,16 @@ const KEPT: readonly (readonly [string, string])[] = [
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerGitLabHandlers'],
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerHostedReviewHandlers'],
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerBitbucketHandlers'],
-  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerLinearHandlers'],
-  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerJiraHandlers'],
   ['main/ipc/source-control/github-pr-read-handlers.ts', 'gh:repoSlug'],
-  ['renderer/src/components/settings/integrations/IntegrationsPane.tsx', 'LinearIntegrationCard'],
-  ['renderer/src/components/settings/integrations/IntegrationsPane.tsx', 'JiraIntegrationCard'],
-  ['renderer/src/app-shell/ActiveWorkspaceSyncGate.tsx', 'useGitStatusPolling']
+  ['renderer/src/app-shell/ActiveWorkspaceSyncGate.tsx', 'useGitStatusPolling'],
+  ['main/runtime/rpc/methods/index.ts', 'LINEAR_METHODS'],
+  ['main/runtime/rpc/methods/index.ts', 'LINEAR_AGENT_ACCESS_METHODS'],
+  ['main/runtime/rpc/methods/index.ts', 'JIRA_METHODS'],
+  ['main/index.ts', 'enableLinearRegexpFallback'],
+  [
+    'renderer/src/components/sidebar/workspace-reference-detail-read.ts',
+    'getWorkspaceReferenceLookup'
+  ]
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [
@@ -409,7 +454,38 @@ const GUARD_AFTER: readonly (readonly [string, string, string])[] = [
   ]
 ]
 
+const REPO = join(SRC, '..')
+const isDeleted = pureDeletedPathMatcher(PURE_DELETED_PATHS)
+const SOURCES = (readdirSync(SRC, { recursive: true }) as string[])
+  .map((f) => `src/${f.split('\\').join('/')}`)
+  .filter((f) => /\.(ts|tsx|mts|cts|js|mjs)$/.test(f) && !f.includes('/node_modules/'))
+const SPEC =
+  /(?:from\s+|import\s*\(\s*|require\s*\(\s*|vi\.(?:do)?[mM]ock\s*\(\s*|importActual\s*(?:<[^>]*>)?\s*\(\s*)['"]([^'"]+)['"]/g
+const targets = (from: string, spec: string): string[] => {
+  const base = spec.startsWith('@/')
+    ? `src/renderer/src/${spec.slice(2)}`
+    : spec.startsWith('.')
+      ? join(dirname(from), spec).split('\\').join('/')
+      : null
+  if (base === null) {
+    return []
+  }
+  const candidates = ['.ts', '.tsx', '/index.ts', '/index.tsx'].map((e) => base + e)
+  const existing = candidates.filter((c) => existsSync(join(REPO, c)))
+  return existing.length > 0 ? existing : [base, ...candidates]
+}
+
 describe('zyx/orca-pure wiring', () => {
+  it('no file under src/ matches PURE_DELETED_PATHS', () =>
+    expect(SOURCES.filter(isDeleted)).toEqual([]))
+  it('no kept file imports or mocks a deleted path', () => {
+    const offenders = SOURCES.flatMap((f) =>
+      [...readFileSync(join(REPO, f), 'utf8').matchAll(SPEC)]
+        .filter((m) => targets(f, m[1]).some(isDeleted))
+        .map((m) => `${f} -> ${m[1]}`)
+    )
+    expect(offenders).toEqual([])
+  })
   for (const [file, symbol] of REMOVED) {
     it(`${file} no longer wires ${symbol}`, () => expect(read(file)).not.toMatch(token(symbol)))
   }

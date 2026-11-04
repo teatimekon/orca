@@ -1,17 +1,11 @@
 // Seal legacy integration credentials after key loading; gh/glab own their tokens separately.
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import type { SecretStore } from '../../shared/secret-store'
 import { classifyUnenvelopedCredential } from '../../shared/secret-at-rest-protection'
 import { hardenExistingSecureFile, writeSecureFile } from '../../shared/secure-file'
 import { writeCredentialFileAtomic } from '../credentials/integration-credential-file'
-import {
-  getWorkspaceTokenDir,
-  getWorkspaceTokenPath,
-  LEGACY_WORKSPACE_ID
-} from '../linear/linear-credential-paths'
-import { getTokenDir as getJiraTokenDir } from '../jira/site-credential-store'
 import { getSecretPath as getBitbucketSecretPath } from '../bitbucket/credential-store'
 import { getOpenAiKeyPath } from '../speech/openai-api-key-store'
 import { API_KEY_ENVELOPE_PREFIX, getZcodePlanApiKeyPath } from '../zcode/zcode-plan-api-key-store'
@@ -28,16 +22,6 @@ type PlaintextCredentialTarget = {
 
 type PlaintextCredentialMigrationResult = { sealed: number; failed: number }
 
-function encFilesIn(dir: string): string[] {
-  try {
-    return readdirSync(dir)
-      .filter((name) => name.endsWith('.enc'))
-      .map((name) => join(dir, name))
-  } catch {
-    return []
-  }
-}
-
 /** Keep credentials outside disposable ORCA_USER_DATA roots. */
 export function orcadCredentialRoot(): string {
   return join(homedir(), '.orca')
@@ -45,9 +29,6 @@ export function orcadCredentialRoot(): string {
 
 function listPlaintextCredentialTargets(): PlaintextCredentialTarget[] {
   return [
-    { path: getWorkspaceTokenPath(LEGACY_WORKSPACE_ID), raw: true },
-    ...encFilesIn(getWorkspaceTokenDir()).map((path) => ({ path, raw: true })),
-    ...encFilesIn(getJiraTokenDir()).map((path) => ({ path, raw: true })),
     { path: getBitbucketSecretPath(), raw: true },
     { path: getOpenAiKeyPath(), raw: true },
     { path: getMiniMaxCookiePath(), envelopePrefix: COOKIE_ENVELOPE_PREFIX, raw: true },

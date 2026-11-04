@@ -14,7 +14,6 @@ import { useLatestHandler } from '@/lib/use-latest-handler'
 export function useSmartWorkspaceNameFieldController(props: SmartWorkspaceNameFieldProps) {
   const search = useWorkItemSourceSearch({
     ...props,
-    defaultLinearWorkspaceId: 'all',
     typedTextEnabled: true,
     sourceSelected: props.selectedSource !== null,
     gitlabEnabled: Boolean(props.onGitLabItemSelect)

@@ -1,4 +1,10 @@
 import { useEffect } from 'react'
+import {
+  REMOVED_TRACKER_CHECKED,
+  REMOVED_TRACKER_CONTEXT_KEY,
+  REMOVED_TRACKER_STATUS,
+  removedTrackerCheck
+} from '../pure-removed-tracker-stubs'
 import type { FeatureWallWorkflow } from '../../../../shared/feature-wall-workflows'
 import { useAppStore } from '@/store'
 import { getLocalPreflightContext, localPreflightContextKey } from '@/lib/local-preflight-context'
@@ -22,14 +28,14 @@ export function useFeatureWallTaskSourcePresentation(
   const preflightStatusError = useAppStore((s) => s.preflightStatusError)
   const preflightStatusLoading = useAppStore((s) => s.preflightStatusLoading)
   const refreshPreflightStatus = useAppStore((s) => s.refreshPreflightStatus)
-  const linearStatus = useAppStore((s) => s.linearStatus)
-  const linearStatusChecked = useAppStore((s) => s.linearStatusChecked)
-  const linearStatusContextKey = useAppStore((s) => s.linearStatusContextKey)
-  const checkLinearConnection = useAppStore((s) => s.checkLinearConnection)
-  const jiraStatus = useAppStore((s) => s.jiraStatus)
-  const jiraStatusChecked = useAppStore((s) => s.jiraStatusChecked)
-  const jiraStatusContextKey = useAppStore((s) => s.jiraStatusContextKey)
-  const checkJiraConnection = useAppStore((s) => s.checkJiraConnection)
+  const linearStatus = REMOVED_TRACKER_STATUS
+  const linearStatusChecked = REMOVED_TRACKER_CHECKED
+  const linearStatusContextKey = REMOVED_TRACKER_CONTEXT_KEY
+  const checkLinearConnection = removedTrackerCheck
+  const jiraStatus = REMOVED_TRACKER_STATUS
+  const jiraStatusChecked = REMOVED_TRACKER_CHECKED
+  const jiraStatusContextKey = REMOVED_TRACKER_CONTEXT_KEY
+  const checkJiraConnection = removedTrackerCheck
   const settings = useAppStore((s) => s.settings)
   const expectedPreflightContextKey = useAppStore((s) =>
     localPreflightContextKey(getLocalPreflightContext(s))

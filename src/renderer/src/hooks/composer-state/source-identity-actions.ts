@@ -38,7 +38,6 @@ import type { GitLabWorkItem } from '../../../../shared/gitlab-types'
 import { getLinkedWorkItemSuggestedName, getLinkedWorkItemWorkspaceName } from '@/lib/new-workspace'
 import type { GitHubWorkItem } from '../../../../shared/github/work-item-types'
 import { shouldApplyWorkspaceSourceAutoName } from '../../../../shared/new-workspace/workspace-source'
-import { isLinearLinkedWorkItem } from '@/lib/linear-linked-work-item'
 import { resolveComposerManualBranchNameChange } from '../composer-branch-selection'
 
 export function useSourceIdentityActions(input: SourceIdentityActionsInput) {
@@ -175,7 +174,6 @@ export function useSourceIdentityActions(input: SourceIdentityActionsInput) {
 
   const handleRemoveLinkedWorkItem = useCallback((): void => {
     smartSourceSelectionRef.current = null
-    const removedLinearItem = isLinearLinkedWorkItem(linkedWorkItem)
     setLinkedWorkItem(null)
     setLinkedTaskSourceContext(null)
     setLinkedIssue('')
@@ -184,19 +182,9 @@ export function useSourceIdentityActions(input: SourceIdentityActionsInput) {
     if (name === lastAutoNameRef.current) {
       lastAutoNameRef.current = ''
     }
-    if (removedLinearItem) {
-      // Unlinking a Linear issue must also release its source-owned branch override.
-      setBranchNameOverride(undefined)
-      setBranchNameOverridePreservesNameEdits(false)
-      branchAutoNameRef.current = ''
-    }
   }, [
-    linkedWorkItem,
     name,
-    branchAutoNameRef,
     lastAutoNameRef,
-    setBranchNameOverride,
-    setBranchNameOverridePreservesNameEdits,
     setForkPushWarning,
     setLinkedIssue,
     setLinkedPR,

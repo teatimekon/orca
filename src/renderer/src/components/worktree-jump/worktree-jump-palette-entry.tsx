@@ -1,4 +1,3 @@
-import { WorktreeJumpPaletteTaskRow } from './worktree-jump-palette-task-row'
 import type React from 'react'
 import { flushSync } from 'react-dom'
 import { CommandItem } from '@/components/ui/command'
@@ -64,16 +63,15 @@ export function WorktreeJumpPaletteEntry({
     )
   }
   if (entry.type === 'create-worktree') {
-    const linearPreview = controller.currentLinearIssuePreview
     return (
       <PaletteCreateWorktreeRow
         className="group mx-0.5 mt-1 flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-1.5 text-left outline-none transition-[background-color,border-color,box-shadow] data-[selected=true]:border-border data-[selected=true]:bg-accent data-[selected=true]:text-foreground"
         createWorktreeName={controller.createWorktreeName}
-        linearIdentifier={controller.linearIssueUrlIntent?.identifier ?? null}
-        linearIssue={linearPreview?.issue ?? null}
-        linearPending={controller.linearIssueUrlIntent !== null && linearPreview?.loading !== false}
-        showLinearLoadingFeedback={controller.showLinearLoadingFeedback}
-        taskUrlPreview={controller.taskUrlCreatePreview}
+        linearIdentifier={null}
+        linearIssue={null}
+        linearPending={false}
+        showLinearLoadingFeedback={false}
+        taskUrlPreview={null}
         onSelect={controller.handleCreateWorktree}
       />
     )
@@ -81,11 +79,6 @@ export function WorktreeJumpPaletteEntry({
   if (entry.type === 'worktree') {
     return (
       <WorktreeJumpPaletteWorktreeRow entry={entry} renderKey={renderKey} controller={controller} />
-    )
-  }
-  if (entry.type === 'task') {
-    return (
-      <WorktreeJumpPaletteTaskRow entry={entry} renderKey={renderKey} controller={controller} />
     )
   }
   if (entry.type === 'project-target') {

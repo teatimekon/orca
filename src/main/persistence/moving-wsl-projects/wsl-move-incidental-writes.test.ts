@@ -8,21 +8,14 @@ import { mergeWorktreeMetaForWrite } from '../loading-store/worktree-meta-write-
 import { wslMoveCutoverFixture as cutover } from '../__fixtures__/wsl-mover/wsl-move-cutover-fixture'
 import { seedWslMoveCutover } from '../__fixtures__/wsl-mover/wsl-move-journal-seeding'
 import { loadWslMoveFence, resetWslMoveFenceForTests } from './wsl-move-scope-guard'
-import type * as LinearCurrentIssueContext from '../../linear/issue-context/current'
-import type { ResolvedWorktree } from '../../runtime/runtime-worktree-path-identity'
 
 const { gitExecFileAsyncMock } = vi.hoisted(() => ({ gitExecFileAsyncMock: vi.fn() }))
 vi.mock('../../git/command-runner/git-exec-file', async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
   gitExecFileAsync: gitExecFileAsyncMock
 }))
-vi.mock('../../linear/issue-context/current', async (importOriginal) => ({
-  ...(await importOriginal<typeof LinearCurrentIssueContext>()),
-  resolveLegacyLinearLinkWorkspace: () => ({ workspaceId: 'ws-1', organizationUrlKey: 'acme' })
-}))
 
 import { materializeWorktreePushTargetRemote } from '../../ipc/worktree-remote'
-import { RuntimeLinearTeamWriteCommands } from '../../runtime/runtime-linear-team-write-commands'
 import { hostWorktreeTarget } from '../../../shared/worktree/host-qualified-identity'
 
 const MOVING_WT = 'repo-1::/ws/repo-1/wt'
@@ -95,68 +88,5 @@ describe('push-target bookkeeping under a WSL move', () => {
       hostWorktreeTarget({ id: worktreeId, hostId: hostId ?? 'local' }),
       { pushTarget: { ...target, remoteCreated: true } }
     )
-  })
-})
-
-describe('Linear workspace backfill under a WSL move', () => {
-  function worktree(id: string, hostId: ExecutionHostId): ResolvedWorktree {
-    const path = id.slice(id.indexOf('::') + 2)
-    return {
-      id,
-      repoId: id.slice(0, id.indexOf('::')),
-      hostId,
-      path,
-      head: 'abc',
-      branch: 'refs/heads/main',
-      isBare: false,
-      isMainWorktree: false,
-      displayName: 'wt',
-      comment: '',
-      linkedIssue: null,
-      linkedPR: null,
-      linkedLinearIssue: 'ACME-1',
-      isArchived: false,
-      isUnread: false,
-      isPinned: false,
-      sortOrder: 0,
-      lastActivityAt: 0,
-      parentWorktreeId: null,
-      childWorktreeIds: [],
-      lineage: null,
-      git: { path, head: 'abc', branch: 'refs/heads/main', isBare: false, isMainWorktree: false }
-    }
-  }
-
-  async function resolveCurrent(row: ResolvedWorktree) {
-    const setWorktreeMeta = vi.fn()
-    const commands = new RuntimeLinearTeamWriteCommands({
-      runtimeAvailable: () => true,
-      showTerminal: async () => {
-        throw new Error('unused')
-      },
-      resolveWorkspaceSelector: async () => row,
-      listResolvedWorktrees: async () => [row],
-      setWorktreeMeta,
-      emitClientEvent: () => {}
-    })
-    const link = await commands.linearResolveCurrentIssue({ cwd: row.path })
-    return { link, setWorktreeMeta }
-  }
-
-  it('answers for the moving worktree without persisting the backfill', async () => {
-    const { link, setWorktreeMeta } = await resolveCurrent(worktree(MOVING_WT, 'local'))
-    expect(link.workspaceId).toBe('ws-1')
-    expect(setWorktreeMeta).not.toHaveBeenCalled()
-  })
-
-  it.each<[string, string, ExecutionHostId]>([
-    ['a project the move is not taking', STAYING_WT, 'local'],
-    ['the same repo id on another host', MOVING_WT, 'ssh:target-1']
-  ])('persists the backfill for %s', async (_label, id, hostId) => {
-    const { setWorktreeMeta } = await resolveCurrent(worktree(id, hostId))
-    expect(setWorktreeMeta).toHaveBeenCalledWith(expect.objectContaining({ id, hostId }), {
-      linkedLinearIssueWorkspaceId: 'ws-1',
-      linkedLinearIssueOrganizationUrlKey: 'acme'
-    })
   })
 })

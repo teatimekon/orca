@@ -1,9 +1,11 @@
 import { translate } from '@/i18n/i18n'
-import { getWorkspaceAttachments } from '../../../../shared/workspace-attachments'
 import type { IssueInfo } from '../../../../shared/github/pull-request-types'
 import type { LinearIssue } from '../../../../shared/linear/issue-types'
-import { getWorktreeCardJiraIssueDisplay } from './worktree-card-jira-issue-display'
-import type { WorktreeCardIssueDisplay } from './WorktreeCardMeta'
+import type {
+  WorktreeCardIssueDisplay,
+  WorktreeCardJiraIssueDisplay,
+  WorktreeCardLinearIssueDisplay
+} from './WorktreeCardMeta'
 import {
   coerceWorktreeCardVisibleTitle,
   getWorktreeCardTitleDisplay
@@ -22,15 +24,10 @@ export function useWorktreeCardLinkedDetails({
   deleteState,
   branch,
   issueEntry,
-  linearIssueEntry,
-  linearIssueFallbackEntry,
   prDisplay
 }: Pick<WorktreeCardProps, 'worktree'> &
   Pick<Foundation, 'newCardStyle' | 'deleteState'> &
-  Pick<
-    ReviewDetails,
-    'branch' | 'issueEntry' | 'linearIssueEntry' | 'linearIssueFallbackEntry' | 'prDisplay'
-  >) {
+  Pick<ReviewDetails, 'branch' | 'issueEntry' | 'prDisplay'>) {
   const issue: IssueInfo | null | undefined = worktree.linkedIssue
     ? issueEntry !== undefined
       ? issueEntry.data
@@ -54,49 +51,14 @@ export function useWorktreeCardLinkedDetails({
                 )
         }
       : null)
-  const linearIssue: LinearIssue | null | undefined = worktree.linkedLinearIssue
-    ? (linearIssueEntry?.data ?? linearIssueFallbackEntry?.data)
-    : null
-
-  const linearReferences = getWorkspaceAttachments(worktree).filter(
-    (item) =>
-      item.provider === 'linear' &&
-      (item.identifier ?? item.linearIdentifier) === worktree.linkedLinearIssue
-  )
-  const linearIssueUrlFallback = linearReferences.length === 1 ? linearReferences[0].url : undefined
-
-  const linearIssueDisplay = worktree.linkedLinearIssue
-    ? linearIssue
-      ? {
-          identifier: linearIssue.identifier,
-          title: linearIssue.title,
-          url: linearIssue.url,
-          stateName: linearIssue.state?.name,
-          stateType: linearIssue.state?.type,
-          labels: linearIssue.labels
-        }
-      : {
-          identifier: worktree.linkedLinearIssue,
-          title:
-            linearIssueEntry || linearIssueFallbackEntry
-              ? translate(
-                  'auto.components.sidebar.useWorktreeCardLinkedDetails.linearIssueUnavailable',
-                  'Linear issue details unavailable'
-                )
-              : translate(
-                  'auto.components.sidebar.useWorktreeCardLinkedDetails.loadingLinearIssue',
-                  'Loading Linear issue...'
-                ),
-          url: linearIssueUrlFallback
-        }
-    : null
-  const jiraIssueDisplay = getWorktreeCardJiraIssueDisplay(worktree)
+  // zyx/orca-pure: Linear and Jira are removed, so no tracker issue is ever resolved for a card.
+  const linearIssue: LinearIssue | null = null
+  const linearIssueDisplay: WorktreeCardLinearIssueDisplay | null = null
+  const jiraIssueDisplay: WorktreeCardJiraIssueDisplay | null = null
   const cardTitleDisplay = getWorktreeCardTitleDisplay({
     storedDisplayName: worktree.displayName,
     branchName: branch,
     // Fetched titles only: display fallbacks hold localized loading/unavailable placeholders.
-    linearIssueTitle: linearIssue?.title,
-    jiraIssueTitle: jiraIssueDisplay?.title,
     issueTitle: issue?.title,
     reviewTitle: prDisplay?.title
   })

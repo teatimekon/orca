@@ -11,7 +11,6 @@ import {
 } from '@/lib/worktree-palette-create-action'
 import { useAppStore } from '@/store/index'
 import { CREATE_WORKSPACE_QUICK_ACTION_ITEM_ID } from './worktree-jump-palette-model'
-import type { WorktreeJumpPaletteTaskSearch } from './use-worktree-jump-palette-task-search'
 import type { WorktreeJumpPaletteListEntries } from './use-worktree-jump-palette-list-entries'
 import type { WorktreeJumpPaletteLocalState } from './use-worktree-jump-palette-local-state'
 import type { WorktreeJumpPaletteOpenTabs } from './use-worktree-jump-palette-open-tabs'
@@ -23,7 +22,6 @@ import type { WorktreeJumpPaletteWorktrees } from './use-worktree-jump-palette-w
 
 type WorktreeJumpPaletteSelectionLifecycleInput = WorktreeJumpPaletteStoreState &
   WorktreeJumpPaletteLocalState &
-  Pick<WorktreeJumpPaletteTaskSearch, 'taskItems'> &
   WorktreeJumpPaletteOpenTabs &
   WorktreeJumpPaletteProjectTargets &
   WorktreeJumpPaletteQuickActions &
@@ -39,7 +37,6 @@ export function useWorktreeJumpPaletteSelectionLifecycle({
   simulatorTabEntries,
   workspaceTabEntries,
   middleItems,
-  taskItems,
   visible,
   wasVisibleRef,
   recordFeatureInteraction,
@@ -60,7 +57,6 @@ export function useWorktreeJumpPaletteSelectionLifecycle({
   setSelectedItemId,
   setExpandedSectionCaps,
   selectionMovedByUserRef,
-  taskSourceUrl,
   listRef,
   preserveCreateLookupOnCloseRef,
   selectedItemId,
@@ -148,18 +144,13 @@ export function useWorktreeJumpPaletteSelectionLifecycle({
     visible,
     wasVisibleRef
   ])
-  const commandSelectedItemId =
-    selectedItemId === CREATE_WORKTREE_ITEM_ID &&
-    !selectionMovedByUserRef.current &&
-    taskItems.length
-      ? (taskItems[0]?.id ?? selectedItemId)
-      : getNextWorktreePaletteSelection({
-          currentSelectedItemId: selectedItemId,
-          queryChanged: false,
-          selectableItemIds: selectionItemIds,
-          showCreateAction,
-          autoSelectCreateAction: taskSourceUrl !== null
-        })
+  const commandSelectedItemId = getNextWorktreePaletteSelection({
+    currentSelectedItemId: selectedItemId,
+    queryChanged: false,
+    selectableItemIds: selectionItemIds,
+    showCreateAction,
+    autoSelectCreateAction: false
+  })
   const handleCommandSelectionChange = useCallback(
     (nextItemId: string) => {
       setSelectedItemId(nextItemId)
@@ -174,7 +165,7 @@ export function useWorktreeJumpPaletteSelectionLifecycle({
         queryChanged: true,
         selectableItemIds: selectionItemIds,
         showCreateAction,
-        autoSelectCreateAction: taskSourceUrl !== null
+        autoSelectCreateAction: false
       })
     )
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- selection resets only when the deferred query commits.
