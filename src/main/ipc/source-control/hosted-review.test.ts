@@ -35,6 +35,9 @@ vi.mock('../../wsl/discovery/wsl-background-distro-gate', async (importOriginal)
   readWslDistroRunningState: readWslDistroRunningStateMock
 }))
 
+const gate = vi.hoisted(() => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+vi.mock('../../../shared/pure-hosted-source-control', () => gate)
+
 vi.mock('electron', () => ({
   ipcMain: {
     handle: handleMock
@@ -125,6 +128,7 @@ describe('registerHostedReviewHandlers', () => {
 
   beforeEach(() => {
     setPlatform(ORIGINAL_PLATFORM)
+    gate.HOSTED_SOURCE_CONTROL_ENABLED = true
     handleMock.mockReset()
     createHostedReviewMock.mockReset()
     createStackedHostedReviewMock.mockReset()
@@ -150,6 +154,39 @@ describe('registerHostedReviewHandlers', () => {
     store.getProjects.mockReturnValue([])
     store.getSettings.mockReturnValue({ localWindowsRuntimeDefault: { kind: 'windows-host' } })
     listRepoWorktreeGraphMock.mockResolvedValue([{ path: worktreePath }])
+  })
+
+  it('answers like an unsupported host and reads no provider when hosted source control is off', async () => {
+    gate.HOSTED_SOURCE_CONTROL_ENABLED = false
+    store.getRepo.mockImplementation((repoId: string) => (repoId === repo.id ? repo : null))
+    registerHostedReviewHandlers(store as never, stats as never)
+
+    await expect(
+      handlers['hostedReview:forBranch'](null, {
+        repoId: repo.id,
+        repoPath,
+        branch: 'feature',
+        reportReadOutcome: true
+      })
+    ).resolves.toEqual({ review: null, readOutcome: 'cached' })
+    await expect(
+      handlers['hostedReview:getCreationEligibility'](null, {
+        repoId: repo.id,
+        repoPath,
+        worktreePath,
+        branch: 'feature',
+        base: 'main'
+      })
+    ).resolves.toEqual({
+      provider: 'unsupported',
+      review: null,
+      canCreate: false,
+      blockedReason: 'unsupported_provider',
+      nextAction: null,
+      reviewLookupOutcome: 'unavailable'
+    })
+    expect(getHostedReviewForBranchMock).not.toHaveBeenCalled()
+    expect(getHostedReviewCreationEligibilityMock).not.toHaveBeenCalled()
   })
 
   it('routes local WSL project review creation through main-process runtime options', async () => {

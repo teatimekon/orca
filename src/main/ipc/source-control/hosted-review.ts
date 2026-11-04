@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron'
+import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../../shared/pure-hosted-source-control'
 import { posix, resolve } from 'node:path'
 
 import type { Repo } from '../../../shared/repo-types'
@@ -12,8 +13,10 @@ import { createStackedHostedReview } from '../../source-control/stacked-hosted-r
 import {
   type CreateHostedReviewArgs,
   type CreateStackedHostedReviewArgs,
+  type HostedReviewCreationEligibility,
   type HostedReviewCreationEligibilityArgs,
   type HostedReviewForBranchArgs,
+  cachedHostedReviewOutcome,
   hostedReviewForBranchReply
 } from '../../../shared/hosted-review'
 import { readHostedReviewForBranch } from '../../source-control/hosted-review'
@@ -112,6 +115,10 @@ function normalizeRemoteHostedReviewPath(remotePath: string): string {
 
 export function registerHostedReviewHandlers(store: Store, stats: StatsCollector): void {
   ipcMain.handle('hostedReview:forBranch', async (_event, args: HostedReviewForBranchArgs) => {
+    if (!HOSTED_SOURCE_CONTROL_ENABLED) {
+      // zyx/orca-pure: answer like a repository whose remote is not a supported host.
+      return hostedReviewForBranchReply(cachedHostedReviewOutcome(null), args.reportReadOutcome)
+    }
     const repo = assertRegisteredRepoForBranch(args, store)
     const localGitOptions = {
       ...getLocalProjectGhExecOptions(store, repo),
@@ -156,6 +163,16 @@ export function registerHostedReviewHandlers(store: Store, stats: StatsCollector
   ipcMain.handle(
     'hostedReview:getCreationEligibility',
     async (_event, args: HostedReviewCreationEligibilityArgs) => {
+      if (!HOSTED_SOURCE_CONTROL_ENABLED) {
+        return {
+          provider: 'unsupported',
+          review: null,
+          canCreate: false,
+          blockedReason: 'unsupported_provider',
+          nextAction: null,
+          reviewLookupOutcome: 'unavailable'
+        } satisfies HostedReviewCreationEligibility
+      }
       const repo = assertRegisteredRepoForBranch(args, store)
       const localGitOptions = getLocalProjectGhExecOptions(store, repo)
       // Source Control asks on mount; only the user's Create PR may start a stopped distro (E9).

@@ -110,6 +110,8 @@ vi.mock('../gitea/client', () => ({
 import { _resetPreflightCache, runPreflightCheck } from '../preflight/agent-detection'
 import { resetPreflightMocks, type HandlerMap } from './preflight-test-harness'
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 describe('preflight', () => {
   const originalPlatform = process.platform
   const handlers: HandlerMap = {}

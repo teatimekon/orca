@@ -5,6 +5,8 @@ import { countWorkItems } from './client/list/count-work-items'
 import { mapIssueWorkItem } from './client/map/work-item'
 import metadata from './__fixtures__/work-item-search-metadata.json'
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 it('matches the saved REST projection for users, bots, avatars, assignees and labels', async () => {
   api.specialNodes = metadata.map((pair) => pair.graphql)
   api.reportedCount = 2748

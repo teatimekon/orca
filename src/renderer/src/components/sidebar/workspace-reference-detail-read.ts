@@ -1,6 +1,7 @@
 import type { LinearIssue } from '../../../../shared/linear/issue-types'
 import { consumeLinearIssueRead } from '@/store/slices/linear/linear-issue-publication'
 import { useAppStore } from '@/store'
+import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../../../shared/pure-hosted-source-control'
 import type { AppState } from '@/store/types'
 import { PrioritySemaphore } from '../../../../shared/priority-semaphore'
 import { getRepoExecutionHostId } from '../../../../shared/execution-host'
@@ -35,6 +36,10 @@ function lookup<T>(
 
 export function getWorkspaceReferenceLookup(request: WorkspaceReferenceRequest, state: AppState) {
   const { item, workspace, repo, sourceContext } = request
+  // zyx/orca-pure: hosted review and GitHub issue references read nothing; Linear/Jira branches stay.
+  if (!HOSTED_SOURCE_CONTROL_ENABLED && (item.type !== 'issue' || item.provider === 'github')) {
+    return null
+  }
   if (item.type !== 'issue') {
     if (!repo || !canReadWorkspaceReferenceReview(request, request.knownProvider)) {
       return null

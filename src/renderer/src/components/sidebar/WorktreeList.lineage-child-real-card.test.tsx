@@ -386,6 +386,10 @@ function expectBoundaryStep(args: {
   expect(effectiveStep).toBe(LINEAGE_IMMEDIATE_PARENT_STEP)
 }
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('WorktreeList real child WorktreeCard integration', () => {
   beforeAll(async () => {
     WorktreeList = (await import('./WorktreeList')).default as WorktreeListComponent

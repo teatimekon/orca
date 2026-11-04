@@ -64,6 +64,8 @@ let hostFolder = ''
 const children: ChildProcess[] = []
 let logChild: ChildProcess | undefined
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 describe('paired check details over real encrypted loopback transport', () => {
   beforeEach(() => {
     children.length = 0

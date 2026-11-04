@@ -173,7 +173,33 @@ const REMOVED: readonly (readonly [string, string])[] = [
     'renderer/src/components/browser-pane/assemble-chrome/browser-toolbar-menu-dropdown.tsx',
     'BrowserCookieImportDisclosure'
   ],
-  ['main/browser/browser-webauthn-access.ts', 'requestBrowserWebAuthnAccount']
+  ['main/browser/browser-webauthn-access.ts', 'requestBrowserWebAuthnAccount'],
+  // O14b hosted source control
+  ['renderer/src/app-shell/use-app-shell-services.ts', 'useVisibleHostedReviewRefresh'],
+  ['renderer/src/app-shell/ActiveWorkspaceSyncGate.tsx', 'useVisibleReviewRefreshReporting'],
+  ['renderer/src/app-shell/use-app-startup-hydration.ts', 'initGitHubCache'],
+  ['renderer/src/components/right-sidebar/right-sidebar-panel-content.tsx', 'ChecksPanel'],
+  [
+    'renderer/src/components/right-sidebar/right-sidebar-panel-content.tsx',
+    'FolderWorkspacePrChecksPanel'
+  ],
+  ['renderer/src/components/right-sidebar/use-right-sidebar-activity-items.ts', "id: 'checks'"],
+  ['renderer/src/components/right-sidebar/use-right-sidebar-activity-items.ts', "id: 'pr-checks'"],
+  ['renderer/src/components/settings/integrations/IntegrationsPane.tsx', 'GitHubIntegrationCard'],
+  ['renderer/src/components/settings/integrations/IntegrationsPane.tsx', 'GitLabIntegrationCard'],
+  [
+    'renderer/src/components/settings/integrations/IntegrationsPane.tsx',
+    'BitbucketIntegrationCard'
+  ],
+  [
+    'renderer/src/components/settings/integrations/IntegrationsPane.tsx',
+    'AzureDevOpsIntegrationCard'
+  ],
+  ['renderer/src/components/settings/integrations/IntegrationsPane.tsx', 'GiteaIntegrationCard'],
+  [
+    'renderer/src/components/settings/page/settings-git-task-section-renderers.tsx',
+    'GitProviderApiBudgetPane'
+  ]
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -237,7 +263,17 @@ const KEPT: readonly (readonly [string, string])[] = [
   [
     'renderer/src/components/settings/browser/profiles/BrowserProfileRow.tsx',
     'importCookiesFromBrowser'
-  ]
+  ],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerGitHubHandlers'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerGitLabHandlers'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerHostedReviewHandlers'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerBitbucketHandlers'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerLinearHandlers'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerJiraHandlers'],
+  ['main/ipc/source-control/github-pr-read-handlers.ts', 'gh:repoSlug'],
+  ['renderer/src/components/settings/integrations/IntegrationsPane.tsx', 'LinearIntegrationCard'],
+  ['renderer/src/components/settings/integrations/IntegrationsPane.tsx', 'JiraIntegrationCard'],
+  ['renderer/src/app-shell/ActiveWorkspaceSyncGate.tsx', 'useGitStatusPolling']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [
@@ -256,12 +292,120 @@ const GUARDED: readonly (readonly [string, string, string])[] = [
   ['renderer/src/App.tsx', 'isWindowsUserAgent()', 'runWslDriveUncRendererStoreRewrites']
 ]
 
+/** Gated hosted entry points: [file, anchor, guard that must follow the anchor within 240 chars]. */
+const GUARD_AFTER: readonly (readonly [string, string, string])[] = [
+  [
+    'main/ipc/source-control/hosted-review.ts',
+    "'hostedReview:forBranch'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/ipc/source-control/hosted-review.ts',
+    "'hostedReview:getCreationEligibility'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/ipc/source-control/github-pr-refresh-handlers.ts',
+    "'gh:prForBranch'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/ipc/source-control/github-pr-refresh-handlers.ts',
+    "'gh:refreshPRNow'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/ipc/source-control/github-pr-refresh-handlers.ts',
+    "'gh:enqueuePRRefresh'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/ipc/source-control/github-pr-refresh-handlers.ts',
+    "'gh:reportVisiblePRRefreshCandidates'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/ipc/source-control/github-work-item-handlers.ts',
+    "'gh:issue'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/ipc/source-control/github-account-handlers.ts',
+    "'gh:checkOrcaStarred'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/ipc/source-control/github-account-handlers.ts',
+    "'gh:starOrca'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/ipc/source-control/github-account-handlers.ts',
+    "'gh:listBindableAccounts'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/ipc/source-control/github-pr-read-handlers.ts',
+    "'gh:repoUpstream'",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/preflight/agent-detection.ts',
+    "detectCommandRuntime('git', context)",
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'shared/task-providers.ts',
+    'function isTaskProviderAvailable(',
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'renderer/src/components/landing-preflight-issues.ts',
+    'if (!options.hasGitHubBackedProject',
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'renderer/src/components/sidebar/workspace-reference-detail-read.ts',
+    'export function getWorkspaceReferenceLookup(',
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'renderer/src/components/sidebar/SidebarGroupByToggle.tsx',
+    'GROUP_BY_OPTIONS.filter',
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/git/command-runner/gh-exec-file.ts',
+    'export async function ghExecFileWithScopeAsync(',
+    'assertHostedCliSpawnAllowed'
+  ],
+  [
+    'main/git/command-runner/glab-exec-file.ts',
+    'export async function glabExecFileAsync(',
+    'assertHostedCliSpawnAllowed'
+  ],
+  [
+    'main/runtime/runtime-hosted-review-commands.ts',
+    '}): Promise<HostedReviewForBranchReply> {',
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ],
+  [
+    'main/runtime/runtime-hosted-review-commands.ts',
+    '): Promise<HostedReviewCreationEligibility> {',
+    'HOSTED_SOURCE_CONTROL_ENABLED'
+  ]
+]
+
 describe('zyx/orca-pure wiring', () => {
   for (const [file, symbol] of REMOVED) {
     it(`${file} no longer wires ${symbol}`, () => expect(read(file)).not.toMatch(token(symbol)))
   }
   for (const [file, symbol] of KEPT) {
     it(`${file} still wires ${symbol}`, () => expect(read(file)).toMatch(token(symbol)))
+  }
+  for (const [file, anchor, guard] of GUARD_AFTER) {
+    it(`${file} gates ${anchor} with ${guard}`, () =>
+      expect(read(file)).toMatch(new RegExp(`${esc(anchor)}[\\s\\S]{0,240}${token(guard).source}`)))
   }
   for (const [file, guard, symbol] of GUARDED) {
     it(`${file} gates ${symbol} behind ${guard}`, () =>

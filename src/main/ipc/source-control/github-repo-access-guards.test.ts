@@ -178,6 +178,10 @@ const { getIssue: getIssueMock, listWorkItems: listWorkItemsMock } = mocks.clien
 const { getAllWebContents: getAllWebContentsMock } = mocks.electron.webContents
 const { sendToTrustedUIRenderer: sendToTrustedUIRendererMock } = mocks.ui
 
+vi.mock('../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('registerGitHubHandlers', () => {
   const harness = createGitHubIpcHarness(mocks)
   const { handlers, store, stats } = harness

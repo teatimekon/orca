@@ -23,6 +23,10 @@ vi.mock('../../../wsl/discovery/distro-catalog', async (original) => ({
 }))
 const nativePlatform = process.platform
 const repo = { owner: 'acme', repo: 'widgets' }
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('stateless flag attempts retain actual runner routing', () => {
   beforeEach(() => {
     spawnMock.mockReset()

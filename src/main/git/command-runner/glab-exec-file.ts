@@ -4,6 +4,7 @@ import { resolveCommand } from './wsl-command-resolution'
 import { resolveDefaultWslCliFallback } from './default-wsl-cli-fallback'
 import { isHostCommandMissing } from './github-cli-host-fallback'
 import { execFileCaptureToTermination } from './exec-file-capture'
+import { assertHostedCliSpawnAllowed } from './hosted-cli-spawn-gate'
 import { logHostedCliDeadlineKill } from './hosted-cli-deadline-log'
 import type { GitExecOptions } from './git-exec-options'
 import { argsLookIdempotent } from './gh-idempotency'
@@ -50,6 +51,7 @@ export async function glabExecFileAsync(
   args: string[],
   options: GlabExecOptions = {}
 ): Promise<{ stdout: string; stderr: string }> {
+  assertHostedCliSpawnAllowed()
   ;({ args, options } = redirectPortedHostnameToEnv(args, options))
   let resolved = resolveCommand('glab', args, options.cwd, options.wslDistro)
   const timeoutMs = options.timeout ?? DEFAULT_GLAB_EXEC_TIMEOUT_MS

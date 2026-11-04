@@ -46,6 +46,10 @@ afterEach(() => {
   useAppStore.setState(useAppStore.getInitialState(), true)
 })
 
+vi.mock('../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('landing preflight runtime boundary', () => {
   it('invalidates on disconnect and refreshes exactly once on reconnect', () => {
     const view = renderHook(() => useLandingPreflightRuntime())

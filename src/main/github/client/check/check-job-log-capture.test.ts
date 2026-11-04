@@ -42,6 +42,10 @@ function download(controller = new AbortController(), deadlineAt = Date.now() + 
     vi.fn()
   )
 }
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('download exclusions through real process-host capture and gh', () => {
   beforeEach(() => {
     vi.useFakeTimers()

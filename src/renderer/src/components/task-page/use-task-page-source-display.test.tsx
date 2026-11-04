@@ -249,6 +249,10 @@ afterEach(async () => {
   }
 })
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('Tasks source display', () => {
   it('carries the last shown entry across a query change, live, until a current entry or eviction', async () => {
     mount([repo])

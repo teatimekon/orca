@@ -63,6 +63,8 @@ function spawnSettledChild(stdout: string): {
   return { env: () => capturedEnv }
 }
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 describe('ghExecFileAsync account binding', () => {
   beforeEach(() => {
     spawnMock.mockReset()

@@ -21,12 +21,10 @@ import { useTerminalViewerColorPublication } from './use-terminal-viewer-color-p
 import { useBrowserIdentityMigrationNotice } from '../components/browser-pane/browser-user-agent-migration-notice'
 import { useBrowserClientHostedDownloadNotices } from '../components/browser-pane/browser-client-hosted-download-notices'
 import { useCodexTerminalServerIsolationNotice } from '../components/terminal-pane/codex-terminal-server-isolation-notice'
-import { useVisibleHostedReviewRefresh } from './use-visible-hosted-review-refresh'
 import { useProfileStateSaveDelayNotice } from './use-profile-state-save-delay-notice'
 
 /** Keep subscriptions above surfaces that unmount or never appear on Landing. */
 export function useAppShellServices(): void {
-  const workspaceSessionReady = useAppStore((s) => s.workspaceSessionReady)
   const persistedUIReady = useAppStore((s) => s.persistedUIReady)
   const primarySelectionMiddleClickPaste = useAppStore((s) =>
     resolvePrimarySelectionMiddleClickPaste(s.settings?.primarySelectionMiddleClickPaste)
@@ -41,7 +39,6 @@ export function useAppShellServices(): void {
   useIpcEvents()
   useProfileStateSaveDelayNotice()
   useRemoteRuntimeRecoveryTriggers()
-  useVisibleHostedReviewRefresh({ enabled: workspaceSessionReady })
   useTerminalViewerColorPublication()
   useAutomationDispatchEvents()
   useReadOnScreenAttention()

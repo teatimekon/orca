@@ -242,6 +242,8 @@ describe.skipIf(process.platform === 'win32')(
   }
 )
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 describe('Windows selection across working folders', () => {
   it('keeps an absolute PATH selection in a different provider cwd', async () => {
     const directory = await mkdtemp(path.join(tmpdir(), 'orca-22975-cwd-'))

@@ -315,7 +315,6 @@ export function useAppStartupHydration(onOnboardingLoaded: (state: OnboardingSta
           abortSignal: abortController.signal
         })
       }
-      void actions.initGitHubCache()
     })()
 
     return () => {

@@ -249,6 +249,8 @@ beforeEach(() => {
   createGiteaPullRequestMock.mockResolvedValue({ ok: true, number: 7, url: 'https://pr/7' })
 })
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 describe('hosted-review lookups route on the resolved execution host', () => {
   it('reads a GitHub review on the SSH host a row names only in executionHostId', async () => {
     getRepoSlugMock.mockResolvedValue({ host: 'github.com', owner: 'a', repo: 'b' })

@@ -71,6 +71,8 @@ afterEach(() => {
   Object.defineProperty(process, 'platform', { configurable: true, value: originalPlatform })
 })
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 describe.each(CLIS)('$cli default-distro fallback', ({ cli, run }) => {
   it('never starts a stopped default distro, and says it is stopped rather than missing', async () => {
     readWslDistroRunningStateMock.mockResolvedValue('stopped')

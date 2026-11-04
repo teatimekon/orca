@@ -64,6 +64,8 @@ async function withPlatform<T>(platform: NodeJS.Platform, fn: () => Promise<T>):
   }
 }
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 describe('commandExecFileAsync Windows command shims', () => {
   const originalComSpec = process.env.ComSpec
 

@@ -37,6 +37,10 @@ const captures: {
 }[] = []
 const repo = { owner: 'acme', repo: 'widgets', host: 'github.com' }
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('full check details snapshot before admission', () => {
   beforeEach(() => {
     vi.useFakeTimers()

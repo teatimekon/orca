@@ -122,6 +122,10 @@ async function verifyAdmissionIsRetained(): Promise<void> {
   }
 }
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('real capture and gh diagnostics through check details RPC', () => {
   beforeEach(() => {
     vi.useFakeTimers()

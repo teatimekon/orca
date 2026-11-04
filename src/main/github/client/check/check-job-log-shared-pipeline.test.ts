@@ -49,6 +49,10 @@ function expectSafe(value: string | null): void {
   expect(value).not.toMatch(TERMINAL_CONTROL_CHARACTER_PATTERN)
 }
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('actual shared text pipeline through host capture, cache and jobs', () => {
   beforeEach(() => {
     vi.useFakeTimers()

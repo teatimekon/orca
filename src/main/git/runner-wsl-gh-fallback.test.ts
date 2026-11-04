@@ -50,6 +50,8 @@ function spawnEnoent(command: string): { spawnError: Error } {
   return { spawnError: Object.assign(new Error(`spawn ${command} ENOENT`), { code: 'ENOENT' }) }
 }
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 describe('ghExecFileAsync WSL fallback', () => {
   const originalPlatform = process.platform
 

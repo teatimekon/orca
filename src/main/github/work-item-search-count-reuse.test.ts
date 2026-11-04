@@ -4,6 +4,8 @@ import { listWorkItems } from './client/list/list-work-items'
 import { countWorkItems } from './client/list/count-work-items'
 import { searchWorkItemCount, searchWorkItemPage } from './client/list/work-item-search-page'
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 it('uses the issue page total for a simultaneous or later production count', async () => {
   api.reportedCount = 2748
   const [page, count] = await Promise.all([

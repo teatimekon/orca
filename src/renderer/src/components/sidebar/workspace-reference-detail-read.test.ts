@@ -43,6 +43,10 @@ beforeEach(() => {
     value: { hostedReview: { forBranch: mocks.review } }
   })
 })
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('source-scoped workspace reference status reads', () => {
   it.each(['open', 'merged', 'draft'] as const)(
     'loads the exact %s sibling without workspace HEAD filtering or branch cache mutation',

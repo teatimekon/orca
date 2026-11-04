@@ -183,6 +183,10 @@ function expectIdentityBodyIsHoverTrigger(markup: string): void {
   expect(triggerTag).toContain('group/worktree-card')
 }
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('WorktreeCard compact hover details', () => {
   beforeEach(() => {
     vi.clearAllMocks()

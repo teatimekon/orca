@@ -49,6 +49,8 @@ function page(number: number, noCache = false) {
   })
 }
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 it('reads only the next PR page while browsing ten numbered pages', async () => {
   api.specialNodes = rows()
   const numbers: number[] = []

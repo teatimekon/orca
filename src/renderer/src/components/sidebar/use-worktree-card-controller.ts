@@ -7,6 +7,11 @@ import type { ResolvedWorktreeCardProps } from './worktree-card-model'
 import { useWorktreeCardActivationActions } from './use-worktree-card-activation-actions'
 import { useWorktreeCardFoundation } from './use-worktree-card-foundation'
 import { useWorktreeCardLifecycleEffects } from './use-worktree-card-lifecycle-effects'
+import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../../../shared/pure-hosted-source-control'
+import {
+  gateWorktreeCardLinkedDetails,
+  gateWorktreeCardReviewDetails
+} from './worktree-card-hosted-review-gate'
 import { useWorktreeCardLinkedDetails } from './use-worktree-card-linked-details'
 import { useWorktreeCardReviewDetails } from './use-worktree-card-review-details'
 import { useWorktreeCardSecondaryDetails } from './use-worktree-card-secondary-details'
@@ -15,24 +20,28 @@ import { useWorktreeCardWorkspaceActions } from './use-worktree-card-workspace-a
 export function useWorktreeCardController(props: ResolvedWorktreeCardProps) {
   const { worktree, repo } = props
   const foundation = useWorktreeCardFoundation({ worktree, repo })
-  const review = useWorktreeCardReviewDetails({
-    worktree,
-    repo,
-    settings: foundation.settings,
-    projectGroups: foundation.projectGroups,
-    cardProps: foundation.cardProps,
-    newCardStyle: foundation.newCardStyle
-  })
-  const linked = useWorktreeCardLinkedDetails({
-    worktree,
-    newCardStyle: foundation.newCardStyle,
-    deleteState: foundation.deleteState,
-    branch: review.branch,
-    issueEntry: review.issueEntry,
-    linearIssueEntry: review.linearIssueEntry,
-    linearIssueFallbackEntry: review.linearIssueFallbackEntry,
-    prDisplay: review.prDisplay
-  })
+  const review = gateWorktreeCardReviewDetails(
+    useWorktreeCardReviewDetails({
+      worktree,
+      repo,
+      settings: foundation.settings,
+      projectGroups: foundation.projectGroups,
+      cardProps: foundation.cardProps,
+      newCardStyle: foundation.newCardStyle
+    })
+  )
+  const linked = gateWorktreeCardLinkedDetails(
+    useWorktreeCardLinkedDetails({
+      worktree,
+      newCardStyle: foundation.newCardStyle,
+      deleteState: foundation.deleteState,
+      branch: review.branch,
+      issueEntry: review.issueEntry,
+      linearIssueEntry: review.linearIssueEntry,
+      linearIssueFallbackEntry: review.linearIssueFallbackEntry,
+      prDisplay: review.prDisplay
+    })
+  )
 
   const showStatus = foundation.cardProps.includes('status')
   const {
@@ -127,7 +136,7 @@ export function useWorktreeCardController(props: ResolvedWorktreeCardProps) {
   const secondary = useWorktreeCardSecondaryDetails({
     worktree,
     repo,
-    statusPrDisplay: props.statusPrDisplay,
+    statusPrDisplay: HOSTED_SOURCE_CONTROL_ENABLED ? props.statusPrDisplay : null,
     showStatus,
     showIssue,
     showLinearIssue,

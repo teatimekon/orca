@@ -40,6 +40,8 @@ afterEach(() => {
   _resetGhRateLimitBreaker()
 })
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 describe('ghExecFileAsync rate-limit breaker', () => {
   it('spawns once for a primary 403, then short-circuits same-bucket calls', async () => {
     mockGhFailure(PRIMARY_RATE_LIMIT_STDERR)

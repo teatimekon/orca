@@ -95,6 +95,10 @@ beforeEach(() => {
 })
 afterEach(cleanup)
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 it('automatically reads every attached review without a mounted reference hook', async () => {
   renderHook(() => useVisibleHostedReviewRefresh({ enabled: true }))
   await waitFor(() => expect(read).toHaveBeenCalledTimes(2))

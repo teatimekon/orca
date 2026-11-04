@@ -1,4 +1,5 @@
 // Runtime preflight must stay independent of ipcMain registration.
+import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../shared/pure-hosted-source-control'
 import type {
   PathSource,
   ShellHydrationFailureReason
@@ -271,11 +272,34 @@ async function executePreflightCheck(
     _resetKnownHostsCache()
   }
 
+  // zyx/orca-pure: with hosted source control off, only git is probed; gh/glab/provider auth are never touched.
   const [gitProbe, ghProbe, glabProbe] = await Promise.all([
     detectCommandRuntime('git', context),
-    detectCommandRuntime('gh', context),
-    detectCommandRuntime('glab', context)
+    HOSTED_SOURCE_CONTROL_ENABLED ? detectCommandRuntime('gh', context) : null,
+    HOSTED_SOURCE_CONTROL_ENABLED ? detectCommandRuntime('glab', context) : null
   ])
+  if (!ghProbe || !glabProbe) {
+    return {
+      git: { installed: gitProbe.installed },
+      gh: { installed: false, authenticated: false },
+      glab: { installed: false, authenticated: false },
+      bitbucket: { configured: false, authenticated: false, account: null },
+      azureDevOps: {
+        configured: false,
+        authenticated: false,
+        account: null,
+        baseUrl: null,
+        tokenConfigured: false
+      },
+      gitea: {
+        configured: false,
+        authenticated: false,
+        account: null,
+        baseUrl: null,
+        tokenConfigured: false
+      }
+    }
+  }
 
   const [ghAuthenticated, glabAuthenticated, bitbucket, azureDevOps, gitea] = await Promise.all([
     ghProbe.installed ? isGhAuthenticated(ghProbe) : Promise.resolve(false),

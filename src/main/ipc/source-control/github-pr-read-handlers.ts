@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron'
+import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../../shared/pure-hosted-source-control'
 import type { GitHubReactionContent } from '../../../shared/github/comment-types'
 import type { GitHubOwnerRepo } from '../../../shared/github/pull-request-types'
 import type { TaskSourceContext } from '../../../shared/task-source-context'
@@ -28,6 +29,10 @@ export function registerGitHubPRReadHandlers(store: Store): void {
   })
 
   ipcMain.handle('gh:repoUpstream', (_event, args: { repoPath: string }) => {
+    if (!HOSTED_SOURCE_CONTROL_ENABLED) {
+      // Repo icons fall back to the default icon: no `gh repo view`.
+      return null
+    }
     const repo = assertRegisteredGitHubRepo(args, store)
     const localGitOptions = getGitHubLocalGitOptionArgs(store, repo)[0]
     return localGitOptions

@@ -69,6 +69,10 @@ async function setup() {
   return { owner, other, report, coordinator }
 }
 
+vi.mock('../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('automatic PR refresh document ownership', () => {
   beforeEach(() => {
     vi.resetModules()

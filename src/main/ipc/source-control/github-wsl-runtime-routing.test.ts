@@ -214,6 +214,10 @@ const { getWorkItemDetails: getWorkItemDetailsMock, getPRFileContents: getPRFile
   mocks.workItemDetails
 const { reportVisiblePRRefreshCandidates: reportVisiblePRRefreshCandidatesMock } = mocks.prRefresh
 
+vi.mock('../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('registerGitHubHandlers', () => {
   const harness = createGitHubIpcHarness(mocks)
   const { handlers, store, stats } = harness

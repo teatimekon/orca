@@ -200,6 +200,8 @@ afterEach(async () => {
   rmSync(testState.dir, { recursive: true, force: true })
 })
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 it('separates unresolved callers by saved account before coalescing and returns each account result', async () => {
   let finish: () => void = () => {}
   let started: () => void = () => {}

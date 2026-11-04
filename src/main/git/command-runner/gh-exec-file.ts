@@ -18,6 +18,7 @@ import {
   resolveHostGitHubCli
 } from './github-cli-host-fallback'
 import { execFileCaptureToTermination } from './exec-file-capture'
+import { assertHostedCliSpawnAllowed } from './hosted-cli-spawn-gate'
 import { logHostedCliDeadlineKill } from './hosted-cli-deadline-log'
 import type { GitExecOptions } from './git-exec-options'
 import { argsLookIdempotent } from './gh-idempotency'
@@ -108,6 +109,7 @@ export async function ghExecFileWithScopeAsync(
   options: GhExecOptions = {},
   lifetimeHooks?: GhCaptureLifetimeHooks
 ): Promise<{ stdout: string; stderr: string; rateLimitScope: string }> {
+  assertHostedCliSpawnAllowed()
   // Why: retry safety must reflect the original call even when fallbacks replace the resolved command.
   const idempotent = options.idempotent ?? argsLookIdempotent(args)
   // Legacy bound calls may omit host; pin it before selecting token variables or qualifying argv.

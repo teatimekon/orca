@@ -16,6 +16,10 @@ function spawn(): ChildProcess {
   children.push(child)
   return child
 }
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('execution snapshot is the environment actually captured', () => {
   beforeEach(() => {
     spawnMock.mockReset()

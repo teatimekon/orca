@@ -13,6 +13,10 @@ import { createGhLogicalLifetime } from '../../../git/command-runner/gh-capture-
 const repo = { owner: 'acme', repo: 'widgets' }
 const platform = process.platform
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('effective check log execution snapshot', () => {
   beforeEach(() => {
     spawnMock.mockReset()

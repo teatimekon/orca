@@ -15,6 +15,8 @@ function issuePage(page: number, noCache = false, limit = 24) {
   )
 }
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 it('restores a cold numbered page using only API-issued opaque cursors', async () => {
   const third = await issuePage(3)
   expect(third.items.map((item) => item.number)).toEqual(

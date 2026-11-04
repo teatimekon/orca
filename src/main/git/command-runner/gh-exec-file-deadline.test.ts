@@ -27,6 +27,10 @@ function settleChild(child: ChildProcess, stdout: string): void {
 }
 
 // gh may be a shim chain; the deadline must kill descendants as well as the wrapper.
+vi.mock('../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('gh exec deadline', () => {
   beforeEach(() => {
     vi.useFakeTimers()

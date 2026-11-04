@@ -2,6 +2,8 @@ import { expect, it, vi } from 'vitest'
 import { api, capture } from './work-item-search-test-harness'
 import { searchWorkItemCount, searchWorkItemPage } from './client/list/work-item-search-page'
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 it('does not renew a gh-cached response after bounded response-cache eviction', async () => {
   const ghCache = new Map<
     string,

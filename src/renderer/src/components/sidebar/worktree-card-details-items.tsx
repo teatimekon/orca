@@ -3,6 +3,7 @@ import { useComposedRefs } from 'radix-ui/internal'
 import { getWorkspaceAttachments } from '../../../../shared/workspace-attachments'
 import { WorktreeCardDetailsHover, WorktreeCardMetaBadges } from './WorktreeCardMeta'
 import { WorktreeCardPortsDetails, WorktreeCardPortsTrigger } from './WorktreeCardPorts'
+import { gateWorktreeCardAttachments } from './worktree-card-hosted-review-gate'
 import type { WorktreeCardController } from './use-worktree-card-controller'
 
 /** Ports and linked-item badges; the new card style leaves the review to the status lane.
@@ -14,7 +15,7 @@ export function renderWorktreeCardIndicators(
   if (!hasDetails && !hasPorts) {
     return null
   }
-  const allReferenceItems = getWorkspaceAttachments(worktree)
+  const allReferenceItems = gateWorktreeCardAttachments(getWorkspaceAttachments(worktree))
   const referenceItems = allReferenceItems.filter((item) =>
     item.type !== 'issue'
       ? showPR &&

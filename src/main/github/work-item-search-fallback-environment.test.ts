@@ -4,6 +4,8 @@ import { listWorkItems } from './client/list/list-work-items'
 import { countWorkItems } from './client/list/count-work-items'
 import metadata from './__fixtures__/work-item-search-metadata.json'
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 it('preserves the Search budget floor when the preferred count fails', async () => {
   api.restSearches = 29
   api.aliasErrorRepo = 'fixture/repo'

@@ -21,7 +21,8 @@ import {
 } from '../github/client'
 import { admissionTierForRefreshReason } from '../github/pr-refresh-candidate-policy'
 import type { GitAdmissionTier } from '../git/command-runner/git-exec-options'
-import { hostedReviewForBranchReply } from '../../shared/hosted-review'
+import { cachedHostedReviewOutcome, hostedReviewForBranchReply } from '../../shared/hosted-review'
+import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../shared/pure-hosted-source-control'
 import { readHostedReviewForBranch } from '../source-control/hosted-review'
 import { getStoredRepoExecutionHostId } from '../workspaces/execution-host/repo-execution-host'
 import { hostedReviewSshConnectionId } from '../source-control/hosted-review-execution-host'
@@ -49,6 +50,9 @@ export class RuntimeHostedReviewCommands {
   constructor(private readonly deps: RuntimeHostedReviewCommandsDeps) {}
 
   async getRepoSlug(repoSelector: string): Promise<GitHubOwnerRepo | null> {
+    if (!HOSTED_SOURCE_CONTROL_ENABLED) {
+      return null
+    }
     const repo = await this.deps.resolveRepo(repoSelector)
     const options = this.deps.getExecutionOptions(repo)
     const connectionId = hostedReviewSshConnectionId(getStoredRepoExecutionHostId(repo))
@@ -58,6 +62,9 @@ export class RuntimeHostedReviewCommands {
   }
 
   async getRepoUpstream(repoSelector: string): Promise<GitHubOwnerRepo | null> {
+    if (!HOSTED_SOURCE_CONTROL_ENABLED) {
+      return null
+    }
     const repo = await this.deps.resolveRepo(repoSelector)
     const options = this.deps.getExecutionOptions(repo)
     const connectionId = hostedReviewSshConnectionId(getStoredRepoExecutionHostId(repo))
@@ -76,6 +83,9 @@ export class RuntimeHostedReviewCommands {
     reason?: GitHubPRRefreshReason,
     userRefresh?: boolean
   ): Promise<PRRefreshOutcome> {
+    if (!HOSTED_SOURCE_CONTROL_ENABLED) {
+      return { kind: 'no-pr', fetchedAt: Date.now() }
+    }
     const repo = await this.deps.resolveRepo(repoSelector)
     const lookupOptions: GitHubPRBranchLookupOptions = {
       ...this.deps.getExecutionOptions(
@@ -120,6 +130,10 @@ export class RuntimeHostedReviewCommands {
     linkedAzureDevOpsPR?: number | null
     linkedGiteaPR?: number | null
   }): Promise<HostedReviewForBranchReply> {
+    if (!HOSTED_SOURCE_CONTROL_ENABLED) {
+      // A paired phone gets the unsupported-host answer instead of a gh/glab spawn.
+      return hostedReviewForBranchReply(cachedHostedReviewOutcome(null), args.reportReadOutcome)
+    }
     const repo = await this.deps.resolveRepo(args.repoSelector)
     const executionOptions = this.deps.getExecutionOptions(repo, args.admissionTier ?? 'background')
     const read = await readHostedReviewForBranch({
@@ -148,6 +162,16 @@ export class RuntimeHostedReviewCommands {
   async getHostedReviewCreationEligibility(
     args: Omit<HostedReviewCreationEligibilityArgs, 'repoPath'> & HostedReviewTargetArgs
   ): Promise<HostedReviewCreationEligibility> {
+    if (!HOSTED_SOURCE_CONTROL_ENABLED) {
+      return {
+        provider: 'unsupported',
+        review: null,
+        canCreate: false,
+        blockedReason: 'unsupported_provider',
+        nextAction: null,
+        reviewLookupOutcome: 'unavailable'
+      }
+    }
     const { repo, repoPath } = await this.deps.resolveTarget(args)
     const executionOptions = this.deps.getExecutionOptions(repo, 'interactive')
     // A paired client's Source Control asks on mount; it must not start a stopped distro (E9).
@@ -181,6 +205,13 @@ export class RuntimeHostedReviewCommands {
   async createHostedReview(
     args: CreateHostedReviewInput & HostedReviewTargetArgs
   ): Promise<CreateHostedReviewResult> {
+    if (!HOSTED_SOURCE_CONTROL_ENABLED) {
+      return {
+        ok: false,
+        code: 'unsupported_provider',
+        error: 'Hosted source control is unavailable in this build'
+      }
+    }
     const { repo, repoPath } = await this.deps.resolveTarget(args)
     const executionOptions = this.deps.getExecutionOptions(repo, 'interactive')
     const input = {
@@ -205,6 +236,13 @@ export class RuntimeHostedReviewCommands {
   async createStackedHostedReview(
     args: CreateStackedHostedReviewInput & HostedReviewTargetArgs
   ): Promise<CreateStackedHostedReviewResult> {
+    if (!HOSTED_SOURCE_CONTROL_ENABLED) {
+      return {
+        ok: false,
+        code: 'unsupported_provider',
+        error: 'Hosted source control is unavailable in this build'
+      }
+    }
     const { repo, repoPath } = await this.deps.resolveTarget(args)
     const executionOptions = this.deps.getExecutionOptions(repo, 'interactive')
     const result = await createStackedHostedReview(

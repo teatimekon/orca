@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Plug, Files, GitBranch, ListChecks, Workflow } from 'lucide-react'
+import { Plug, Files, GitBranch, Workflow } from 'lucide-react'
 import { useAppStore } from '@/store'
 import { useRepoById } from '@/store/selectors'
 import { isFolderRepo } from '../../../../shared/repo-kind'
@@ -38,7 +38,6 @@ export function useRightSidebarActivityItems({
   const languageRevision = useUiLanguageRevision()
   const explorerShortcut = useShortcutLabel('sidebar.explorer.toggle')
   const sourceControlShortcut = useShortcutLabel('sidebar.sourceControl.toggle')
-  const checksShortcut = useShortcutLabel('sidebar.checks.toggle')
   const portsShortcut = useShortcutLabel('sidebar.ports.toggle')
   const activeWorktreeId = useAppStore((s) => (rightSidebarOpen ? s.activeWorktreeId : null))
   // Hide Git-only tabs for folder workspaces.
@@ -89,24 +88,10 @@ export function useRightSidebarActivityItems({
         folderOnly: true
       },
       {
-        id: 'pr-checks',
-        icon: ListChecks,
-        title: translate('auto.components.right.sidebar.index.parentPrChecks', 'PR Checks'),
-        shortcut: '',
-        folderOnly: true
-      },
-      {
         id: 'source-control',
         icon: GitBranch,
         title: translate('auto.components.right.sidebar.index.0314901467', 'Source Control'),
         shortcut: sourceControlShortcut === 'Unassigned' ? '' : sourceControlShortcut,
-        gitOnly: true
-      },
-      {
-        id: 'checks',
-        icon: ListChecks,
-        title: translate('auto.components.right.sidebar.index.83a10e3c44', 'Checks'),
-        shortcut: checksShortcut === 'Unassigned' ? '' : checksShortcut,
         gitOnly: true
       },
       {
@@ -121,7 +106,6 @@ export function useRightSidebarActivityItems({
     ],
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- translate() reads the UI language implicitly.
     [
-      checksShortcut,
       explorerShortcut,
       pluginPanelErrors,
       visiblePluginPanels,

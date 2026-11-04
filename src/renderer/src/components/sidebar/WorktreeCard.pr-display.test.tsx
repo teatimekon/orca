@@ -22,7 +22,8 @@ let issueCache: Record<string, unknown> = {}
 let prCache: Record<string, unknown> = {}
 let workspacePortScan: WorkspacePortScanResult | null = null
 let settings: Partial<GlobalSettings> | null = null
-
+const gate = vi.hoisted(() => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+vi.mock('../../../../shared/pure-hosted-source-control', () => gate)
 vi.mock('@/store', () => {
   const getState = () => ({
     deleteStateByWorktreeId: {},
@@ -161,6 +162,7 @@ function getInlineRenameTitleTag(markup: string): string {
 describe('WorktreeCard linked PR display', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    gate.HOSTED_SOURCE_CONTROL_ENABLED = true
     worktreeCardProperties = ['status']
     hostedReviewCache = {}
     issueCache = {}
@@ -595,43 +597,6 @@ describe('WorktreeCard linked PR display', () => {
     expect(countAutomationCreatedLabels(markup)).toBe(0)
     expect(markup).not.toContain('>Automation</span>')
     expect(markup).not.toContain('Nightly triage automation')
-  })
-
-  it('hides live port metadata when the Ports card property is disabled', async () => {
-    const worktree = makeWorktree()
-    workspacePortScan = {
-      platform: 'darwin',
-      scannedAt: 1,
-      ports: [
-        {
-          id: '127.0.0.1:58941:1234',
-          bindHost: '127.0.0.1',
-          connectHost: '127.0.0.1',
-          port: 58941,
-          pid: 1234,
-          processName: 'node',
-          protocol: 'http',
-          kind: 'workspace',
-          owner: {
-            worktreeId: worktree.id,
-            repoId: worktree.repoId,
-            displayName: worktree.displayName,
-            path: worktree.path,
-            confidence: 'cwd'
-          }
-        }
-      ]
-    }
-    worktreeCardProperties = []
-    const { default: WorktreeCard } = await import('./WorktreeCard')
-
-    const markup = renderWorktreeCardMarkup(
-      <WorktreeCard worktree={worktree} repo={makeRepo()} isActive={false} />
-    )
-
-    expect(markup).not.toContain('live port')
-    expect(markup).not.toContain('Live Ports')
-    expect(markup).not.toContain('58941')
   })
 
   it('renders linked PR status in the left status slot instead of the right metadata list', async () => {

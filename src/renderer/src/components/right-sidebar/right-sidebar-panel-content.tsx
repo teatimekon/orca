@@ -5,10 +5,8 @@ import { isPluginPanelTabKey } from '../../../../shared/plugins/manifest/plugin-
 
 const FileExplorer = lazy(() => import('./FileExplorer'))
 const SourceControl = lazy(() => import('./SourceControl'))
-const ChecksPanel = lazy(() => import('./ChecksPanel'))
 const PortsPanel = lazy(() => import('./PortsPanel'))
 const FolderWorkspaceWorktreesPanel = lazy(() => import('./FolderWorkspaceWorktreesPanel'))
-const FolderWorkspacePrChecksPanel = lazy(() => import('./FolderWorkspacePrChecksPanel'))
 const PluginPanel = lazy(() => import('./PluginPanel'))
 
 type RightSidebarPanelContentProps = {
@@ -29,17 +27,11 @@ export function RightSidebarPanelContent({
       <Suspense fallback={null}>
         {effectiveTab === 'explorer' && <FileExplorer />}
         {effectiveTab === 'source-control' && <SourceControl />}
-        {effectiveTab === 'checks' && <ChecksPanel />}
         {/* SSH forwarding needs raw ports.detect data absent from the workspace-scoped status popover. */}
         {effectiveTab === 'ports' && (
           <PortsPanel isVisible={rightSidebarOpen && effectiveTab === 'ports'} />
         )}
         {effectiveTab === 'workspaces' && <FolderWorkspaceWorktreesPanel />}
-        {effectiveTab === 'pr-checks' && (
-          <FolderWorkspacePrChecksPanel
-            isVisible={rightSidebarOpen && effectiveTab === 'pr-checks'}
-          />
-        )}
         {/* Remount on plugin changes so an old iframe cannot post through the next plugin's rebound bridge. */}
         {isPluginPanelTabKey(effectiveTab) && (
           <PluginPanel key={effectiveTab} tabKey={effectiveTab} />

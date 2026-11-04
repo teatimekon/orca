@@ -1,4 +1,6 @@
 import { ipcMain } from 'electron'
+import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../../shared/pure-hosted-source-control'
+import { whenHostedEnabled } from './hosted-source-control-gate'
 import { resolve } from 'node:path'
 import type {
   GitHubPRRefreshCandidate,
@@ -59,141 +61,157 @@ export function registerGitHubPRRefreshHandlers(store: Store, stats: StatsCollec
 
   ipcMain.handle(
     'gh:prForBranch',
-    async (
-      _event,
-      args: {
-        repoPath: string
-        branch: string
-        linkedPRNumber?: number | null
-        fallbackPRNumber?: number | null
-        acceptMergedFallbackPR?: boolean
-        currentHeadOid?: string | null
-        /** A manual refresh: a user act that may start a stopped WSL distro. */
-        wakeWslDistro?: boolean
-        userRefresh?: boolean
-      }
-    ) => {
-      const repo = assertRegisteredGitHubRepo(args, store)
-      const localGitOptions = getGitHubLocalGitOptionArgs(store, repo)[0]
-      const hostedReviewOptions = localGitOptions
-        ? { localGitExecOptions: localGitOptions }
-        : undefined
-      const currentHeadOid =
-        typeof args.currentHeadOid === 'string' && args.currentHeadOid.trim().length > 0
-          ? args.currentHeadOid.trim()
-          : null
-      const lookupOptions: GitHubPRBranchLookupOptions | undefined = hostedReviewOptions
-        ? { ...hostedReviewOptions }
-        : args.acceptMergedFallbackPR === true ||
-            currentHeadOid !== null ||
-            args.userRefresh === true
-          ? {}
+    whenHostedEnabled(
+      HOSTED_SOURCE_CONTROL_ENABLED,
+      async () => null,
+      async (
+        _event,
+        args: {
+          repoPath: string
+          branch: string
+          linkedPRNumber?: number | null
+          fallbackPRNumber?: number | null
+          acceptMergedFallbackPR?: boolean
+          currentHeadOid?: string | null
+          /** A manual refresh: a user act that may start a stopped WSL distro. */
+          wakeWslDistro?: boolean
+          userRefresh?: boolean
+        }
+      ) => {
+        const repo = assertRegisteredGitHubRepo(args, store)
+        const localGitOptions = getGitHubLocalGitOptionArgs(store, repo)[0]
+        const hostedReviewOptions = localGitOptions
+          ? { localGitExecOptions: localGitOptions }
           : undefined
-      if (lookupOptions && args.userRefresh === true) {
-        lookupOptions.userRefresh = true
+        const currentHeadOid =
+          typeof args.currentHeadOid === 'string' && args.currentHeadOid.trim().length > 0
+            ? args.currentHeadOid.trim()
+            : null
+        const lookupOptions: GitHubPRBranchLookupOptions | undefined = hostedReviewOptions
+          ? { ...hostedReviewOptions }
+          : args.acceptMergedFallbackPR === true ||
+              currentHeadOid !== null ||
+              args.userRefresh === true
+            ? {}
+            : undefined
+        if (lookupOptions && args.userRefresh === true) {
+          lookupOptions.userRefresh = true
+        }
+        if (lookupOptions && args.acceptMergedFallbackPR === true) {
+          lookupOptions.acceptMergedFallbackPR = true
+        }
+        if (lookupOptions && currentHeadOid !== null) {
+          lookupOptions.currentHeadOid = currentHeadOid
+        }
+        const lookupOptionArgs: [] | [GitHubPRBranchLookupOptions] = lookupOptions
+          ? [lookupOptions]
+          : []
+        // The sidebar card fallback polls this; only a manual refresh may start the distro (E9).
+        const pr = await readGitHubRepoUnlessWslStopped(
+          store,
+          repo,
+          () =>
+            getPRForBranch(
+              repo.path,
+              args.branch,
+              args.linkedPRNumber ?? null,
+              getGitHubRepoConnectionId(repo),
+              args.linkedPRNumber == null ? (args.fallbackPRNumber ?? null) : null,
+              ...lookupOptionArgs
+            ),
+          { wake: args.wakeWslDistro === true }
+        )
+        if (pr && !stats.hasCountedPR(pr.url)) {
+          stats.record({
+            type: 'pr_created',
+            at: Date.now(),
+            repoId: repo.id,
+            meta: { prNumber: pr.number, prUrl: pr.url }
+          })
+        }
+        return pr
       }
-      if (lookupOptions && args.acceptMergedFallbackPR === true) {
-        lookupOptions.acceptMergedFallbackPR = true
-      }
-      if (lookupOptions && currentHeadOid !== null) {
-        lookupOptions.currentHeadOid = currentHeadOid
-      }
-      const lookupOptionArgs: [] | [GitHubPRBranchLookupOptions] = lookupOptions
-        ? [lookupOptions]
-        : []
-      // The sidebar card fallback polls this; only a manual refresh may start the distro (E9).
-      const pr = await readGitHubRepoUnlessWslStopped(
-        store,
-        repo,
-        () =>
-          getPRForBranch(
-            repo.path,
-            args.branch,
-            args.linkedPRNumber ?? null,
-            getGitHubRepoConnectionId(repo),
-            args.linkedPRNumber == null ? (args.fallbackPRNumber ?? null) : null,
-            ...lookupOptionArgs
-          ),
-        { wake: args.wakeWslDistro === true }
-      )
-      if (pr && !stats.hasCountedPR(pr.url)) {
-        stats.record({
-          type: 'pr_created',
-          at: Date.now(),
-          repoId: repo.id,
-          meta: { prNumber: pr.number, prUrl: pr.url }
-        })
-      }
-      return pr
-    }
+    )
   )
 
   ipcMain.handle(
     'gh:refreshPRNow',
-    async (
-      _event,
-      args: {
-        candidate: GitHubPRRefreshCandidate
-        reason?: GitHubPRRefreshReason
-        userRefresh?: boolean
+    whenHostedEnabled(
+      HOSTED_SOURCE_CONTROL_ENABLED,
+      async (): Promise<PRRefreshOutcome> => ({ kind: 'no-pr', fetchedAt: Date.now() }),
+      async (
+        _event,
+        args: {
+          candidate: GitHubPRRefreshCandidate
+          reason?: GitHubPRRefreshReason
+          userRefresh?: boolean
+        }
+      ) => {
+        const repo = assertRegisteredPRRefreshCandidateRepo(args.candidate, store)
+        const outcome = await refreshPRNow(
+          applyRegisteredRepoToPRRefreshCandidate(store, repo, args.candidate),
+          args.reason,
+          ...(args.userRefresh === true ? ([{ userRefresh: true }] as const) : [])
+        )
+        recordPRIfNeeded(repo, outcome)
+        return outcome
       }
-    ) => {
-      const repo = assertRegisteredPRRefreshCandidateRepo(args.candidate, store)
-      const outcome = await refreshPRNow(
-        applyRegisteredRepoToPRRefreshCandidate(store, repo, args.candidate),
-        args.reason,
-        ...(args.userRefresh === true ? ([{ userRefresh: true }] as const) : [])
-      )
-      recordPRIfNeeded(repo, outcome)
-      return outcome
-    }
+    )
   )
 
   ipcMain.handle(
     'gh:enqueuePRRefresh',
-    (
-      event,
-      args: {
-        candidate: GitHubPRRefreshCandidate
-        reason: GitHubPRRefreshReason
-        priority?: number
+    whenHostedEnabled(
+      HOSTED_SOURCE_CONTROL_ENABLED,
+      (): GitHubPRRefreshEnqueueResult => ({ kind: 'skipped', skippedReason: 'validation-denied' }),
+      (
+        event,
+        args: {
+          candidate: GitHubPRRefreshCandidate
+          reason: GitHubPRRefreshReason
+          priority?: number
+        }
+      ): GitHubPRRefreshEnqueueResult => {
+        const validation = validateAutomaticPRRefreshCandidate(args.candidate, store)
+        if (validation.kind === 'skipped') {
+          return validation.result
+        }
+        enqueuePRRefresh(validation.candidate, args.reason, args.priority ?? 0, event?.sender?.id)
+        return { kind: 'queued' }
       }
-    ): GitHubPRRefreshEnqueueResult => {
-      const validation = validateAutomaticPRRefreshCandidate(args.candidate, store)
-      if (validation.kind === 'skipped') {
-        return validation.result
-      }
-      enqueuePRRefresh(validation.candidate, args.reason, args.priority ?? 0, event?.sender?.id)
-      return { kind: 'queued' }
-    }
+    )
   )
 
   ipcMain.handle(
     'gh:reportVisiblePRRefreshCandidates',
-    (event, args: { candidates: GitHubPRRefreshCandidate[]; generation: number }) => {
-      const senderId = event.sender.id
-      if (!visibilityCleanupRegistered.has(senderId)) {
-        visibilityCleanupRegistered.add(senderId)
-        const lifetime = abortWhenRendererGone(event.sender)
-        lifetime.signal.addEventListener(
-          'abort',
-          () => {
-            visibilityCleanupRegistered.delete(senderId)
-            clearVisiblePRRefreshWindow(senderId)
-          },
-          { once: true }
-        )
-      }
-      const candidates: GitHubPRRefreshCandidate[] = []
-      const repos = store.getRepos()
-      for (const candidate of args.candidates) {
-        const validation = validateAutomaticPRRefreshCandidate(candidate, store, repos)
-        if (validation.kind === 'ok') {
-          candidates.push(validation.candidate)
+    whenHostedEnabled(
+      HOSTED_SOURCE_CONTROL_ENABLED,
+      () => true,
+      (event, args: { candidates: GitHubPRRefreshCandidate[]; generation: number }) => {
+        const senderId = event.sender.id
+        if (!visibilityCleanupRegistered.has(senderId)) {
+          visibilityCleanupRegistered.add(senderId)
+          const lifetime = abortWhenRendererGone(event.sender)
+          lifetime.signal.addEventListener(
+            'abort',
+            () => {
+              visibilityCleanupRegistered.delete(senderId)
+              clearVisiblePRRefreshWindow(senderId)
+            },
+            { once: true }
+          )
         }
+        const candidates: GitHubPRRefreshCandidate[] = []
+        const repos = store.getRepos()
+        for (const candidate of args.candidates) {
+          const validation = validateAutomaticPRRefreshCandidate(candidate, store, repos)
+          if (validation.kind === 'ok') {
+            candidates.push(validation.candidate)
+          }
+        }
+        reportVisiblePRRefreshCandidates(candidates, args.generation, senderId)
+        return true
       }
-      reportVisiblePRRefreshCandidates(candidates, args.generation, senderId)
-      return true
-    }
+    )
   )
 }

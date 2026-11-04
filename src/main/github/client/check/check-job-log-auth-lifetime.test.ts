@@ -23,6 +23,10 @@ vi.mock('@orca/process-host/process-tree-termination', () => ({
   forceTerminateProcessTree: forceMock
 }))
 const children: ChildProcess[] = []
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('shared log auth prerequisite retirement', () => {
   beforeEach(() => {
     vi.useFakeTimers()

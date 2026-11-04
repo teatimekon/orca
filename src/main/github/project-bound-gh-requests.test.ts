@@ -63,6 +63,8 @@ function complete(child: ReturnType<typeof createFakeSpawnedChild>, stdout: stri
   child.emit('close', 0, null)
 }
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 it('keeps Project View ambient even with a bound project cwd', async () => {
   vi.stubEnv('GH_TOKEN', 'personal-token')
   let selectedPersonal = false

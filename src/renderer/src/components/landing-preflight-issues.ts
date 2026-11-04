@@ -1,4 +1,5 @@
 import { translate } from '@/i18n/i18n'
+import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../../shared/pure-hosted-source-control'
 import { projectHostSetupProjectionFromRepos } from '../../../shared/project-host-setup-projection'
 import type { Repo } from '../../../shared/repo-types'
 
@@ -46,7 +47,7 @@ export function getLandingPreflightIssues(
   }
 
   // Only nudge GitHub CLI setup when a GitHub-backed project can use it.
-  if (!options.hasGitHubBackedProject) {
+  if (!options.hasGitHubBackedProject || !HOSTED_SOURCE_CONTROL_ENABLED) {
     return issues
   }
 

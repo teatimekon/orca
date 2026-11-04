@@ -197,6 +197,10 @@ async function clickButton(button: HTMLButtonElement): Promise<void> {
   })
 }
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('SidebarNav', () => {
   afterEach(async () => {
     await act(async () => {

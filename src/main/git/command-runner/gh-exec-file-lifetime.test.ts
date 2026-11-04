@@ -33,6 +33,10 @@ function finish(value: ChildProcess, code = 0, stdout = '', stderr = ''): void {
   value.emit('close', code, null)
 }
 
+vi.mock('../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('tracked gh capture lifetime', () => {
   beforeEach(() => {
     vi.useFakeTimers()

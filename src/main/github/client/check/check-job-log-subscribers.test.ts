@@ -27,6 +27,10 @@ function spawn(): ChildProcess {
   children.push(child)
   return child
 }
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('independent readers and positively closed retirement', () => {
   beforeEach(() => {
     vi.useFakeTimers()

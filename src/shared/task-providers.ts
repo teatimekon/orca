@@ -1,3 +1,5 @@
+import { HOSTED_SOURCE_CONTROL_ENABLED } from './pure-hosted-source-control'
+
 export type TaskProvider = 'github' | 'gitlab' | 'linear' | 'jira'
 
 export const TASK_PROVIDERS: readonly TaskProvider[] = ['github', 'gitlab', 'linear', 'jira']
@@ -62,7 +64,8 @@ export function filterAvailableTaskProviders(
     isTaskProviderAvailable(provider, availability)
   )
 
-  return available.length > 0 ? available : ['github']
+  // Jira is always available as its own setup entry; GitHub only exists when hosted source control is on.
+  return available.length > 0 ? available : [HOSTED_SOURCE_CONTROL_ENABLED ? 'github' : 'jira']
 }
 
 export function restoreAvailableDefaultTaskProvider(
@@ -91,10 +94,10 @@ function isTaskProviderAvailable(
   availability: TaskProviderAvailability
 ): boolean {
   if (provider === 'github') {
-    return true
+    return HOSTED_SOURCE_CONTROL_ENABLED
   }
   if (provider === 'gitlab') {
-    return availability.gitlabInstalled
+    return HOSTED_SOURCE_CONTROL_ENABLED && availability.gitlabInstalled
   }
   // Disconnected Jira must remain visible as its own first-time setup entry point.
   if (provider === 'jira') {

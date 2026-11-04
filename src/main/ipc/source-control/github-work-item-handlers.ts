@@ -1,6 +1,8 @@
 import type { GhAccountBinding } from '../../../shared/github/account-binding'
 import { OptionalGhAccountExpectation } from '../../../shared/rpc-contract/github-repo-target-params'
 import { ipcMain } from 'electron'
+import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../../shared/pure-hosted-source-control'
+import { whenHostedEnabled } from './hosted-source-control-gate'
 import type { GitHubOwnerRepo, GitHubPRFile } from '../../../shared/github/pull-request-types'
 import type { GitHubCreateIssueFields } from '../../../shared/issue-mutation-types'
 import type { TaskSourceContext } from '../../../shared/task-source-context'
@@ -27,30 +29,34 @@ const NO_WAKING_RETRY = { retryStartsIt: false }
 export function registerGitHubWorkItemHandlers(store: Store): void {
   ipcMain.handle(
     'gh:issue',
-    (
-      _event,
-      args: {
-        repoPath: string
-        repoId?: string | null
-        sourceContext?: TaskSourceContext | null
-        number: number
+    whenHostedEnabled(
+      HOSTED_SOURCE_CONTROL_ENABLED,
+      () => null,
+      (
+        _event,
+        args: {
+          repoPath: string
+          repoId?: string | null
+          sourceContext?: TaskSourceContext | null
+          number: number
+        }
+      ) => {
+        const repo = assertRegisteredGitHubRepo(args, store)
+        // Polled per sidebar card with a linked issue.
+        return readGitHubRepoUnlessWslStopped(
+          store,
+          repo,
+          () =>
+            getIssue(
+              repo.path,
+              args.number,
+              getGitHubRepoConnectionId(repo),
+              ...getGitHubLocalGitOptionArgs(store, repo)
+            ),
+          NO_WAKING_RETRY
+        )
       }
-    ) => {
-      const repo = assertRegisteredGitHubRepo(args, store)
-      // Polled per sidebar card with a linked issue.
-      return readGitHubRepoUnlessWslStopped(
-        store,
-        repo,
-        () =>
-          getIssue(
-            repo.path,
-            args.number,
-            getGitHubRepoConnectionId(repo),
-            ...getGitHubLocalGitOptionArgs(store, repo)
-          ),
-        NO_WAKING_RETRY
-      )
-    }
+    )
   )
 
   ipcMain.handle('gh:listIssues', (_event, args: { repoPath: string; limit?: number }) => {

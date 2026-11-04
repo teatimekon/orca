@@ -1,5 +1,6 @@
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { WorktreeGroupBy } from '../../../../shared/sidebar-list/row-types'
+import { HOSTED_SOURCE_CONTROL_ENABLED } from '../../../../shared/pure-hosted-source-control'
 import { GROUP_BY_OPTIONS } from './sidebar-workspace-option-items'
 
 type SidebarGroupByToggleProps = {
@@ -21,7 +22,9 @@ export function SidebarGroupByToggle({ groupBy, setGroupBy }: SidebarGroupByTogg
       size="sm"
       className="h-6 w-full justify-stretch"
     >
-      {GROUP_BY_OPTIONS.map((option) => (
+      {GROUP_BY_OPTIONS.filter(
+        (option) => HOSTED_SOURCE_CONTROL_ENABLED || option.id !== 'pr-status'
+      ).map((option) => (
         <ToggleGroupItem
           key={option.id}
           value={option.id}

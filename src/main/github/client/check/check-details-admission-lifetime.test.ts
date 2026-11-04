@@ -36,6 +36,10 @@ function spawn(): ChildProcess {
   return child
 }
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('check details existing admission ownership', () => {
   beforeEach(() => {
     vi.useFakeTimers()

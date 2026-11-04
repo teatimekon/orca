@@ -1,8 +1,7 @@
 // @vitest-environment happy-dom
 
 import type * as ReactModule from 'react'
-import { act, cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react'
-import { createRoot, type Root } from 'react-dom/client'
+import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import RightSidebar from './index'
@@ -250,7 +249,6 @@ describe('rendered right sidebar titlebar drag regions', () => {
 
     expectNoDrag(buttonOpeningTag(markup, 'Explorer'))
     expectNoDrag(buttonOpeningTag(markup, 'Source Control'))
-    expectNoDrag(buttonOpeningTag(markup, 'Checks'))
     expect(buttonOpeningTag(markup, 'Toggle right sidebar')).toContain('sidebar-toggle')
     expect(markup).toContain(RIGHT_SIDEBAR_HEADER_NO_DRAG_CLASS_NAME)
   })
@@ -311,7 +309,6 @@ describe('rendered right sidebar titlebar drag regions', () => {
 
     expectNoDrag(buttonOpeningTag(markup, 'Explorer'))
     expectNoDrag(buttonOpeningTag(markup, 'Source Control'))
-    expectNoDrag(buttonOpeningTag(markup, 'Checks'))
     expect(buttonOpeningTag(markup, 'Toggle right sidebar')).toContain('sidebar-toggle')
   })
 
@@ -325,7 +322,7 @@ describe('rendered right sidebar titlebar drag regions', () => {
     expect(markup).not.toContain('aria-label="Agents')
     expect(markup).not.toContain('aria-label="Search')
     expect(markup).toContain('aria-label="Attached worktrees')
-    expect(markup).toContain('aria-label="PR Checks')
+    expect(markup).not.toContain('aria-label="PR Checks')
     expect(markup).not.toContain('aria-label="Source Control')
     expect(markup).not.toContain('aria-label="Checks')
   })
@@ -352,53 +349,6 @@ describe('rendered right sidebar titlebar drag regions', () => {
     expect(markup).toContain('data-file-explorer')
     expect(markup).not.toContain('data-folder-workspace-pr-checks-panel')
     expect(mockAppState.setRightSidebarTab).not.toHaveBeenCalled()
-  })
-
-  it('keeps remembered folder PR Checks visible when the global route falls back to Explorer', async () => {
-    mockAppState.activeWorktreeId = 'folder:folder-1'
-    mockAppState.activeRepo = null
-    const container = document.createElement('div')
-    const root: Root = createRoot(container)
-
-    await act(async () => {
-      root.render(<RightSidebar />)
-    })
-
-    await act(async () => {
-      container
-        .querySelector<HTMLButtonElement>('[aria-label^="PR Checks"]')
-        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
-    expect(container.innerHTML).toContain('data-folder-workspace-pr-checks-panel')
-
-    await act(async () => {
-      mockAppState.rightSidebarTab = 'explorer'
-      notifyAppStore()
-    })
-
-    expect(container.innerHTML).toContain('data-folder-workspace-pr-checks-panel')
-    expect(container.innerHTML).not.toContain('data-file-explorer')
-
-    await act(async () => {
-      container
-        .querySelector<HTMLButtonElement>('[aria-label^="Explorer"]')
-        ?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-
-    expect(container.innerHTML).toContain('data-file-explorer')
-
-    await act(async () => {
-      mockAppState.rightSidebarTab = 'pr-checks'
-      notifyAppStore()
-    })
-
-    expect(container.innerHTML).toContain('data-file-explorer')
-    expect(container.innerHTML).not.toContain('data-folder-workspace-pr-checks-panel')
-
-    await act(async () => {
-      root.unmount()
-    })
   })
 
   it('does not render hidden panel content while the sidebar is closed', () => {

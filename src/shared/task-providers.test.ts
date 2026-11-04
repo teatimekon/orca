@@ -1,4 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const gate = vi.hoisted(() => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+vi.mock('./pure-hosted-source-control', () => gate)
+
 import {
   filterAvailableTaskProviders,
   normalizeTaskProviderSettings,
@@ -6,6 +10,10 @@ import {
 } from './task-providers'
 
 describe('task providers', () => {
+  beforeEach(() => {
+    gate.HOSTED_SOURCE_CONTROL_ENABLED = true
+  })
+
   it('restores a valid saved default when provider settings drifted', () => {
     expect(
       normalizeTaskProviderSettings({
@@ -98,5 +106,21 @@ describe('task providers', () => {
         linearConnected: false
       })
     ).toEqual(['github'])
+  })
+
+  it('offers only Linear and Jira when hosted source control is off', () => {
+    gate.HOSTED_SOURCE_CONTROL_ENABLED = false
+    const availability = { gitlabInstalled: true, linearConnected: true }
+    expect(
+      filterAvailableTaskProviders(['github', 'gitlab', 'linear', 'jira'], availability)
+    ).toEqual(['linear', 'jira'])
+    expect(filterAvailableTaskProviders(['github'], availability)).toEqual(['jira'])
+    expect(
+      restoreAvailableDefaultTaskProvider(
+        ['github', 'jira'],
+        { gitlabInstalled: false, linearConnected: false },
+        'github'
+      )
+    ).toEqual(['jira'])
   })
 })

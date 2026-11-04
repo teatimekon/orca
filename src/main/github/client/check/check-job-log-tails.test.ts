@@ -28,6 +28,10 @@ function automaticSpawn(_program: string, argv: string[], _options: SpawnOptions
   })
   return child
 }
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 describe('completed scoped excerpts through actual capture and runner', () => {
   beforeEach(() => {
     vi.useFakeTimers()

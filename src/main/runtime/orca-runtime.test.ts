@@ -2,6 +2,7 @@
 import type * as Filesystem from 'node:fs/promises'
 import { vi } from 'vitest'
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
 vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof Filesystem>()
   return { ...actual, mkdir: vi.fn(actual.mkdir) }

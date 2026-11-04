@@ -5,6 +5,8 @@ import { countWorkItems } from './client/list/count-work-items'
 import { searchWorkItemCount, usesGraphqlWorkItemSearch } from './client/list/work-item-search-page'
 import { recordGhPrimaryRateLimit, ghRateLimitScopeKey } from '../git/gh-rate-limit-breaker'
 
+vi.mock('../../shared/pure-hosted-source-control', () => ({ HOSTED_SOURCE_CONTROL_ENABLED: true }))
+
 it('coalesces matching searches and batches independent queries in one execution context', async () => {
   const queries = Array.from({ length: 25 }, (_, i) => `repo:fixture/repo-${i} is:issue`)
   const counts = await Promise.all(
