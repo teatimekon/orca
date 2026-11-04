@@ -31,6 +31,7 @@ import { WorktreeCardTaskDetailSection } from './WorktreeCardTaskDetailSection'
 import { getWorktreeCardTaskActions } from './worktree-card-task-actions'
 import { WorktreeCardHoverIdentityHeader } from './WorktreeCardHoverIdentityHeader'
 import { CommentMarkdownAsync, preloadCommentMarkdown } from './comment-markdown-lazy'
+import { gateWorktreeCardAttachments } from './worktree-card-hosted-review-gate'
 
 const COMMENT_MARKDOWN_CLASS_NAME =
   'text-[11.5px] text-foreground break-words leading-normal [&_.comment-md-p]:block [&_.comment-md-p+.comment-md-p]:mt-1'
@@ -132,7 +133,7 @@ export function WorktreeCardDetailsHover({
     onOpenLinearIssueInOrca
   })
   const showIdentityHeader = Boolean(branchName || workspaceTitle)
-  const attachments = getWorkspaceAttachments(workspace ?? {})
+  const attachments = gateWorktreeCardAttachments(getWorkspaceAttachments(workspace ?? {}))
   const showAttachmentCollection =
     attachments.length > 1 ||
     (attachments.length === 1 && !issue && !linearIssue && !jiraIssue && !review)

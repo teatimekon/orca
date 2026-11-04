@@ -3,6 +3,7 @@ import { getWorkspaceAttachments } from '../../../../shared/workspace-attachment
 import { getWorkspaceAttachmentKey } from '../../../../shared/workspace-attachment-normalization'
 import { parseWorkspaceKey } from '../../../../shared/workspace-scope'
 import { getActiveWorkspaceReviewKey } from './worktree-attachment-editing'
+import { gateWorktreeCardAttachments } from './worktree-card-hosted-review-gate'
 import type {
   WorktreeCardIssueDisplay,
   WorktreeCardLinearIssueDisplay,
@@ -31,7 +32,7 @@ export function getWorkspaceHoverAttachments(
   /** Per item: whether it is the card's own review, issue or task, enriched from live details. */
   liveMatched: boolean[]
 } {
-  const items = getWorkspaceAttachments(workspace)
+  const items = gateWorktreeCardAttachments(getWorkspaceAttachments(workspace))
   const liveMatched: boolean[] = []
   const matches = (item: WorkspaceAttachment): boolean => {
     if (item.provider === 'github' && item.type === 'issue') {

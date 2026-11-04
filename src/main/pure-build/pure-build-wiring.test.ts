@@ -253,7 +253,12 @@ const REMOVED: readonly (readonly [string, string])[] = [
   ['main/runtime/runtime-edge-command-controller.ts', 'RuntimeJiraCommands'],
   ['main/menu/register-app-menu.ts', "onToggleAppearance('showTasksButton')"],
   ['preload/index.ts', 'linearApi'],
-  ['preload/index.ts', 'jiraApi']
+  ['preload/index.ts', 'jiraApi'],
+  // O14b fix round 4
+  [
+    'renderer/src/hooks/settings-navigation-workflow-sections.ts',
+    'getGitProviderApiBudgetSearchEntries'
+  ]
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -331,7 +336,9 @@ const KEPT: readonly (readonly [string, string])[] = [
   [
     'renderer/src/components/sidebar/workspace-reference-detail-read.ts',
     'getWorkspaceReferenceLookup'
-  ]
+  ],
+  ['renderer/src/components/sidebar/workspace-hover-attachments.ts', 'gateWorktreeCardAttachments'],
+  ['renderer/src/components/sidebar/WorktreeCardMeta.tsx', 'gateWorktreeCardAttachments']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [

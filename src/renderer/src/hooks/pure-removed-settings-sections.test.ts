@@ -17,4 +17,14 @@ describe('pure build removed settings sections', () => {
     expect(ids).toContain('mobile')
     expect(ids).toContain('agents')
   })
+
+  it('indexes no GitHub or GitLab API Budget search entry', () => {
+    const titles = buildSettingsNavigationMetadata({
+      isMac: true,
+      isWindows: false,
+      isWebClient: false,
+      repos: []
+    }).flatMap((section) => section.searchEntries.map((entry) => entry.title))
+    expect(titles.filter((title) => /api budget/i.test(title))).toEqual([])
+  })
 })

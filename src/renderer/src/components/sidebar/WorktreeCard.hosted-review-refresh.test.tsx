@@ -9,7 +9,6 @@ import type { Worktree } from '../../../../shared/worktree/types'
 
 const fetchHostedReviewForBranch = vi.fn()
 const fetchIssue = vi.fn()
-const fetchLinearIssue = vi.fn()
 const openModal = vi.fn()
 const updateWorktreeMeta = vi.fn()
 
@@ -22,7 +21,6 @@ vi.mock('@/store', () => {
     deleteStateByWorktreeId: {},
     fetchHostedReviewForBranch,
     fetchIssue,
-    fetchLinearIssue,
     gitConflictOperationByWorktree: {},
     hostedReviewCache: {
       'local::repo-1::feature/branch': {
@@ -146,36 +144,5 @@ describe('WorktreeCard hosted review refresh', () => {
       await vi.advanceTimersByTimeAsync(15 * 60_000)
     })
     expect(fetchHostedReviewForBranch).not.toHaveBeenCalled()
-  })
-
-  it('refetches the linked Linear issue only when its source changes, not on metadata writes', async () => {
-    worktreeCardProperties = ['linear-issue']
-    const { default: WorktreeCard } = await import('./WorktreeCard')
-    const render = (overrides: Partial<Worktree>) =>
-      act(() => {
-        root?.render(
-          <WorktreeCard
-            worktree={makeWorktree({ linkedLinearIssue: 'ENG-1', ...overrides })}
-            repo={makeRepo()}
-            isActive={false}
-          />
-        )
-      })
-
-    render({})
-    render({ comment: 'updated', lastActivityAt: 2 })
-    expect(fetchLinearIssue).toHaveBeenCalledTimes(1)
-
-    const movedSource = {
-      kind: 'task-source',
-      provider: 'linear',
-      projectId: 'p-2',
-      hostId: 'ssh:box'
-    } as const
-    render({ linkedTaskSourceContext: movedSource })
-    expect(fetchLinearIssue).toHaveBeenCalledTimes(2)
-    expect(fetchLinearIssue).toHaveBeenLastCalledWith('ENG-1', 'all', {
-      sourceContext: movedSource
-    })
   })
 })

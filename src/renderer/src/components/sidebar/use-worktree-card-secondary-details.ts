@@ -3,6 +3,7 @@ import type { WorkspaceAttachment } from '../../../../shared/worktree/types'
 import { getWorkspaceAttachmentKey } from '../../../../shared/workspace-attachment-normalization'
 import { buildWorkspaceAttachmentEdits } from './worktree-attachment-editing'
 import { getWorkspaceAttachments } from '../../../../shared/workspace-attachments'
+import { gateWorktreeCardAttachments } from './worktree-card-hosted-review-gate'
 import { toast } from 'sonner'
 
 import { translate } from '@/i18n/i18n'
@@ -196,7 +197,7 @@ export function useWorktreeCardSecondaryDetails({
     [hoverReview, hoverReviewProvider, updateWorktreeMeta, worktree]
   )
   const hasDetails =
-    getWorkspaceAttachments(worktree).length > 0 ||
+    gateWorktreeCardAttachments(getWorkspaceAttachments(worktree)).length > 0 ||
     hasWorktreeCardDetails({
       issue: metaIssue,
       linearIssue: metaLinearIssue,

@@ -2,6 +2,7 @@ import React from 'react'
 
 import { cn } from '@/lib/utils'
 import { getWorkspaceAttachments } from '../../../../shared/workspace-attachments'
+import { gateWorktreeCardAttachments } from './worktree-card-hosted-review-gate'
 import { WorktreeCardHeader } from './worktree-card-header'
 import { WorktreeCardMetaRow } from './worktree-card-meta-row'
 import { WorktreeCardIdentityHover } from './worktree-card-details-items'
@@ -67,7 +68,8 @@ export function WorktreeCardParentContent({
         className={cn(
           'flex min-w-0 flex-1 flex-col gap-1.5',
           // Why: inline agent rows intentionally outdent into the card gutter; inner elements handle truncation.
-          showInlineAgentList || getWorkspaceAttachments(worktree).length > 1
+          showInlineAgentList ||
+            gateWorktreeCardAttachments(getWorkspaceAttachments(worktree)).length > 1
             ? 'overflow-visible'
             : 'overflow-hidden'
         )}

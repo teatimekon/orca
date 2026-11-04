@@ -34,9 +34,7 @@ export function gateWorktreeCardLinkedDetails<
   return { ...linked, issueDisplay: null }
 }
 
-/** Hosted PR/MR/issue attachments render nothing while the gate is off; Linear and Jira stay. */
-export function gateWorktreeCardAttachments<T extends { provider?: string }>(items: T[]): T[] {
-  return HOSTED_SOURCE_CONTROL_ENABLED
-    ? items
-    : items.filter((item) => item.provider === 'linear' || item.provider === 'jira')
+/** Hosted PR/MR/issue attachments render nothing while the gate is off (Linear and Jira are gone). */
+export function gateWorktreeCardAttachments<T>(items: T[]): T[] {
+  return HOSTED_SOURCE_CONTROL_ENABLED ? items : []
 }

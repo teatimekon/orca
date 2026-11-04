@@ -1,7 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { Worktree, WorkspaceAttachment } from '../../../../shared/worktree/types'
 import { getWorkspaceAttachmentKey } from '../../../../shared/workspace-attachment-normalization'
 import { getWorkspaceHoverAttachments } from './workspace-hover-attachments'
+
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
 const workspace: Worktree = {
   id: 'repo::/repo/feature',
   repoId: 'repo',

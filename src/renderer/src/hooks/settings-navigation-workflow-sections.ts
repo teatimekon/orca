@@ -3,7 +3,6 @@ import { getAutomationsSettingsSearchEntries } from '@/components/settings/autom
 import { getBrowserPaneCombinedSearchEntries } from '@/components/settings/browser/browser-pane-search'
 import { getCommitMessageAiPaneSearchEntries } from '@/components/settings/source-control/commit-message-ai-search'
 import { getFloatingWorkspaceSearchEntries } from '@/components/settings/floating-workspaces/floating-workspace-search'
-import { getGitProviderApiBudgetSearchEntries } from '@/components/settings/source-control/git-provider-api-budget-search'
 import { getGitPaneSearchEntries } from '@/components/settings/source-control/git-search'
 import { getMobileEmulatorSearchEntries } from '@/components/settings/mobile/emulator/mobile-emulator-search'
 import { getQuickCommandsPaneSearchEntries } from '@/components/settings/quick-commands/quick-commands-search'
@@ -97,11 +96,7 @@ export function buildWorkflowSettingsSections(
       ),
       icon: GitBranch,
       // Git AI Author lives inside Git, so search metadata covers both surfaces.
-      searchEntries: [
-        ...getGitPaneSearchEntries(),
-        ...getCommitMessageAiPaneSearchEntries(),
-        ...getGitProviderApiBudgetSearchEntries()
-      ],
+      searchEntries: [...getGitPaneSearchEntries(), ...getCommitMessageAiPaneSearchEntries()],
       group: 'workflows'
     },
     {

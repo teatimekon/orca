@@ -53,7 +53,9 @@ function canUnlink(card: WorktreeCardController): boolean {
   return (
     !card.affiliateListMode &&
     (card.canUnlinkReview ||
-      getWorkspaceAttachments(card.worktree).some((item) => item.type !== 'issue'))
+      gateWorktreeCardAttachments(getWorkspaceAttachments(card.worktree)).some(
+        (item) => item.type !== 'issue'
+      ))
   )
 }
 

@@ -1,5 +1,6 @@
 import React from 'react'
 import { getWorkspaceAttachments } from '../../../../shared/workspace-attachments'
+import { gateWorktreeCardAttachments } from './worktree-card-hosted-review-gate'
 
 import { getWorktreeCardFrameGeometry } from './worktree-card-frame-geometry'
 import { hasWorktreeCardDetails } from './WorktreeCardMeta'
@@ -122,7 +123,7 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
   const hasHoverIdentity = Boolean(hoverWorkspaceTitle || hoverBranchName)
   const hasHoverDetails =
     (newCardStyle || compactCards) &&
-    (getWorkspaceAttachments(worktree).length > 0 ||
+    (gateWorktreeCardAttachments(getWorkspaceAttachments(worktree)).length > 0 ||
       hasWorktreeCardDetails({
         issue: hoverIssue,
         linearIssue: hoverLinearIssue,

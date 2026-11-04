@@ -9,6 +9,10 @@ import { getWorkspaceAttachmentKey } from '../../../../shared/workspace-attachme
 import { useWorktreeCardDetailsHoverControl } from './worktree-card-details-hover-state'
 import type { WorkspaceReferenceDetailsMap } from './workspace-reference-details'
 
+vi.mock('../../../../shared/pure-hosted-source-control', () => ({
+  HOSTED_SOURCE_CONTROL_ENABLED: true
+}))
+
 vi.mock('@/components/ui/tooltip', () => ({
   Tooltip: ({ children }: { children: ReactNode }) => <>{children}</>,
   TooltipTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
