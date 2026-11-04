@@ -1,16 +1,12 @@
 import type React from 'react'
-import { ArrowUpRight, Cloud } from 'lucide-react'
-import { useAppStore } from '@/store/index'
+import { Cloud } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
-import { Button } from '../../../ui/button'
 
 export function CloudVmSetupGuide({
   refreshAction
 }: {
   refreshAction?: React.ReactNode
 }): React.JSX.Element {
-  const openSettingsTarget = useAppStore((state) => state.openSettingsTarget)
-
   return (
     <div className="flex items-center gap-3 px-4 py-3" data-settings-section="cloud-vm-setup">
       <Cloud className="size-4 shrink-0 text-muted-foreground" />
@@ -26,21 +22,6 @@ export function CloudVmSetupGuide({
         </p>
       </div>
       {refreshAction}
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() =>
-          openSettingsTarget({
-            pane: 'experimental',
-            repoId: null,
-            sectionId: 'ephemeral-vms'
-          })
-        }
-      >
-        {translate('auto.components.settings.CloudVmSetupGuide.setUpRecipes', 'Set up recipes')}
-        <ArrowUpRight />
-      </Button>
     </div>
   )
 }

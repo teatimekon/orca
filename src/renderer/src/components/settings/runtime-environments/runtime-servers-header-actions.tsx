@@ -1,4 +1,4 @@
-import { ArrowUpRight, ChevronDown, Cloud, Link2, Plus, TerminalSquare } from 'lucide-react'
+import { ChevronDown, Link2, Plus, TerminalSquare } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store/index'
 import { LoadingSpinner } from '../../LoadingSpinner'
@@ -50,7 +50,6 @@ export function RuntimeServersHeaderActions({
   const remoteServerUpdates = useAppStore((state) => state.remoteServerUpdates)
   const remoteServerUpdatesChecking = useAppStore((state) => state.remoteServerUpdatesChecking)
   const remoteServerUpdatesRunning = useAppStore((state) => state.remoteServerUpdatesRunning)
-  const openSettingsTarget = useAppStore((state) => state.openSettingsTarget)
   const setRemoteServerUpdateDialogOpen = useAppStore(
     (state) => state.setRemoteServerUpdateDialogOpen
   )
@@ -130,22 +129,6 @@ export function RuntimeServersHeaderActions({
                 onSelect={() => setDialog('install')}
               />
             ) : null}
-            <AddServerMenuItem
-              icon={<Cloud />}
-              label={translate('auto.components.settings.serverList.cloudVm', 'Cloud VM')}
-              trailing={<ArrowUpRight className="ml-auto" />}
-              description={translate(
-                'auto.components.settings.serverList.cloudVmHelp',
-                'Created per workspace from an environment recipe.'
-              )}
-              onSelect={() =>
-                openSettingsTarget({
-                  pane: 'experimental',
-                  repoId: null,
-                  sectionId: 'ephemeral-vms'
-                })
-              }
-            />
           </DropdownMenuContent>
         </DropdownMenu>
       </ButtonGroup>

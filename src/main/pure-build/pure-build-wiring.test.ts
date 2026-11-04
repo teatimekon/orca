@@ -107,6 +107,15 @@ const REMOVED: readonly (readonly [string, string])[] = [
   [
     'renderer/src/components/settings/page/settings-page-renderer.tsx',
     'renderSessionHistorySettingsSection'
+  ],
+  // O22 follow-up: Cloud VM settings openers
+  [
+    'renderer/src/components/settings/runtime-environments/runtime-servers-header-actions.tsx',
+    'ephemeral-vms'
+  ],
+  [
+    'renderer/src/components/settings/virtual-machines/runtimes/CloudVmSetupGuide.tsx',
+    'ephemeral-vms'
   ]
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
