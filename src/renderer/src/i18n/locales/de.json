@@ -3898,9 +3898,6 @@
           },
           "TerminalAgentSessionForkDialog": {
             "17fc841e59": "Kontext kopieren",
-            "0c8a8629b1": "Die Abzweigung erscheint als eigener Arbeitsbereich, nicht als untergeordneter Arbeitsbereich. Der neue Agent erhält ein begrenztes Protokoll als bearbeitbaren Entwurf.",
-            "620461df22": "Abzweigung auf oberster Ebene",
-            "619b5a35d2": "Einen Arbeitsbereich auf oberster Ebene abzweigen und einen neuen Agenten-Tab mit dem erfassten Kontext starten.",
             "64e292e8e3": "Agentensitzung abzweigen",
             "9d25de2920": "Abzweigung erstellen",
             "2b10412cfc": "Wird erstellt…"
@@ -4043,7 +4040,6 @@
               "session": {
                 "fork": {
                   "2317900211": "Der Kontext der Abzweigung konnte nicht kopiert werden.",
-                  "88e34d00eb": "Abzweigung der Sitzung auf oberster Ebene in einem neuen Arbeitsbereich geöffnet",
                   "fd3d12a1e1": "Der Arbeitsbereich für die Abzweigung konnte nicht erstellt werden.",
                   "38e41edc6e": "Dieser Arbeitsbereich kann nicht in einen Git-Worktree abgezweigt werden.",
                   "f867385bb5": "Der ursprüngliche Arbeitsbereich für diese Abzweigung konnte nicht gefunden werden.",
@@ -20550,6 +20546,20 @@
     },
     "wslHostMark": {
       "runsOn": "Läuft in WSL: {{distro}} (Linux)"
+    },
+    "terminalAgentSessionFork": {
+      "description": "Create a child workspace from this branch and continue the agent conversation there.",
+      "workspaceNameLabel": "Workspace name",
+      "firstMessageLabel": "First message (optional)",
+      "firstMessagePlaceholder": "Sent once the new agent is ready. Leave empty to type it yourself.",
+      "resumeTitle": "Continue this conversation",
+      "resumeBody": "The new agent reopens this conversation as a copy with its full history: {{command}}",
+      "contextTitle": "Captured context only",
+      "contextBody": "No reopenable conversation for this pane (no session ID yet, or the agent cannot fork one). The new agent receives a bounded transcript as an editable draft instead.",
+      "uncommittedHint": "Uncommitted changes stay in the current workspace.",
+      "resumedToast": "Conversation continued in a new child workspace",
+      "forkOpenedToast": "Session fork opened in a new child workspace",
+      "firstMessageCopied": "The first message could not be sent on this host; it was copied to the clipboard."
     }
   },
   "dashboardPopout": {

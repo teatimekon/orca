@@ -4,20 +4,22 @@ import { tuiAgentToAgentKind } from '@/lib/telemetry'
 import { runtimeEnvironmentIdOrLocalUnlessTwin } from '@/lib/worktree-runtime-owner'
 import { createWebRuntimeSessionTerminal } from '@/runtime/web-runtime-terminal-creation'
 import { isWebRuntimeSessionActive } from '@/runtime/web-runtime-session-environment'
-import type { AiVaultAgent } from '../../../shared/ai-vault-types'
+import type { TuiAgent } from '../../../shared/tui-agent'
 import type {
   AgentProviderSessionMetadata,
   SleepingAgentLaunchConfig
 } from '../../../shared/agent-session/lifecycle/agent-session-resume'
 import type { TabSplitDirection } from '@/store/slices/tabs'
 import type { WebRuntimeTerminalCreateOutcome } from '@/runtime/web-runtime-session-types'
+import type { LaunchSource } from '../../../shared/telemetry-events'
 
 export type LaunchAiVaultSessionInNewTabResult =
   | { tabId: string }
   | { tabId: null; runtimeLaunch: Promise<WebRuntimeTerminalCreateOutcome> }
 
 export function launchAiVaultSessionInNewTab(args: {
-  agent: AiVaultAgent
+  /** Any terminal agent; AI Vault rows and conversation forks both launch through here. */
+  agent: TuiAgent
   worktreeId: string
   command: string
   cwd?: string
@@ -27,6 +29,8 @@ export function launchAiVaultSessionInNewTab(args: {
   providerSession?: AgentProviderSessionMetadata
   targetGroupId?: string
   splitDirection?: TabSplitDirection
+  /** Telemetry surface that initiated the launch; defaults to the AI Vault sidebar. */
+  launchSource?: LaunchSource
 }): LaunchAiVaultSessionInNewTabResult {
   const store = useAppStore.getState()
   // Why both paths split: the runtime path used to return first and drop the split (#22791).
@@ -82,7 +86,7 @@ export function launchAiVaultSessionInNewTab(args: {
       ...(args.providerSession ? { resumeProviderSession: args.providerSession } : {}),
       telemetry: {
         agent_kind: tuiAgentToAgentKind(args.agent),
-        launch_source: 'sidebar',
+        launch_source: args.launchSource ?? 'sidebar',
         request_kind: 'resume'
       }
     }

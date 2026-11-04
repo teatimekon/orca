@@ -3371,9 +3371,6 @@
           },
           "TerminalAgentSessionForkDialog": {
             "17fc841e59": "컨텍스트 복사",
-            "0c8a8629b1": "포크는 중첩된 하위 항목이 아닌 자체 워크스페이스로 나타납니다. 새 agent는 편집 가능한 초안으로 한정된 기록을 받습니다.",
-            "620461df22": "최상위 포크",
-            "619b5a35d2": "최상위 워크스페이스 포크를 만들고 캡처된 컨텍스트로 새 agent 탭을 시작합니다.",
             "64e292e8e3": "포크 Agent 세션",
             "9d25de2920": "포크 만들기",
             "2b10412cfc": "만드는 중..."
@@ -3492,7 +3489,6 @@
               "session": {
                 "fork": {
                   "2317900211": "포크 컨텍스트를 복사하지 못했습니다.",
-                  "88e34d00eb": "새 워크스페이스에서 열린 최상위 세션 포크",
                   "fd3d12a1e1": "포크 워크스페이스를 생성하지 못했습니다.",
                   "38e41edc6e": "이 워크스페이스는 git 작업 트리로 포크할 수 없습니다.",
                   "f867385bb5": "이 포크의 소스 워크스페이스를 찾을 수 없습니다.",
@@ -19856,6 +19852,20 @@
     },
     "wslHostMark": {
       "runsOn": "WSL에서 실행: {{distro}} (Linux)"
+    },
+    "terminalAgentSessionFork": {
+      "description": "Create a child workspace from this branch and continue the agent conversation there.",
+      "workspaceNameLabel": "Workspace name",
+      "firstMessageLabel": "First message (optional)",
+      "firstMessagePlaceholder": "Sent once the new agent is ready. Leave empty to type it yourself.",
+      "resumeTitle": "Continue this conversation",
+      "resumeBody": "The new agent reopens this conversation as a copy with its full history: {{command}}",
+      "contextTitle": "Captured context only",
+      "contextBody": "No reopenable conversation for this pane (no session ID yet, or the agent cannot fork one). The new agent receives a bounded transcript as an editable draft instead.",
+      "uncommittedHint": "Uncommitted changes stay in the current workspace.",
+      "resumedToast": "Conversation continued in a new child workspace",
+      "forkOpenedToast": "Session fork opened in a new child workspace",
+      "firstMessageCopied": "The first message could not be sent on this host; it was copied to the clipboard."
     }
   },
   "dashboardPopout": {

@@ -203,7 +203,7 @@ it.skipIf(process.platform === 'win32')(
       expect(mocks.clipboard).not.toHaveBeenCalled()
       expect(mocks.toastError).not.toHaveBeenCalled()
       expect(mocks.toastSuccess).toHaveBeenCalledExactlyOnceWith(
-        'Top-level session fork opened in a new workspace'
+        'Session fork opened in a new child workspace'
       )
     } finally {
       host.releaseBinding()

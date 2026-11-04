@@ -3998,9 +3998,6 @@
           },
           "TerminalAgentSessionForkDialog": {
             "17fc841e59": "Копировать контекст",
-            "0c8a8629b1": "Ответвление появится как отдельное рабочее пространство, без вложения в родительское. Новый агент получит ограниченную часть истории как редактируемый черновик.",
-            "620461df22": "Отдельное ответвление",
-            "619b5a35d2": "Создать отдельное ответвление рабочего пространства и новую вкладку агента с сохранённым контекстом.",
             "64e292e8e3": "Создать ответвление сессии агента",
             "9d25de2920": "Создать ответвление",
             "2b10412cfc": "Создание…"
@@ -4140,7 +4137,6 @@
               "session": {
                 "fork": {
                   "2317900211": "Не удалось скопировать контекст ответвления.",
-                  "88e34d00eb": "Отдельное ответвление сессии открыто в новом рабочем пространстве",
                   "fd3d12a1e1": "Не удалось создать рабочее пространство ответвления.",
                   "38e41edc6e": "Это рабочее пространство нельзя ответвить в рабочее дерево Git.",
                   "f867385bb5": "Не удалось найти исходное рабочее пространство для этого ответвления.",
@@ -21238,6 +21234,20 @@
     },
     "wslHostMark": {
       "runsOn": "Работает в WSL: {{distro}} (Linux)"
+    },
+    "terminalAgentSessionFork": {
+      "description": "Create a child workspace from this branch and continue the agent conversation there.",
+      "workspaceNameLabel": "Workspace name",
+      "firstMessageLabel": "First message (optional)",
+      "firstMessagePlaceholder": "Sent once the new agent is ready. Leave empty to type it yourself.",
+      "resumeTitle": "Continue this conversation",
+      "resumeBody": "The new agent reopens this conversation as a copy with its full history: {{command}}",
+      "contextTitle": "Captured context only",
+      "contextBody": "No reopenable conversation for this pane (no session ID yet, or the agent cannot fork one). The new agent receives a bounded transcript as an editable draft instead.",
+      "uncommittedHint": "Uncommitted changes stay in the current workspace.",
+      "resumedToast": "Conversation continued in a new child workspace",
+      "forkOpenedToast": "Session fork opened in a new child workspace",
+      "firstMessageCopied": "The first message could not be sent on this host; it was copied to the clipboard."
     }
   },
   "dashboardPopout": {

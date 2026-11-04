@@ -94,7 +94,14 @@ export function getAgentResumeArgv(
 const FORK_ARGV: Partial<
   Record<ResumableTuiAgent, (providerSession: AgentProviderSessionMetadata) => string[] | null>
 > = {
-  claude: ({ id }) => ['claude', '--resume', id, '--fork-session'],
+  // Replay the live effort like a plain resume: Claude restores only its saved per-model default.
+  claude: ({ id, effort }) => [
+    'claude',
+    ...(effort ? ['--effort', effort] : []),
+    '--resume',
+    id,
+    '--fork-session'
+  ],
   codex: ({ id }) => ['codex', 'fork', id],
   grok: ({ id }) => ['grok', '--resume', id, '--fork-session'],
   pi: ({ transcriptPath }) => (transcriptPath ? ['pi', '--fork', transcriptPath] : null)

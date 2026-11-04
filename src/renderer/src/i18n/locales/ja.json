@@ -3382,9 +3382,6 @@
           },
           "TerminalAgentSessionForkDialog": {
             "17fc841e59": "コンテキストをコピーする",
-            "0c8a8629b1": "フォークは、ネストされた子としてではなく、独自のワークスペースとして表示されます。新規 Agent は、編集可能なドラフトとして制限されたトランスクリプトを受け取ります。",
-            "620461df22": "トップレベルのフォーク",
-            "619b5a35d2": "最上位のワークスペースフォークを作成し、キャプチャされたコンテキストを使用して新しい Agent タブを開始します。",
             "64e292e8e3": "Agent セッションをフォークする",
             "9d25de2920": "フォークの作成",
             "2b10412cfc": "作成中…"
@@ -3503,7 +3500,6 @@
               "session": {
                 "fork": {
                   "2317900211": "フォークコンテキストのコピーに失敗しました。",
-                  "88e34d00eb": "新規ワークスペースで開かれたトップレベルのセッションフォーク",
                   "fd3d12a1e1": "フォークワークスペースの作成に失敗しました。",
                   "38e41edc6e": "このワークスペースを git ワークツリーにフォークすることはできません。",
                   "f867385bb5": "このフォークのソースワークスペースが見つかりませんでした。",
@@ -19867,6 +19863,20 @@
     },
     "wslHostMark": {
       "runsOn": "WSL で実行: {{distro}} (Linux)"
+    },
+    "terminalAgentSessionFork": {
+      "description": "Create a child workspace from this branch and continue the agent conversation there.",
+      "workspaceNameLabel": "Workspace name",
+      "firstMessageLabel": "First message (optional)",
+      "firstMessagePlaceholder": "Sent once the new agent is ready. Leave empty to type it yourself.",
+      "resumeTitle": "Continue this conversation",
+      "resumeBody": "The new agent reopens this conversation as a copy with its full history: {{command}}",
+      "contextTitle": "Captured context only",
+      "contextBody": "No reopenable conversation for this pane (no session ID yet, or the agent cannot fork one). The new agent receives a bounded transcript as an editable draft instead.",
+      "uncommittedHint": "Uncommitted changes stay in the current workspace.",
+      "resumedToast": "Conversation continued in a new child workspace",
+      "forkOpenedToast": "Session fork opened in a new child workspace",
+      "firstMessageCopied": "The first message could not be sent on this host; it was copied to the clipboard."
     }
   },
   "dashboardPopout": {

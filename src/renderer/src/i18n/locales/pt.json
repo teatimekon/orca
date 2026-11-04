@@ -16256,7 +16256,6 @@
               "session": {
                 "fork": {
                   "2317900211": "Falha ao copiar o contexto do fork.",
-                  "88e34d00eb": "Fork da sessão de nível superior aberto em um novo espaço de trabalho",
                   "fd3d12a1e1": "Falha ao criar o espaço de trabalho do fork.",
                   "38e41edc6e": "Este espaço de trabalho não pode ter fork feito em uma worktree git.",
                   "f867385bb5": "Não foi possível encontrar o espaço de trabalho de origem deste fork.",
@@ -16403,9 +16402,6 @@
           },
           "TerminalAgentSessionForkDialog": {
             "17fc841e59": "Copiar contexto",
-            "0c8a8629b1": "O fork aparece como seu próprio espaço de trabalho, não como um filho aninhado. O novo agente recebe uma transcrição limitada como um rascunho editável.",
-            "620461df22": "Fork de nível superior",
-            "619b5a35d2": "Crie um fork de espaço de trabalho de nível superior e inicie uma nova aba de agente com o contexto capturado.",
             "64e292e8e3": "Fazer Fork da Sessão do Agente",
             "9d25de2920": "Criar fork",
             "2b10412cfc": "Criando..."
@@ -21520,6 +21516,20 @@
     },
     "wslHostMark": {
       "runsOn": "Executa no WSL: {{distro}} (Linux)"
+    },
+    "terminalAgentSessionFork": {
+      "description": "Create a child workspace from this branch and continue the agent conversation there.",
+      "workspaceNameLabel": "Workspace name",
+      "firstMessageLabel": "First message (optional)",
+      "firstMessagePlaceholder": "Sent once the new agent is ready. Leave empty to type it yourself.",
+      "resumeTitle": "Continue this conversation",
+      "resumeBody": "The new agent reopens this conversation as a copy with its full history: {{command}}",
+      "contextTitle": "Captured context only",
+      "contextBody": "No reopenable conversation for this pane (no session ID yet, or the agent cannot fork one). The new agent receives a bounded transcript as an editable draft instead.",
+      "uncommittedHint": "Uncommitted changes stay in the current workspace.",
+      "resumedToast": "Conversation continued in a new child workspace",
+      "forkOpenedToast": "Session fork opened in a new child workspace",
+      "firstMessageCopied": "The first message could not be sent on this host; it was copied to the clipboard."
     }
   },
   "csv": {

@@ -1,5 +1,6 @@
 import { toast } from 'sonner'
 import { useAppStore } from '@/store'
+import type { AiVaultAgent } from '../../../shared/ai-vault-types'
 import { translate } from '@/i18n/i18n'
 import { launchAiVaultSessionInNewTab } from './launch-ai-vault-session'
 import { activateAiVaultResumeWorkspace } from '@/components/right-sidebar/ai-vault-session-resume-in-chat-launch'
@@ -7,7 +8,8 @@ import { notifyAiVaultSessionQueued } from '@/components/right-sidebar/ai-vault-
 import { agentLabel } from '@/components/right-sidebar/ai-vault-session-filters'
 
 export async function launchAiVaultSessionAndReveal(
-  args: Parameters<typeof launchAiVaultSessionInNewTab>[0],
+  // The launcher takes any terminal agent; this AI Vault wrapper still names a vault agent for its toasts.
+  args: Parameters<typeof launchAiVaultSessionInNewTab>[0] & { agent: AiVaultAgent },
   describeFailure: (message: string) => string = (message) => message
 ): Promise<void> {
   const launch = launchAiVaultSessionInNewTab(args)

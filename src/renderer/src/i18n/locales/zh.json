@@ -3371,9 +3371,6 @@
           },
           "TerminalAgentSessionForkDialog": {
             "17fc841e59": "复制上下文",
-            "0c8a8629b1": "派生会话会显示为独立工作区，而非嵌套子项。新智能体会收到一份有界转录稿，可作为可编辑草稿。",
-            "620461df22": "顶级派生",
-            "619b5a35d2": "创建一个顶级工作区分支并使用捕获的上下文启动一个新的智能体选项卡。",
             "64e292e8e3": "派生智能体会话",
             "9d25de2920": "创建派生",
             "2b10412cfc": "创建中..."
@@ -3492,7 +3489,6 @@
               "session": {
                 "fork": {
                   "2317900211": "无法复制派生上下文。",
-                  "88e34d00eb": "顶级会话分支在新工作区中打开",
                   "fd3d12a1e1": "无法创建派生工作区。",
                   "38e41edc6e": "该工作区无法派生为 Git 工作树。",
                   "f867385bb5": "找不到此派生的源工作区。",
@@ -19857,6 +19853,20 @@
     },
     "wslHostMark": {
       "runsOn": "在 WSL 上运行：{{distro}}（Linux）"
+    },
+    "terminalAgentSessionFork": {
+      "description": "从当前分支创建一个子工作区，并在那里继续这段智能体会话。",
+      "workspaceNameLabel": "工作区名称",
+      "firstMessageLabel": "第一条消息（可选）",
+      "firstMessagePlaceholder": "新智能体就绪后自动发送；留空则进去后自己输入。",
+      "resumeTitle": "继续这段对话",
+      "resumeBody": "新智能体以副本方式重新打开这段对话，完整保留历史：{{command}}",
+      "contextTitle": "仅复制上下文",
+      "contextBody": "这个面板没有可续接的对话（还没有会话 ID，或该智能体不支持派生对话）。新智能体将改为收到一份有界转录稿作为可编辑草稿。",
+      "uncommittedHint": "未提交的改动会留在当前工作区。",
+      "resumedToast": "已在新的子工作区继续这段对话",
+      "forkOpenedToast": "已在新的子工作区打开派生会话",
+      "firstMessageCopied": "第一条消息无法在该主机上自动发送，已复制到剪贴板。"
     }
   },
   "dashboardPopout": {

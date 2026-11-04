@@ -5,20 +5,26 @@ import { settleAgentTabLaunch } from '@/lib/launch-agent-in-new-tab-host-agents'
 import { newAgentPromptOutcome } from '@/lib/new-agent-prompt-outcome'
 import { buildAgentSessionForkPrompt } from '@/lib/agent-session-fork-context'
 import { activateAndRevealWorktree } from '@/lib/worktree-activation'
-import { resolveOwner } from '@/lib/resolve-owner'
-import { toRuntimeExecutionHostId, type ExecutionHostId } from '../../../../shared/execution-host'
 import { useAppStore } from '@/store'
 import { makePaneKey } from '../../../../shared/stable-pane-id'
 import { TUI_AGENT_CONFIG } from '../../../../shared/tui-agent-config'
 import { getForkAgentLaunchPlatform } from './terminal-agent-session-fork-launch-platform'
-import { slugifyForWorkspaceName } from '../../../../shared/workspace-name'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
 import type { TuiAgent } from '../../../../shared/tui-agent'
-import { getLocalProjectExecutionRuntimeContext } from '@/lib/local-preflight-context'
 import { copyAgentSessionContext } from '@/lib/copy-agent-session-context'
 import { translate } from '@/i18n/i18n'
 import { planAgentSessionLaunch } from '@/lib/agent-session-launch-plan'
 import { newAgentLaunchRequestId } from '@/lib/agent-launch-request-id'
+import {
+  launchAgentSessionForkResume,
+  resolvePaneAgentSessionForkResume,
+  type AgentSessionForkResume
+} from './terminal-agent-session-fork-resume'
+import {
+  buildForkWorkspaceName,
+  createAgentSessionForkWorkspace
+} from './terminal-agent-session-fork-workspace'
+
+export type { AgentSessionForkResume } from './terminal-agent-session-fork-resume'
 
 type ForkAgentSessionFromPaneArgs = {
   pane: ManagedPane
@@ -32,36 +38,21 @@ export type PreparedAgentSessionFork = {
   agent: TuiAgent | null
   worktreeId: string
   focusSource: () => void
+  /** Present when the fork continues the conversation itself instead of pasting captured context. */
+  resume?: AgentSessionForkResume
+  /** Suggested workspace name, offered for editing in the dialog. */
+  defaultWorkspaceName?: string
 }
 
-function buildForkWorkspaceName(sourceName: string): string {
-  return slugifyForWorkspaceName(`${sourceName}-fork`) || 'session-fork'
+export type AgentSessionForkOptions = {
+  /** Workspace (and branch) name the user typed; empty keeps the `<source>-fork` default. */
+  workspaceName?: string
+  /** Sent to the forked agent once it is ready; empty leaves the user to type. */
+  firstMessage?: string
 }
 
 function resolveTuiAgent(value: string | null | undefined): TuiAgent | null {
   return value && Object.hasOwn(TUI_AGENT_CONFIG, value) ? (value as TuiAgent) : null
-}
-
-function getUsableForkBase(
-  worktree:
-    | { branch?: string | null; isArchived?: boolean; isBare?: boolean; repoId?: string }
-    | null
-    | undefined,
-  repo: { kind?: string } | null | undefined,
-  worktreeId: string
-): string | null {
-  const branch = worktree?.branch?.trim()
-  if (
-    worktreeId === FLOATING_TERMINAL_WORKTREE_ID ||
-    !branch ||
-    worktree?.isArchived ||
-    worktree?.isBare ||
-    !repo ||
-    repo.kind === 'folder'
-  ) {
-    return null
-  }
-  return branch
 }
 
 async function copyForkContext(prompt: string, focusSource: () => void): Promise<boolean> {
@@ -101,7 +92,7 @@ export function prepareAgentSessionForkFromPane({
     state.tabsByWorktree[worktreeId]?.find((tab) => tab.id === tabId)?.launchAgent
   )
   const agent = sourceAgent ?? tabAgent
-  // This forks context, not the process; xterm capture works for both local and SSH panes.
+  // Captured text stays the fallback: a pane without a forkable conversation still forks its context.
   const prompt = buildAgentSessionForkPrompt({
     capturedText: pane.serializeAddon.serialize({ scrollback: 800 }),
     sourceLabel: paneKey,
@@ -119,11 +110,17 @@ export function prepareAgentSessionForkFromPane({
     return null
   }
 
+  const sourceWorktree = state.getKnownWorktreeById(worktreeId)
+  const resume = resolvePaneAgentSessionForkResume(state, paneKey, agent)
   return {
     prompt,
     agent,
     worktreeId,
-    focusSource: () => pane.terminal.focus()
+    focusSource: () => pane.terminal.focus(),
+    ...(resume ? { resume } : {}),
+    defaultWorkspaceName: buildForkWorkspaceName(
+      sourceWorktree?.displayName || sourceWorktree?.branch || ''
+    )
   }
 }
 
@@ -145,108 +142,62 @@ export async function copyAgentSessionContextFromPane(pane: ManagedPane): Promis
   )
 }
 
-/** The transport that owns the source: its server, else where this app reaches it (local or SSH). */
-function forkCreationHostId(
-  state: Parameters<typeof resolveOwner>[0],
-  worktreeId: string
-): ExecutionHostId | undefined {
-  const owner = resolveOwner(state, { workspaceId: worktreeId })
-  if (owner.kind !== 'resolved') {
-    return undefined
+export async function startAgentSessionFork(
+  fork: PreparedAgentSessionFork,
+  options: AgentSessionForkOptions = {}
+): Promise<boolean> {
+  const workspace = await createAgentSessionForkWorkspace({
+    worktreeId: fork.worktreeId,
+    agent: fork.agent,
+    workspaceName: options.workspaceName
+  })
+  if (!workspace) {
+    return false
   }
-  const { endpoint, at } = owner.owner
-  return endpoint.kind === 'environment' ? toRuntimeExecutionHostId(endpoint.environmentId) : at
-}
+  const { forkWorktreeId } = workspace
+  const firstMessage = options.firstMessage?.trim() ?? ''
 
-export async function startAgentSessionFork(fork: PreparedAgentSessionFork): Promise<boolean> {
-  const store = useAppStore.getState()
-  const sourceWorktree = store.getKnownWorktreeById(fork.worktreeId)
-  if (!sourceWorktree) {
-    toast.error(
-      translate(
-        'auto.components.terminal.pane.terminal.agent.session.fork.f867385bb5',
-        'Could not find the source workspace for this fork.'
+  if (fork.resume) {
+    // The launcher opens the fork surface; revealing must not seed a sibling shell.
+    const revealed = activateAndRevealWorktree(forkWorktreeId, {
+      sidebarRevealBehavior: 'auto',
+      providesInitialSurface: true
+    })
+    if (
+      revealed !== false &&
+      launchAgentSessionForkResume({ resume: fork.resume, forkWorktreeId, firstMessage })
+    ) {
+      toast.success(
+        translate(
+          'components.terminalAgentSessionFork.resumedToast',
+          'Conversation continued in a new child workspace'
+        )
       )
-    )
-    return false
+      return true
+    }
   }
-  const sourceRepo = store.repos.find((repo) => repo.id === sourceWorktree.repoId)
-  const sourceProjectRuntime = getLocalProjectExecutionRuntimeContext(store, fork.worktreeId)
-  const sourceBranch = getUsableForkBase(sourceWorktree, sourceRepo, fork.worktreeId)
-  if (!sourceBranch) {
-    toast.error(
-      translate(
-        'auto.components.terminal.pane.terminal.agent.session.fork.38e41edc6e',
-        'This workspace cannot be forked into a git worktree.'
-      )
-    )
-    return false
-  }
-  const forkName = buildForkWorkspaceName(sourceWorktree.displayName || sourceBranch)
-  let created: Awaited<ReturnType<typeof store.createWorktree>>
-  try {
-    created = await store.createWorktree(
-      sourceWorktree.repoId,
-      forkName,
-      sourceBranch,
-      'inherit',
-      undefined,
-      'terminal_context_menu',
-      `Fork of ${sourceWorktree.displayName || forkName}`,
-      undefined,
-      undefined,
-      undefined,
-      fork.agent ?? undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      // Why: a project two hosts publish refuses a host-less create; the fork belongs on its source's host.
-      { executionHostId: forkCreationHostId(store, fork.worktreeId) }
-    )
-  } catch (error) {
-    toast.error(
-      error instanceof Error
-        ? error.message
-        : translate(
-            'auto.components.terminal.pane.terminal.agent.session.fork.fd3d12a1e1',
-            'Failed to create fork workspace.'
-          )
-    )
-    return false
-  }
-  const forkWorktreeId = created.worktree.id
 
   if (!fork.agent) {
     activateAndRevealWorktree(forkWorktreeId, { sidebarRevealBehavior: 'auto' })
     return copyAgentSessionForkContext(fork)
   }
+  const prompt = firstMessage ? `${fork.prompt}\n\n${firstMessage}` : fork.prompt
   const agentSessionLaunchPlan = planAgentSessionLaunch(useAppStore.getState(), {
     requestId: newAgentLaunchRequestId(),
     agent: fork.agent,
     workspace: { kind: 'git-worktree', worktreeId: forkWorktreeId },
-    prompt: fork.prompt,
+    prompt,
     promptDelivery: 'draft'
   })
   const launchPlatform = getForkAgentLaunchPlatform({
-    repo: sourceRepo,
-    worktreePath: created.worktree.path,
-    projectRuntime: sourceProjectRuntime
+    repo: workspace.sourceRepo,
+    worktreePath: workspace.worktreePath,
+    projectRuntime: workspace.sourceProjectRuntime
   })
   const result = launchAgentInNewTab({
     agent: fork.agent,
     worktreeId: forkWorktreeId,
-    prompt: fork.prompt,
+    prompt,
     promptDelivery: 'draft',
     launchSource: 'terminal_context_menu',
     agentSessionLaunchPlan,
@@ -276,8 +227,8 @@ export async function startAgentSessionFork(fork: PreparedAgentSessionFork): Pro
 function notifyForkOpened(): void {
   toast.success(
     translate(
-      'auto.components.terminal.pane.terminal.agent.session.fork.88e34d00eb',
-      'Top-level session fork opened in a new workspace'
+      'components.terminalAgentSessionFork.forkOpenedToast',
+      'Session fork opened in a new child workspace'
     )
   )
 }
