@@ -48,9 +48,6 @@ const ResourceUsageStatusSegment = lazyWithRetry(() =>
     default: module.ResourceUsageStatusSegment
   }))
 )
-const PortsStatusSegment = lazyWithRetry(() =>
-  import('./PortsStatusSegment').then((module) => ({ default: module.PortsStatusSegment }))
-)
 const SshStatusSegment = lazyWithRetry(() =>
   import('./SshStatusSegment').then((module) => ({ default: module.SshStatusSegment }))
 )
@@ -98,7 +95,6 @@ export function StatusBarSurface({
     showEmptyUsageCta,
     showFloatingTerminalToggle,
     showFloatingWorkspaceAttentionDot,
-    showPorts,
     showResourceUsage,
     showSsh,
     statusBarUsageMode,
@@ -308,9 +304,6 @@ export function StatusBarSurface({
             {petEnabled ? <PetStatusSegment /> : null}
             {showResourceUsage ? (
               <ResourceUsageStatusSegment compact={compact} iconOnly={segmentsIconOnly} />
-            ) : null}
-            {showPorts ? (
-              <PortsStatusSegment compact={compact} iconOnly={segmentsIconOnly} />
             ) : null}
             {showSsh ? <SshStatusSegment compact={compact} iconOnly={segmentsIconOnly} /> : null}
           </React.Suspense>

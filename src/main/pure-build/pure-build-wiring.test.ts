@@ -91,7 +91,11 @@ const REMOVED: readonly (readonly [string, string])[] = [
   [
     'renderer/src/components/settings/advanced/ExperimentalPane.tsx',
     'EphemeralVmsExperimentalSetting'
-  ]
+  ],
+  // O4 background port scanner and port surfaces
+  ['renderer/src/app-shell/AppBackgroundServices.tsx', 'WorkspacePortScanner'],
+  ['renderer/src/components/status-bar/StatusBarSurface.tsx', 'PortsStatusSegment'],
+  ['renderer/src/components/right-sidebar/PortsPanel.tsx', 'HostScopedPortsPanel']
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -126,7 +130,13 @@ const KEPT: readonly (readonly [string, string])[] = [
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerEphemeralVmHandlers'],
   ['main/startup/main-process-runtime-launch.ts', 'installCloudSessionShutdownFlush'],
   ['main/runtime/mobile-cloud-relay/relay-auth-context.ts', 'readFreshOrcaCloudSession'],
-  ['renderer/src/lib/sidebar-worktree-activation.ts', 'resumeWorkspace']
+  ['renderer/src/lib/sidebar-worktree-activation.ts', 'resumeWorkspace'],
+  ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerWorkspacePortHandlers'],
+  ['renderer/src/components/right-sidebar/PortsPanel.tsx', 'SshPortsPanel'],
+  [
+    'renderer/src/components/browser-pane/new-tab/use-browser-new-tab-servers.ts',
+    'refreshWorkspacePortScanForTarget'
+  ]
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [

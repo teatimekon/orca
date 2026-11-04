@@ -5,7 +5,6 @@ import { useActiveWorktree } from '@/store/selectors'
 import { translate } from '@/i18n/i18n'
 import { LocalWorkspacePortsPanel } from './local-workspace-ports-panel'
 import { SshPortsPanel } from './ssh-ports-panel'
-import { HostScopedPortsPanel } from './host-scoped-ports-panel'
 import {
   getPortsPanelOwnerKey,
   portsPanelForwardTargetId,
@@ -27,19 +26,9 @@ export default function PortsPanel({ isVisible }: { isVisible: boolean }): React
   const sshForwardTargetId = useAppStore((state) =>
     portsPanelForwardTargetId(host, state.runtimeEnvironments)
   )
-  const scopedHost = useMemo(
-    () =>
-      host.kind === 'host-scoped' && workspaceId
-        ? { route: host.route, executionHostId: host.executionHostId, worktreeId: workspaceId }
-        : null,
-    [host, workspaceId]
-  )
 
   if (!workspaceId) {
     return <LocalWorkspacePortsPanel isVisible={isVisible} runtimeTarget={null} />
-  }
-  if (scopedHost) {
-    return <HostScopedPortsPanel host={scopedHost} isVisible={isVisible} />
   }
   switch (host.kind) {
     case 'direct-ssh':
