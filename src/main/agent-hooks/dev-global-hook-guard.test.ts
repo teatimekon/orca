@@ -10,6 +10,13 @@ vi.mock('./local-agent-cli-presence', () => ({
 
 import { globalHookWritesDisabled } from './dev-global-hook-guard'
 import { installManagedAgentHooks } from './managed-agent-hook-controls'
+import {
+  MANAGED_AGENT_HOOK_ASYNC_REMOVERS,
+  MANAGED_AGENT_HOOK_INSTALLERS,
+  MANAGED_AGENT_HOOK_REMOVERS,
+  MANAGED_AGENT_HOOK_SCRIPT_REFRESHERS,
+  MANAGED_AGENT_HOOK_STATUS_READERS
+} from './managed-agent-hook-registry'
 import { writeHooksJson, writeManagedScript } from './installer-utils'
 
 describe('globalHookWritesDisabled', () => {
@@ -39,8 +46,18 @@ describe('with ORCA_DEV_NO_GLOBAL_HOOKS=1', () => {
   it('skips every installer without probing CLIs', async () => {
     const results = await installManagedAgentHooks(null, {})
     expect(results.length).toBeGreaterThan(0)
+    expect(results.map((r) => r.agent)).toEqual(['claude', 'codex', 'dsh'])
     expect(results.every((r) => r.state === 'skipped' && r.detail?.includes('ORCA_DEV'))).toBe(true)
     expect(detectPresence).not.toHaveBeenCalled()
+  })
+
+  it('registers only claude, codex and dsh in every managed list', () => {
+    const expected = ['claude', 'codex', 'dsh']
+    expect(MANAGED_AGENT_HOOK_INSTALLERS.map(([agent]) => agent)).toEqual(expected)
+    expect(MANAGED_AGENT_HOOK_SCRIPT_REFRESHERS.map(([agent]) => agent)).toEqual(expected)
+    expect(MANAGED_AGENT_HOOK_REMOVERS.map(([agent]) => agent)).toEqual(expected)
+    expect(MANAGED_AGENT_HOOK_STATUS_READERS.map(([agent]) => agent)).toEqual(expected)
+    expect(MANAGED_AGENT_HOOK_ASYNC_REMOVERS).toHaveLength(0)
   })
 
   it('does not write scripts or hooks json', () => {

@@ -26,7 +26,9 @@ const REMOVED: readonly (readonly [string, string])[] = [
   ['main/startup/main-process-preflight.ts', 'startEventLoopDelayProbe'],
   ['main/startup/main-process-preflight.ts', 'startEventLoopStallProbe'],
   ['main/startup/main-process-preflight.ts', 'startMainThreadChurnProbe'],
-  ['main/startup/main-process-preflight.ts', 'setSpawnObserver']
+  ['main/startup/main-process-preflight.ts', 'setSpawnObserver'],
+  // O2 managed hook registry
+  ['main/startup/main-process-ready-runtime.ts', 'refreshInstalledOpenCodeStatusPlugins']
 ]
 /** Wiring that must survive because kept code awaits it: [file, identifier present]. */
 const KEPT: readonly (readonly [string, string])[] = [
@@ -47,7 +49,11 @@ const KEPT: readonly (readonly [string, string])[] = [
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerTelemetryHandlers'],
   ['main/ipc/register-core-handlers/register-core-handlers.ts', 'registerDiagnosticsHandlers'],
   ['main/startup/main-process-ready-runtime.ts', 'recordProcessGoneCrash'],
-  ['main/startup/main-process-preflight.ts', 'logStartupDiagnostic']
+  ['main/startup/main-process-preflight.ts', 'logStartupDiagnostic'],
+  ['main/startup/main-process-ready-runtime.ts', 'startCodexHooks'],
+  ['main/startup/main-process-ready-runtime.ts', 'reconcileStartupManagedAgentHooks'],
+  ['main/startup/main-process-ready-runtime.ts', 'hydrateAgentCliShellPath'],
+  ['main/ipc/pty/host-env/assembly.ts', 'piTitlebarExtensionService']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [
