@@ -4,10 +4,12 @@ import type {
   PiWebSessionState,
   PiWebStatusFrame
 } from '../../shared/pi-web/pi-web-status-types'
-import { applyPiWebFrame, type PiWebReducerContext } from './pi-web-row-reducer'
+import { applyPiWebBinding, applyPiWebFrame, type PiWebReducerContext } from './pi-web-row-reducer'
 
+// s1 was opened in an Orca tab of wt1; every other session is unbound.
+const bound: Record<string, string> = { s1: 'wt1' }
 const ctx: PiWebReducerContext = {
-  resolveWorktreeId: (cwd) => (cwd.startsWith('/wt') ? 'wt1' : null),
+  resolveWorktreeId: (sessionId) => bound[sessionId] ?? null,
   now: () => 1000
 }
 
@@ -58,10 +60,23 @@ describe('applyPiWebFrame', () => {
     expect(r.delta.upserts).toEqual([])
   })
 
-  it('ignores unmapped cwd', () => {
-    const r = applyPiWebFrame(rowsOf(), status({ cwd: '/other' }), ctx)
-    expect(r.rows.size).toBe(0)
-    expect(r.delta).toEqual({ upserts: [], removals: [], events: [] })
+  it('ignores a session no Orca tab opened, whatever its cwd', () => {
+    const frames: PiWebStatusFrame[] = [
+      status({ id: 'phone' }),
+      status({ id: 'phone', status: 'awaiting_input' }),
+      { type: 'completed', id: 'phone', cwd: '/wt/a', name: 'n', endedAt: 900 },
+      { type: 'snapshot', sessions: [session({ id: 'phone' })] }
+    ]
+    for (const frame of frames) {
+      const r = applyPiWebFrame(rowsOf(), frame, ctx)
+      expect(r.rows.size).toBe(0)
+      expect(r.delta).toEqual({ upserts: [], removals: [], events: [] })
+    }
+  })
+
+  it('maps a bound session to its tab workspace, not to its cwd', () => {
+    const r = applyPiWebFrame(rowsOf(), status({ cwd: '/elsewhere/sub/dir' }), ctx)
+    expect(r.rows.get('s1')).toMatchObject({ worktreeId: 'wt1', cwd: '/elsewhere/sub/dir' })
   })
 
   it('working status creates a working row at now', () => {
@@ -166,5 +181,39 @@ describe('applyPiWebFrame', () => {
     const r = applyPiWebFrame(rowsOf(row()), { type: 'heartbeat' }, ctx)
     expect(r.delta).toEqual({ upserts: [], removals: [], events: [] })
     expect(r.rows.get('s1')).toEqual(row())
+  })
+})
+
+describe('applyPiWebBinding', () => {
+  const movedTo = (worktreeId: string): PiWebReducerContext => ({
+    resolveWorktreeId: (sessionId) => (sessionId === 's1' ? worktreeId : null),
+    now: () => 2000
+  })
+
+  it('a run already under way when its tab binds it shows at once, without a notification', () => {
+    const working = applyPiWebBinding(rowsOf(), 's1', session(), ctx)
+    expect(working.rows.get('s1')).toMatchObject({ worktreeId: 'wt1', state: 'working' })
+    expect(working.delta.upserts).toHaveLength(1)
+
+    const blocked = applyPiWebBinding(rowsOf(), 's1', session({ status: 'awaiting_input' }), ctx)
+    expect(blocked.rows.get('s1')?.state).toBe('blocked')
+    expect(blocked.delta.events).toEqual([])
+  })
+
+  it('an idle or unknown session gets no row until it runs', () => {
+    expect(applyPiWebBinding(rowsOf(), 's1', session({ status: 'idle' }), ctx).rows.size).toBe(0)
+    expect(applyPiWebBinding(rowsOf(), 's1', undefined, ctx).delta.upserts).toEqual([])
+  })
+
+  it('rebinding moves the row, done or not, to the new workspace', () => {
+    const done = row({ state: 'done', lastCompletedEndedAt: 900 })
+    const r = applyPiWebBinding(rowsOf(done), 's1', undefined, movedTo('wt2'))
+    expect(r.rows.get('s1')).toEqual({ ...done, worktreeId: 'wt2', updatedAt: 2000 })
+    expect(r.delta.upserts).toEqual([r.rows.get('s1')])
+
+    const next = applyPiWebFrame(r.rows, status({ status: 'awaiting_input' }), movedTo('wt2'))
+    expect(next.delta.events).toEqual([
+      { sessionId: 's1', worktreeId: 'wt2', name: 'n', kind: 'needs-input' }
+    ])
   })
 })

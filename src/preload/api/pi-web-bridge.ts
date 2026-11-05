@@ -1,6 +1,7 @@
 import { ipcRenderer } from 'electron'
 import {
   PI_WEB_IPC,
+  type PiWebBindRequest,
   type PiWebEffectiveConfig,
   type PiWebEnsureResult,
   type PiWebRow,
@@ -14,6 +15,13 @@ export const piWebApi = {
   getEffectiveConfig: (): Promise<PiWebEffectiveConfig> =>
     ipcRenderer.invoke(PI_WEB_IPC.getEffectiveConfig),
   dismiss: (sessionId: string): Promise<void> => ipcRenderer.invoke(PI_WEB_IPC.dismiss, sessionId),
+  bind: (request: PiWebBindRequest): Promise<void> => ipcRenderer.invoke(PI_WEB_IPC.bind, request),
+  getServerUrl: (): Promise<string | null> => ipcRenderer.invoke(PI_WEB_IPC.getServerUrl),
+  onServerUrlChanged: (callback: (url: string) => void): (() => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, url: string): void => callback(url)
+    ipcRenderer.on(PI_WEB_IPC.serverUrlChanged, listener)
+    return () => ipcRenderer.removeListener(PI_WEB_IPC.serverUrlChanged, listener)
+  },
   onStatusChanged: (callback: (delta: PiWebStatusDelta) => void): (() => void) => {
     const listener = (_event: Electron.IpcRendererEvent, delta: PiWebStatusDelta): void =>
       callback(delta)

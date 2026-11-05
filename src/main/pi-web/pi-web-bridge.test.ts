@@ -5,16 +5,17 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } fr
 import {
   DEFAULT_PI_WEB_SETTINGS,
   PI_WEB_IPC,
+  type PiWebBindRequest,
   type PiWebSessionState,
   type PiWebSettings
 } from '../../shared/pi-web/pi-web-status-types'
 import { PiWebBridge, type PiWebBridgeDeps } from './pi-web-bridge'
 import type { PiWebLaunchResult } from './pi-web-launcher'
 import type { PiWebStreamHandlers } from './pi-web-status-stream'
-import type { PiWebWorktreePathEntry } from './pi-web-worktree-index'
 
 const URL = 'http://127.0.0.1:30142'
-const WT: PiWebWorktreePathEntry = { worktreeId: 'repo::/w/proj', path: '/w/proj' }
+const WT = 'repo::/w/proj'
+const OTHER = 'folder:notes'
 const BASE_CONFIG: PiWebSettings = {
   ...DEFAULT_PI_WEB_SETTINGS,
   serverUrl: URL,
@@ -58,14 +59,14 @@ function createHarness(
   const sent: { channel: string; payload: unknown }[] = []
   const streams: FakeStream[] = []
   let config = BASE_CONFIG
-  let worktrees = [WT]
+  let workspaces = [WT, OTHER]
   let configListener: (() => void) | null = null
   const discover = vi.fn(opts.discover ?? (async () => URL))
   const launch = vi.fn(opts.launch ?? (async (): Promise<PiWebLaunchResult> => ({ ok: true })))
   const bridge = new PiWebBridge({
     rowsFilePath: file,
     getConfig: () => config,
-    listWorktreePaths: () => worktrees,
+    listWorkspaceIds: () => workspaces,
     sendToRenderer: (channel, payload) => sent.push({ channel, payload }),
     onConfigChanged: (listener) => {
       configListener = listener
@@ -86,7 +87,7 @@ function createHarness(
     }
   })
   bridges.push(bridge)
-  return {
+  const h = {
     bridge,
     file,
     sent,
@@ -97,10 +98,22 @@ function createHarness(
       config = next
       configListener?.()
     },
-    setWorktrees(next: PiWebWorktreePathEntry[]) {
-      worktrees = next
+    setWorkspaces(next: string[]) {
+      workspaces = next
+    },
+    /** Status deltas only, in order. */
+    deltas() {
+      return h.sent.filter((m) => m.channel === PI_WEB_IPC.statusChanged).map((m) => m.payload)
+    },
+    frame(frame: Parameters<PiWebStreamHandlers['onFrame']>[0]) {
+      h.streams.at(-1)?.handlers.onFrame(frame)
     }
   }
+  return h
+}
+
+function opened(sessionId: string, worktreeId = WT): PiWebBindRequest {
+  return { sessionId, worktreeId, restored: false }
 }
 
 async function settle(): Promise<void> {
@@ -131,9 +144,11 @@ describe('PiWebBridge', () => {
     h.bridge.start()
     await settle()
     expect(h.streams.map((s) => s.url)).toEqual([URL])
+    h.bridge.bind(opened('s1'))
+    h.sent.length = 0
 
     h.streams[0].handlers.onFrame({ type: 'heartbeat' })
-    h.streams[0].handlers.onFrame({ type: 'status', session: session({ cwd: '/elsewhere' }) })
+    h.streams[0].handlers.onFrame({ type: 'status', session: session({ id: 'phone' }) })
     h.streams[0].handlers.onFrame({
       type: 'status',
       session: session({ status: 'awaiting_input' })
@@ -146,39 +161,45 @@ describe('PiWebBridge', () => {
           upserts: [
             expect.objectContaining({
               sessionId: 's1',
-              worktreeId: WT.worktreeId,
+              worktreeId: WT,
               state: 'blocked'
             })
           ],
           removals: [],
-          events: [
-            { sessionId: 's1', worktreeId: WT.worktreeId, name: 'chat', kind: 'needs-input' }
-          ]
+          events: [{ sessionId: 's1', worktreeId: WT, name: 'chat', kind: 'needs-input' }]
         }
       }
     ])
   })
 
-  it('persists and restores rows across restart', async () => {
+  it('persists rows and bindings across restart', async () => {
     const h = createHarness()
     h.bridge.start()
     await settle()
-    h.streams[0].handlers.onFrame({ type: 'status', session: session() })
+    h.bridge.bind(opened('s1'))
+    h.bridge.bind(opened('idle'))
+    h.frame({ type: 'status', session: session() })
     h.bridge.stop()
     expect(h.streams[0].closed).toBe(true)
 
     const next = createHarness({ file: h.file })
     next.bridge.start()
+    await settle()
 
     expect(next.bridge.getSnapshot()).toEqual([
-      expect.objectContaining({ sessionId: 's1', worktreeId: WT.worktreeId, state: 'working' })
+      expect.objectContaining({ sessionId: 's1', worktreeId: WT, state: 'working' })
     ])
+    next.frame({ type: 'snapshot', sessions: [session({ id: 'idle' })] })
+    expect(next.bridge.getSnapshot().map((r) => r.sessionId)).toEqual(['s1', 'idle'])
   })
 
   it('debounces row saves until 500ms after the last change', async () => {
     const h = createHarness()
     h.bridge.start()
     await settle()
+    h.bridge.bind(opened('a'))
+    h.bridge.bind(opened('b'))
+    await vi.advanceTimersByTimeAsync(500)
     const stream = h.streams[0].handlers
     const restoredIds = (): string[] => {
       const probe = createHarness({ file: h.file })
@@ -307,15 +328,17 @@ describe('PiWebBridge', () => {
     expect(silent.discover).toHaveBeenCalledTimes(61)
   })
 
-  it('dismiss removes and persists', async () => {
+  it('dismiss removes the row, unbinds the session and persists', async () => {
     const h = createHarness()
     h.bridge.start()
     await settle()
-    h.streams[0].handlers.onFrame({ type: 'status', session: session() })
+    h.bridge.bind(opened('s1'))
+    h.frame({ type: 'status', session: session() })
     await vi.advanceTimersByTimeAsync(500)
     h.sent.length = 0
 
     h.bridge.dismiss('s1')
+    h.frame({ type: 'completed', id: 's1', cwd: '/w/proj', name: 'chat', endedAt: 5 })
 
     expect(h.bridge.getSnapshot()).toEqual([])
     expect(h.sent).toEqual([
@@ -323,6 +346,8 @@ describe('PiWebBridge', () => {
     ])
     const next = createHarness({ file: h.file })
     next.bridge.start()
+    await settle()
+    next.frame({ type: 'status', session: session() })
     expect(next.bridge.getSnapshot()).toEqual([])
   })
 
@@ -347,30 +372,113 @@ describe('PiWebBridge', () => {
     expect(h.streams.map((s) => s.closed)).toEqual([true, true])
   })
 
-  it('rebuilds the worktree index on snapshots and at most every 10s', async () => {
+  it('rows come only from sessions an Orca tab opened, whatever their cwd', async () => {
     const h = createHarness()
     h.bridge.start()
     await settle()
-    const stream = h.streams[0].handlers
-    const notes = { worktreeId: 'folder:notes', path: '/w/notes' }
-    const docs = { worktreeId: 'repo::/w/docs', path: '/w/docs' }
+    h.frame({ type: 'snapshot', sessions: [] })
+    h.frame({ type: 'status', session: session({ id: 'api', cwd: '/w/proj' }) })
+    h.frame({ type: 'status', session: session({ id: 'sub', cwd: '/w/proj/docs/sft' }) })
+    h.frame({ type: 'completed', id: 'api', cwd: '/w/proj', name: 'chat', endedAt: 5 })
+    expect(h.deltas()).toEqual([])
 
-    stream.onFrame({ type: 'snapshot', sessions: [] })
-    h.setWorktrees([WT, notes])
-    stream.onFrame({ type: 'status', session: session({ id: 'n', cwd: '/w/notes' }) })
-    expect(h.bridge.getSnapshot()).toEqual([])
-    await vi.advanceTimersByTimeAsync(10_000)
-    stream.onFrame({ type: 'status', session: session({ id: 'n', cwd: '/w/notes' }) })
+    // The composer tab turns to ?session=sub mid-run: the row shows at once, quietly.
+    h.bridge.bind(opened('sub', OTHER))
+    h.frame({ type: 'status', session: session({ id: 'sub', status: 'idle' }) })
+    h.frame({ type: 'completed', id: 'sub', cwd: '/w/proj/docs/sft', name: 'chat', endedAt: 9 })
 
-    h.setWorktrees([WT, notes, docs])
-    stream.onFrame({
-      type: 'snapshot',
-      sessions: [session({ id: 'n', cwd: '/w/notes' }), session({ id: 'd', cwd: '/w/docs' })]
+    expect(h.deltas()).toEqual([
+      {
+        upserts: [
+          expect.objectContaining({ sessionId: 'sub', worktreeId: OTHER, state: 'working' })
+        ],
+        removals: [],
+        events: []
+      },
+      { upserts: [expect.objectContaining({ state: 'done' })], removals: [], events: [] },
+      {
+        upserts: [expect.objectContaining({ lastCompletedEndedAt: 9 })],
+        removals: [],
+        events: [{ sessionId: 'sub', worktreeId: OTHER, name: 'chat', kind: 'completed' }]
+      }
+    ])
+    expect(h.bridge.getSnapshot().map((r) => r.sessionId)).toEqual(['sub'])
+  })
+
+  it('a newer tab moves the row; a tab restored at startup keeps the existing binding', async () => {
+    const h = createHarness()
+    h.bridge.start()
+    await settle()
+    h.bridge.bind(opened('s1'))
+    h.frame({ type: 'status', session: session() })
+
+    h.bridge.bind({ sessionId: 's1', worktreeId: OTHER, restored: true })
+    expect(h.bridge.getSnapshot()).toEqual([expect.objectContaining({ worktreeId: WT })])
+
+    h.bridge.bind(opened('s1', OTHER))
+    expect(h.bridge.getSnapshot()).toEqual([expect.objectContaining({ worktreeId: OTHER })])
+    expect(h.deltas().at(-1)).toEqual({
+      upserts: [expect.objectContaining({ sessionId: 's1', worktreeId: OTHER, state: 'working' })],
+      removals: [],
+      events: []
     })
 
+    // A restored tab does bind a session nobody holds, e.g. after the v1 rows were dropped.
+    h.bridge.bind({ sessionId: 's2', worktreeId: WT, restored: true })
+    h.frame({ type: 'status', session: session({ id: 's2' }) })
     expect(h.bridge.getSnapshot().map((r) => [r.sessionId, r.worktreeId])).toEqual([
-      ['n', 'folder:notes'],
-      ['d', 'repo::/w/docs']
+      ['s1', OTHER],
+      ['s2', WT]
+    ])
+  })
+
+  it('keeps the binding when pi-web unloads an idle session', async () => {
+    const h = createHarness()
+    h.bridge.start()
+    await settle()
+    h.bridge.bind(opened('s1'))
+    h.frame({ type: 'status', session: session() })
+    h.frame({ type: 'removed', id: 's1' })
+    expect(h.bridge.getSnapshot()).toEqual([expect.objectContaining({ state: 'done' })])
+
+    h.frame({ type: 'status', session: session() })
+
+    expect(h.bridge.getSnapshot()).toEqual([expect.objectContaining({ state: 'working' })])
+  })
+
+  it('binds only to local workspaces, re-reading them for one created since', async () => {
+    const h = createHarness()
+    h.bridge.start()
+    await settle()
+    h.frame({ type: 'snapshot', sessions: [session({ id: 'n' }), session({ id: 'r' })] })
+
+    h.bridge.bind(opened('r', 'ssh-repo::/srv/app'))
+    h.setWorkspaces([WT, OTHER, 'repo::/w/proj.wt/new'])
+    h.bridge.bind(opened('n', 'repo::/w/proj.wt/new'))
+
+    expect(h.bridge.getSnapshot().map((r) => [r.sessionId, r.worktreeId])).toEqual([
+      ['n', 'repo::/w/proj.wt/new']
+    ])
+
+    // A removed workspace's sessions go quiet instead of notifying for a workspace that is gone.
+    const sentBefore = h.deltas().length
+    h.setWorkspaces([WT, OTHER])
+    h.frame({ type: 'snapshot', sessions: [session({ id: 'n', status: 'awaiting_input' })] })
+    h.frame({ type: 'completed', id: 'n', cwd: '/w/proj', name: 'chat', endedAt: 5 })
+    expect(h.deltas()).toHaveLength(sentBefore)
+  })
+
+  it('tells the renderer which server its tabs bind against', async () => {
+    const h = createHarness()
+    expect(h.bridge.getServerUrl()).toBeNull()
+    h.bridge.start()
+    await settle()
+    h.streams[0].handlers.onClose('error')
+    await vi.advanceTimersByTimeAsync(1000)
+
+    expect(h.bridge.getServerUrl()).toBe(URL)
+    expect(h.sent.filter((m) => m.channel === PI_WEB_IPC.serverUrlChanged)).toEqual([
+      { channel: PI_WEB_IPC.serverUrlChanged, payload: URL }
     ])
   })
 })
@@ -381,7 +489,7 @@ describe('PiWebBridge effective config', () => {
       rowsFilePath: rowsFile(),
       getConfig: () => BASE_CONFIG,
       getEnvOverrides: () => ({ agentDir: 'ORCA_PI_WEB_AGENT_DIR' }),
-      listWorktreePaths: () => [],
+      listWorkspaceIds: () => [],
       sendToRenderer: () => {}
     })
     expect(bridge.getEffectiveConfig()).toEqual({
@@ -391,7 +499,7 @@ describe('PiWebBridge effective config', () => {
     const plain = new PiWebBridge({
       rowsFilePath: rowsFile(),
       getConfig: () => BASE_CONFIG,
-      listWorktreePaths: () => [],
+      listWorkspaceIds: () => [],
       sendToRenderer: () => {}
     })
     expect(plain.getEffectiveConfig()).toEqual({ config: BASE_CONFIG, envOverrides: {} })

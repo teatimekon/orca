@@ -1,5 +1,6 @@
 import {
   PI_WEB_IPC,
+  type PiWebBindRequest,
   type PiWebEffectiveConfig,
   type PiWebEnsureResult,
   type PiWebEnvOverrides,
@@ -10,22 +11,16 @@ import {
 } from '../../shared/pi-web/pi-web-status-types'
 import { discoverPiWebServer } from './pi-web-discovery'
 import { launchPiWebServer, type PiWebLaunchResult } from './pi-web-launcher'
-import { applyPiWebFrame } from './pi-web-row-reducer'
-import { loadPiWebRows, savePiWebRows } from './pi-web-row-store'
+import { applyPiWebBinding, applyPiWebFrame, type PiWebReducerContext } from './pi-web-row-reducer'
+import { loadPiWebState, savePiWebState } from './pi-web-row-store'
+import { PiWebSessionBindings } from './pi-web-session-bindings'
 import { openPiWebStatusStream, type PiWebStreamHandlers } from './pi-web-status-stream'
-import {
-  buildPiWebWorktreeIndex,
-  resolvePiWebWorktreeId,
-  type PiWebWorktreeIndex,
-  type PiWebWorktreePathEntry
-} from './pi-web-worktree-index'
 
 const INITIAL_BACKOFF_MS = 1_000
 const MAX_BACKOFF_MS = 30_000
 const INCOMPATIBLE_RETRY_MS = 60_000
 const DISCOVERY_RETRY_MS = 15_000
 const SAVE_DEBOUNCE_MS = 500
-const INDEX_REFRESH_MS = 10_000
 const ENSURE_POLL_MS = 1_000
 const ENSURE_POLL_ATTEMPTS = 60
 
@@ -36,7 +31,8 @@ export type PiWebBridgeDeps = {
   getConfig(): PiWebSettings
   /** The fields an ORCA_PI_WEB_* variable sets this session; the settings UI shows them read-only. */
   getEnvOverrides?(): PiWebEnvOverrides
-  listWorktreePaths(): PiWebWorktreePathEntry[]
+  /** Ids of this desktop's local workspaces; a binding to any other id is ignored. */
+  listWorkspaceIds(): Iterable<string>
   sendToRenderer(channel: string, payload: unknown): void
   now?(): number
   /** Called on every settings change; the bridge reconnects only if the resolved config differs. */
@@ -56,8 +52,9 @@ function wait(ms: number): Promise<void> {
 
 export class PiWebBridge {
   private rows = new Map<string, PiWebRow>()
-  private index: PiWebWorktreeIndex = []
-  private indexBuiltAt = Number.NEGATIVE_INFINITY
+  private readonly bindings: PiWebSessionBindings
+  // The server the status stream last connected to; renderer tabs on its origin bind sessions.
+  private serverUrl: string | null = null
   private config: PiWebSettings | null = null
   private running = false
   // Bumped by every disconnect so callbacks from a superseded attempt are ignored.
@@ -68,18 +65,21 @@ export class PiWebBridge {
   private saveTimer: ReturnType<typeof setTimeout> | null = null
   private backoffAttempt = 0
   private warnedIncompatible = false
-  private readonly unmappedCwds = new Set<string>()
   private ensuring: Promise<PiWebEnsureResult> | null = null
   private unsubscribeConfig: (() => void) | null = null
 
-  constructor(private readonly deps: PiWebBridgeDeps) {}
+  constructor(private readonly deps: PiWebBridgeDeps) {
+    this.bindings = new PiWebSessionBindings(() => deps.listWorkspaceIds())
+  }
 
   start(): void {
     if (this.running) {
       return
     }
     this.running = true
-    this.rows = loadPiWebRows(this.deps.rowsFilePath, this.now())
+    const stored = loadPiWebState(this.deps.rowsFilePath, this.now())
+    this.rows = stored.rows
+    this.bindings.load(stored.bindings)
     this.config = this.deps.getConfig()
     this.unsubscribeConfig = this.deps.onConfigChanged?.(() => this.handleConfigChanged()) ?? null
     if (this.config.enabled) {
@@ -116,8 +116,29 @@ export class PiWebBridge {
     return this.ensuring
   }
 
+  getServerUrl(): string | null {
+    return this.serverUrl
+  }
+
+  /** A renderer tab of `worktreeId` shows the session: from now on its row lives there. */
+  bind(request: PiWebBindRequest): void {
+    const now = this.now()
+    if (!this.bindings.bind(request, now)) {
+      return
+    }
+    const known = this.bindings.lastKnownState(request.sessionId)
+    const { rows, delta } = applyPiWebBinding(this.rows, request.sessionId, known, this.ctx(now))
+    this.rows = rows
+    this.scheduleSave()
+    if (delta.upserts.length > 0) {
+      this.send(delta)
+    }
+  }
+
+  /** Dismissing a row also unbinds it: the conversation stays hidden until a tab opens it again. */
   dismiss(sessionId: string): void {
     this.rows.delete(sessionId)
+    this.bindings.unbind(sessionId)
     this.flushSave()
     this.send({ upserts: [], removals: [sessionId], events: [] })
   }
@@ -196,7 +217,15 @@ export class PiWebBridge {
       }
       this.stream = stream
       this.streamUrl = url
+      this.publishServerUrl(url)
     })
+  }
+
+  private publishServerUrl(url: string): void {
+    if (this.serverUrl !== url) {
+      this.serverUrl = url
+      this.deps.sendToRenderer(PI_WEB_IPC.serverUrlChanged, url)
+    }
   }
 
   private disconnect(): void {
@@ -258,15 +287,14 @@ export class PiWebBridge {
       return
     }
     const now = this.now()
-    if (frame.type === 'snapshot' || now - this.indexBuiltAt >= INDEX_REFRESH_MS) {
-      this.refreshIndex(now)
-    }
-    const { rows, delta } = applyPiWebFrame(this.rows, frame, {
-      resolveWorktreeId: (cwd) => this.resolveWorktreeId(cwd),
-      now: () => now
-    })
+    this.bindings.noteFrame(frame, now)
+    const { rows, delta } = applyPiWebFrame(this.rows, frame, this.ctx(now))
     this.rows = rows
     if (delta.upserts.length > 0 || delta.removals.length > 0) {
+      this.bindings.touch(
+        delta.upserts.map((row) => row.sessionId),
+        now
+      )
       this.scheduleSave()
     }
     if (delta.upserts.length > 0 || delta.removals.length > 0 || delta.events.length > 0) {
@@ -274,22 +302,8 @@ export class PiWebBridge {
     }
   }
 
-  private refreshIndex(now: number): void {
-    try {
-      this.index = buildPiWebWorktreeIndex(this.deps.listWorktreePaths())
-    } catch (error) {
-      console.warn('[pi-web] failed to list workspace paths', error)
-    }
-    this.indexBuiltAt = now
-  }
-
-  private resolveWorktreeId(cwd: string): string | null {
-    const worktreeId = resolvePiWebWorktreeId(this.index, cwd)
-    if (worktreeId === null && !this.unmappedCwds.has(cwd)) {
-      this.unmappedCwds.add(cwd)
-      console.info('[pi-web] no Orca workspace contains conversation cwd', cwd)
-    }
-    return worktreeId
+  private ctx(now: number): PiWebReducerContext {
+    return { resolveWorktreeId: (sessionId) => this.bindings.resolve(sessionId), now: () => now }
   }
 
   private send(delta: PiWebStatusDelta): void {
@@ -309,7 +323,7 @@ export class PiWebBridge {
       this.saveTimer = null
     }
     try {
-      savePiWebRows(this.deps.rowsFilePath, this.rows)
+      savePiWebState(this.deps.rowsFilePath, this.rows, this.bindings.all())
     } catch (error) {
       console.warn('[pi-web] failed to save rows', error)
     }

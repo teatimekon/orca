@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { FolderWorkspace } from '../../shared/folder-workspace-types'
 import type { Repo } from '../../shared/repo-types'
 import type { WorktreeMeta } from '../../shared/worktree/meta-types'
-import { listPiWebWorktreePaths } from './pi-web-worktree-paths'
+import { listPiWebWorkspaceIds } from './pi-web-workspace-ids'
 
 function repo(over: Partial<Repo> & Pick<Repo, 'id' | 'path'>): Repo {
   return { displayName: over.id, badgeColor: '#000', addedAt: 1, ...over }
@@ -41,8 +41,8 @@ function folder(over: Partial<FolderWorkspace> & Pick<FolderWorkspace, 'id' | 'f
   return workspace
 }
 
-describe('listPiWebWorktreePaths', () => {
-  it('uses the sidebar ids of local git worktrees, folder repos and folder workspaces', () => {
+describe('listPiWebWorkspaceIds', () => {
+  it('lists the sidebar ids of local git worktrees, folder repo instances and folder workspaces', () => {
     const repos = [
       repo({ id: 'app', path: '/w/app' }),
       repo({ id: 'code', path: '/w/code', kind: 'folder' }),
@@ -63,11 +63,12 @@ describe('listPiWebWorktreePaths', () => {
       getProjectGroups: () => []
     }
 
-    expect(listPiWebWorktreePaths(store)).toEqual([
-      { worktreeId: 'app::/w/app.wt/feature', path: '/w/app.wt/feature' },
-      { worktreeId: 'app::/w/app', path: '/w/app' },
-      { worktreeId: 'code::/w/code', path: '/w/code' },
-      { worktreeId: 'folder:notes', path: '/w/notes' }
+    expect([...listPiWebWorkspaceIds(store)]).toEqual([
+      'app::/w/app',
+      'code::/w/code',
+      'app::/w/app.wt/feature',
+      'code::/w/code::workspace:0f9c2a64-1d2b-4c1e-9a7f-3b5d6e7f8a90',
+      'folder:notes'
     ])
   })
 })

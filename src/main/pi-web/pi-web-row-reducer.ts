@@ -7,9 +7,12 @@ import type {
 } from '../../shared/pi-web/pi-web-status-types'
 
 export type PiWebReducerContext = {
-  resolveWorktreeId(cwd: string): string | null
+  /** The workspace whose Orca tab opened the session, or null: unbound sessions get no row. */
+  resolveWorktreeId(sessionId: string): string | null
   now(): number
 }
+
+type Result = { rows: Map<string, PiWebRow>; delta: PiWebStatusDelta }
 
 type Draft = {
   rows: Map<string, PiWebRow>
@@ -37,7 +40,7 @@ function applySession(d: Draft, s: PiWebSessionState, quiet: boolean): void {
   if (s.parentSessionId !== null) {
     return
   }
-  const worktreeId = d.ctx.resolveWorktreeId(s.cwd)
+  const worktreeId = d.ctx.resolveWorktreeId(s.id)
   if (worktreeId === null) {
     return
   }
@@ -63,7 +66,7 @@ function applySession(d: Draft, s: PiWebSessionState, quiet: boolean): void {
 }
 
 function applyCompleted(d: Draft, f: Extract<PiWebStatusFrame, { type: 'completed' }>): void {
-  const worktreeId = d.ctx.resolveWorktreeId(f.cwd)
+  const worktreeId = d.ctx.resolveWorktreeId(f.id)
   if (worktreeId === null) {
     return
   }
@@ -97,12 +100,42 @@ function settle(d: Draft, id: string): void {
   }
 }
 
+function draft(rows: ReadonlyMap<string, PiWebRow>, ctx: PiWebReducerContext): Draft {
+  return { rows: new Map(rows), upserts: new Map(), events: [], ctx }
+}
+
+function result(d: Draft): Result {
+  return {
+    rows: d.rows,
+    delta: { upserts: [...d.upserts.values()], removals: [], events: d.events }
+  }
+}
+
+/** A session just bound: its row moves to the new workspace, and a run under way shows quietly. */
+export function applyPiWebBinding(
+  rows: ReadonlyMap<string, PiWebRow>,
+  sessionId: string,
+  known: PiWebSessionState | undefined,
+  ctx: PiWebReducerContext
+): Result {
+  const d = draft(rows, ctx)
+  const worktreeId = ctx.resolveWorktreeId(sessionId)
+  const prev = d.rows.get(sessionId)
+  if (worktreeId !== null && prev && prev.worktreeId !== worktreeId) {
+    put(d, { ...prev, worktreeId, updatedAt: ctx.now() }, prev)
+  }
+  if (known?.id === sessionId) {
+    applySession(d, known, true)
+  }
+  return result(d)
+}
+
 export function applyPiWebFrame(
   rows: ReadonlyMap<string, PiWebRow>,
   frame: PiWebStatusFrame,
   ctx: PiWebReducerContext
-): { rows: Map<string, PiWebRow>; delta: PiWebStatusDelta } {
-  const d: Draft = { rows: new Map(rows), upserts: new Map(), events: [], ctx }
+): Result {
+  const d = draft(rows, ctx)
   switch (frame.type) {
     case 'status':
       applySession(d, frame.session, false)
@@ -128,8 +161,5 @@ export function applyPiWebFrame(
     case 'heartbeat':
       break
   }
-  return {
-    rows: d.rows,
-    delta: { upserts: [...d.upserts.values()], removals: [], events: d.events }
-  }
+  return result(d)
 }

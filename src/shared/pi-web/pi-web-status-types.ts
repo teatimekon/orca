@@ -48,13 +48,30 @@ export type PiWebStatusDelta = {
 
 export type PiWebEnsureResult = { ok: true; url: string } | { ok: false; reason: string }
 
+/** A conversation an Orca browser tab of `worktreeId` showed; only bound sessions get rows. */
+export type PiWebBinding = {
+  sessionId: string
+  worktreeId: string
+  // Last bind or row change; an idle binding without a row expires from rows.json after a while.
+  touchedAt: number
+}
+
+/**
+ * `restored`: the page was already open when Orca started, so an existing binding wins
+ * (it records which tab opened the conversation last). Otherwise the newest tab wins.
+ */
+export type PiWebBindRequest = { sessionId: string; worktreeId: string; restored: boolean }
+
 export const PI_WEB_IPC = {
   statusChanged: 'piWeb:statusChanged',
   getSnapshot: 'piWeb:getSnapshot',
   ensureServer: 'piWeb:ensureServer',
   dismiss: 'piWeb:dismiss',
   openSession: 'piWeb:openSession',
-  getEffectiveConfig: 'piWeb:getEffectiveConfig'
+  getEffectiveConfig: 'piWeb:getEffectiveConfig',
+  bind: 'piWeb:bind',
+  getServerUrl: 'piWeb:getServerUrl',
+  serverUrlChanged: 'piWeb:serverUrlChanged'
 } as const
 
 export type PiWebSettings = {
