@@ -144,7 +144,7 @@ const REMOVED: readonly (readonly [string, string])[] = [
   ],
   ['renderer/src/components/settings/advanced/ExperimentalPane.tsx', 'experimentalPet'],
   // O18 browser extras (stream-remote kept by coordinator ruling)
-  ['main/startup/main-process-ready-runtime.ts', 'AgentBrowserBridge'],
+  ['main/startup/main-process-ready-runtime.ts', 'sweepOrphanedSessions'],
   ['main/startup/main-process-ready-foundation.ts', 'switchBrowserExtensionSupport'],
   ['renderer/src/App.tsx', 'BrowserExtensionInstallDialog'],
   ['renderer/src/App.tsx', 'BrowserWebAuthnAccountDialog'],
@@ -406,7 +406,9 @@ const KEPT: readonly (readonly [string, string])[] = [
   ],
   ['main/runtime/rpc/methods/index.ts', 'AUTOMATION_METHODS'],
   ['main/ipc/pty/host-env/opencode-config.ts', 'MANAGED_AGENT_HOOK_INSTALLERS'],
-  ['main/opencode/opencode-status-plugin-startup-refresh.ts', 'MANAGED_AGENT_HOOK_INSTALLERS']
+  ['main/opencode/opencode-status-plugin-startup-refresh.ts', 'MANAGED_AGENT_HOOK_INSTALLERS'],
+  ['main/startup/main-process-ready-runtime.ts', 'AgentBrowserBridge'],
+  ['main/startup/main-process-ready-runtime.ts', 'setAgentBrowserBridge']
 ]
 /** Platform-gated wiring: [file, guard text, identifier the guard precedes within 200 chars]. */
 const GUARDED: readonly (readonly [string, string, string])[] = [
