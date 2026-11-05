@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { piWebPaneKey } from '../../../../shared/pi-web/pi-web-pane-key'
+import type { BrowserPage, BrowserWorkspace } from '../../../../shared/browser-workspace-types'
 import type {
   PiWebAttentionEvent,
+  PiWebBindRequest,
   PiWebRow,
   PiWebStatusDelta
 } from '../../../../shared/pi-web/pi-web-status-types'
@@ -182,5 +184,54 @@ describe('registerPiWebIpcBridge', () => {
     drop?.('wt-1', { shutdownReason: 'remove-worktree' })
     expect(liveRow('session-registry-drop')).toBeUndefined()
     expect(lookupPiWebRow(paneKey)).toBeNull()
+  })
+
+  it('binds the conversation a workspace tab shows on the server main reports', async () => {
+    const binds: PiWebBindRequest[] = []
+    let pushServerUrl: (url: string) => void = () => {}
+    const api = window.api.piWeb
+    vi.stubGlobal('window', {
+      api: {
+        piWeb: {
+          ...api,
+          bind: vi.fn(async (request: PiWebBindRequest) => {
+            binds.push(request)
+          }),
+          getServerUrl: vi.fn(async () => null),
+          onServerUrlChanged: (callback: (url: string) => void) => {
+            pushServerUrl = callback
+            return () => {}
+          }
+        }
+      }
+    })
+    const showing = (url: string) => {
+      const fields = { worktreeId: 'wt-1', url, title: 'pi-web', loading: false, createdAt: 0 }
+      const nav = { faviconUrl: null, canGoBack: false, canGoForward: false, loadError: null }
+      const tab: BrowserWorkspace = {
+        ...fields,
+        ...nav,
+        id: 'bw',
+        activePageId: 'p',
+        pageIds: ['p']
+      }
+      const page: BrowserPage = { ...fields, ...nav, id: 'p', workspaceId: 'bw' }
+      storeHolder.current?.setState({
+        workspaceSessionReady: true,
+        browserTabsByWorktree: { 'wt-1': [tab] },
+        browserPagesByWorkspace: { bw: [page] }
+      })
+    }
+    showing('http://127.0.0.1:30141/?session=restored&orcaEmbed=1')
+    registerPiWebIpcBridge([])
+    await vi.waitFor(() => expect(window.api.piWeb.getServerUrl).toHaveBeenCalled())
+
+    pushServerUrl('http://127.0.0.1:30141')
+    showing('http://127.0.0.1:30141/?session=opened')
+
+    expect(binds).toEqual([
+      { sessionId: 'restored', worktreeId: 'wt-1', restored: true },
+      { sessionId: 'opened', worktreeId: 'wt-1', restored: false }
+    ])
   })
 })
