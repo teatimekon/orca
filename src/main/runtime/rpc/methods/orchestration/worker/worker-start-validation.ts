@@ -11,6 +11,12 @@ import {
 import type { WorkerStartInput } from './worker-start-schema'
 
 type WorkerStartLaunch = ReturnType<typeof resolveWorkerLaunchPreferences>
+/** `reusedAgent`: the `--agent` given beside `--terminal`, checked against the agent already there. */
+type WorkerStartAgent = {
+  agent: TuiAgent | undefined
+  launch: WorkerStartLaunch
+  reusedAgent?: string
+}
 
 export function validateFederatedWorkerStartPlacement(
   params: WorkerStartInput,
@@ -34,12 +40,6 @@ export function validateFederatedWorkerStartPlacement(
       'Creation and setup options apply only to remote new-child or new-top-level worktrees.'
     )
   }
-  if (params.terminal && params.agent) {
-    throw new OrchestrationError(
-      'invalid_argument',
-      '--terminal reuses an existing agent and cannot combine with --agent.'
-    )
-  }
   if (!params.terminal && !params.agent) {
     throw new OrchestrationError(
       'agent_unconfigured',
@@ -53,15 +53,9 @@ export function prepareLocalWorkerStart(args: {
   createsWorktree: boolean
   runtime: OrcaRuntimeService
   openCodeModelLaunchSupported?: boolean
-}): { agent: TuiAgent | undefined; launch: WorkerStartLaunch } {
+}): WorkerStartAgent {
   const { params, createsWorktree, runtime } = args
   assertWorkerLaunchPreferencesCreateTerminal(params)
-  if (params.terminal && params.agent) {
-    throw new OrchestrationError(
-      'invalid_argument',
-      '--terminal reuses an existing agent and cannot combine with --agent.'
-    )
-  }
   if (createsWorktree && params.terminal) {
     throw new OrchestrationError(
       'invalid_argument',
@@ -91,7 +85,7 @@ export function prepareFederationAttachmentWorkerStart(args: {
   createsWorktree: boolean
   runtime: OrcaRuntimeService
   openCodeModelLaunchSupported?: boolean
-}): { agent: TuiAgent | undefined; launch: WorkerStartLaunch } {
+}): WorkerStartAgent {
   const { params, createsWorktree, runtime } = args
   assertWorkerLaunchPreferencesCreateTerminal(params)
   if (createsWorktree && !params.repo) {
@@ -113,12 +107,6 @@ export function prepareFederationAttachmentWorkerStart(args: {
     throw new OrchestrationError(
       'invalid_argument',
       'Creation and setup options apply only to remote new-top-level worktrees.'
-    )
-  }
-  if (params.terminal && params.agent) {
-    throw new OrchestrationError(
-      'invalid_argument',
-      '--terminal reuses an existing agent and cannot combine with --agent.'
     )
   }
   return resolveWorkerStartAgent({
@@ -143,33 +131,31 @@ function resolveWorkerStartAgent(args: {
   model?: string
   effort?: string
   missingAgentMessage: string
-}): { agent: TuiAgent | undefined; launch: WorkerStartLaunch } {
+}): WorkerStartAgent {
   const agent = args.agent
     ? isTuiAgent(args.agent)
       ? args.agent
       : args.runtime.resolveOrchestrationAgentLauncher?.(args.agent)
     : undefined
-  if (!args.terminal && !agent) {
+  if (args.terminal) {
+    return {
+      agent: undefined,
+      launch: { preferences: undefined, receipt: createWorkerLaunchReceipt({ agent: null }) },
+      ...(args.agent ? { reusedAgent: agent ?? args.agent } : {})
+    }
+  }
+  if (!agent) {
     throw new OrchestrationError('agent_unconfigured', args.missingAgentMessage)
   }
-  if (agent) {
-    args.runtime.validateOrchestrationAgentLauncher(agent)
-    return {
-      agent,
-      launch: resolveWorkerLaunchPreferences({
-        agent,
-        openCodeModelLaunchSupported: args.openCodeModelLaunchSupported,
-        createsWorktree: args.createsWorktree,
-        model: args.model,
-        effort: args.effort
-      })
-    }
-  }
+  args.runtime.validateOrchestrationAgentLauncher(agent)
   return {
-    agent: undefined,
-    launch: {
-      preferences: undefined,
-      receipt: createWorkerLaunchReceipt({ agent: null })
-    }
+    agent,
+    launch: resolveWorkerLaunchPreferences({
+      agent,
+      openCodeModelLaunchSupported: args.openCodeModelLaunchSupported,
+      createsWorktree: args.createsWorktree,
+      model: args.model,
+      effort: args.effort
+    })
   }
 }

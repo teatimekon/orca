@@ -19,6 +19,7 @@ import {
 import { FederationAttachStartParams } from '../../../../../../shared/rpc-contract/orchestration-federation-start-params'
 import { failFederatedAttachmentWithReceipt } from './federation-start-receipt'
 import { prepareFederationWorkerLaunchOnHost } from '../worker/worker-opencode-model-preflight'
+import { assertReusedWorkerAgent } from '../worker/explicit-worker-terminal-validation'
 import {
   isWorkerStartTimeoutWithinTimerLimit,
   resolveWorkerStartReadinessTimeoutMs
@@ -56,7 +57,7 @@ export const ORCHESTRATION_FEDERATION_ATTACH_METHODS = [
         )
       }
       const createsWorktree = params.worktree === 'new-top-level'
-      const { agent, launch } = await prepareFederationWorkerLaunchOnHost({
+      const { agent, launch, reusedAgent } = await prepareFederationWorkerLaunchOnHost({
         params,
         createsWorktree,
         runtime
@@ -143,6 +144,11 @@ export const ORCHESTRATION_FEDERATION_ATTACH_METHODS = [
                 `Terminal ${terminalHandle} is not running a recognized agent.`
               )
             }
+            assertReusedWorkerAgent(
+              `Terminal ${terminalHandle}`,
+              terminal.agentIdentity,
+              reusedAgent
+            )
             effects.push({
               kind: 'terminal',
               role: 'agent',

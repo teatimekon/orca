@@ -98,7 +98,7 @@ export async function startLocalWorker(args: {
     )
   }
 
-  const { agent, launch } = prepareLocalWorkerStart({
+  const { agent, launch, reusedAgent } = prepareLocalWorkerStart({
     params: launchParams,
     createsWorktree,
     runtime,
@@ -133,7 +133,8 @@ export async function startLocalWorker(args: {
       terminal,
       from: params.from,
       coordinator,
-      resolvedWorktreeId: resolvedWorktree?.id
+      resolvedWorktreeId: resolvedWorktree?.id,
+      reusedAgent
     })
   }
   const hostMode = resolveWorkerStartModeOnHost(runtime, args.mode, resolvedWorktree?.id, agent)

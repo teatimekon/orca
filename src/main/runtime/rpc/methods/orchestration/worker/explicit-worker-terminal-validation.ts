@@ -21,6 +21,7 @@ export async function assertExplicitWorkerTerminalUsable(args: {
   from: string
   coordinator: OrchestrationCallerIdentity | null
   resolvedWorktreeId: string | undefined
+  reusedAgent?: string
 }): Promise<void> {
   const { runtime, terminal, from, coordinator, resolvedWorktreeId } = args
   const explicitTerminal = await runtime.showTerminal(terminal)
@@ -54,6 +55,24 @@ export async function assertExplicitWorkerTerminalUsable(args: {
       `Terminal ${terminal} is not running a recognized agent.`
     )
   }
+  assertReusedWorkerAgent(`Terminal ${terminal}`, explicitTerminal.agentIdentity, args.reusedAgent)
+}
+
+/** `--agent` beside `--terminal` names the agent already there; a different one is refused. */
+export function assertReusedWorkerAgent(
+  target: string,
+  running: string | undefined,
+  requested: string | undefined
+): void {
+  if (!requested || requested === running) {
+    return
+  }
+  throw new OrchestrationError(
+    'invalid_argument',
+    running
+      ? `${target} is running ${running}, not ${requested}. Pass --agent ${running}, or omit --agent.`
+      : `Orca can't tell which agent ${target} is running, so it can't match --agent ${requested}. Omit --agent.`
+  )
 }
 
 /** A `--terminal` party: a terminal pane, or a chat named by its Orca session ID. */
@@ -64,6 +83,7 @@ export async function assertExplicitWorkerUsable(args: {
   from: string
   coordinator: OrchestrationCallerIdentity | null
   resolvedWorktreeId: string | undefined
+  reusedAgent?: string
 }): Promise<void> {
   const chat = chatAssigneeOf(args.terminal)
   await (chat
@@ -78,6 +98,7 @@ async function assertExplicitWorkerChatUsable(args: {
   chat: OrcaSessionId
   coordinator: OrchestrationCallerIdentity | null
   resolvedWorktreeId: string | undefined
+  reusedAgent?: string
 }): Promise<void> {
   refuseChatSelfAssignment({
     sessionId: args.chat,
@@ -91,4 +112,5 @@ async function assertExplicitWorkerChatUsable(args: {
       `${formatOrcaSessionAddress(args.chat)} does not belong to worktree ${args.resolvedWorktreeId}.`
     )
   }
+  assertReusedWorkerAgent(formatOrcaSessionAddress(args.chat), session.provider, args.reusedAgent)
 }
