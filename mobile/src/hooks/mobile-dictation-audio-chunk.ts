@@ -19,6 +19,7 @@ import type {
 } from '../platform/dictation-capture-contract'
 import type { MobileDictationPendingAudioBudget } from './mobile-dictation-pending-audio-budget'
 import type { MobileDictationHeldAudio } from './mobile-dictation-held-audio'
+import type { MobileDictationRecording } from './mobile-dictation-recording'
 import type { RpcClient } from '../transport/rpc/rpc-client-contract'
 
 type MobileDictationAudioChunkQueue = {
@@ -31,7 +32,7 @@ type MobileDictationAudioChunkQueue = {
   transcriptSoFar: MobileDictationTranscriptSoFar
 }
 
-// Holding: the microphone runs from the tap while the host's start reply is pending, or for a whole on-device dictation.
+// Holding: the microphone runs from the tap while the host's start reply is pending, or while a replay's host start is.
 export type MobileDictationAudioPhase = 'closed' | 'holding' | 'sending'
 
 // Newer hosts report the text so far: shown while speaking, and handed over by a failure instead of dropped.
@@ -111,7 +112,7 @@ export function subscribeMobileDictationAudioChunks(
     getActiveId: () => string | null
     audioPhase: () => MobileDictationAudioPhase
   },
-  queue: Omit<MobileDictationAudioChunkQueue, 'isActive'>
+  queue: Omit<MobileDictationAudioChunkQueue, 'isActive'> & { recording: MobileDictationRecording }
 ): { remove: () => void; sendHeld: () => void } {
   // Reuse wiring on the microphone hot path instead of allocating per chunk.
   const chunkQueue = { ...queue, isActive: (id: string) => source.getActiveId() === id }
@@ -128,11 +129,15 @@ export function subscribeMobileDictationAudioChunks(
   }
   const subscription = capture.onChunk((chunk) => {
     const dictationId = source.getActiveId()
-    const phase = source.audioPhase()
-    if (!dictationId || phase === 'closed') {
+    if (!dictationId) {
       return
     }
-    // An on-device dictation holds its audio with no computer at all.
+    // Kept whatever the phase, so a phone's failure or a failed send can play it to the computer again.
+    queue.recording.keep(chunk)
+    const phase = source.audioPhase()
+    if (phase === 'closed') {
+      return
+    }
     if (phase === 'holding') {
       queue.heldAudio.hold(chunk)
       return

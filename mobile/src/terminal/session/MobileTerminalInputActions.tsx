@@ -1,4 +1,4 @@
-import type { RefObject } from 'react'
+import { useContext, type RefObject } from 'react'
 import {
   ActivityIndicator,
   Pressable,
@@ -17,7 +17,11 @@ import { useMobileColorScheme } from '../../theme/use-mobile-color-scheme'
 import { keepHeldPressThroughLongPress } from '../../platform/held-press-long-press'
 import { dictationControlsCopy } from '../../dictation/mobile-dictation-controls-copy'
 import { useMobileDictationCancelDrop } from '../../dictation/use-mobile-dictation-cancel-drop'
-import { MobileDictationMicIcon } from '../../dictation/MobileDictationLiveControls'
+import {
+  MobileDictationMicIcon,
+  MobileDictationRetryButton
+} from '../../dictation/MobileDictationLiveControls'
+import { MobileDictationLiveContext } from '../../dictation/mobile-dictation-live-context'
 
 type DictationState = {
   readonly isStarting: boolean
@@ -54,11 +58,19 @@ type MobileTerminalInputActionsProps = MobileTerminalDictationButtonProps &
 
 export function MobileTerminalInputActions(props: MobileTerminalInputActionsProps) {
   const { isStarting, isRecording, isProcessing } = props.dictation
-  // Attach steps aside while dictating so the words get the field's room.
+  const live = useContext(MobileDictationLiveContext)
+  const failed = live?.failureReason != null && !isStarting && !isRecording && !isProcessing
+  // Attach steps aside while dictating or holding a failed recording, so the field gets the room.
   return (
     <>
-      {isStarting || isRecording || isProcessing ? null : <MobileTerminalAttachButton {...props} />}
-      <MobileTerminalDictationButton {...props} />
+      {isStarting || isRecording || isProcessing || failed ? null : (
+        <MobileTerminalAttachButton {...props} />
+      )}
+      {failed && live ? (
+        <MobileDictationRetryButton onRetry={live.retry} labelled={false} />
+      ) : (
+        <MobileTerminalDictationButton {...props} />
+      )}
     </>
   )
 }
