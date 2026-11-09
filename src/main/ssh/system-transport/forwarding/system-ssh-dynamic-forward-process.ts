@@ -4,6 +4,7 @@ import type { SshTarget } from '../../../../shared/ssh-types'
 import { buildForwardProcessSshArgs, type SystemSshBuildArgsOptions } from '../system-ssh-args'
 import { findSystemSsh } from '../system-ssh-binary'
 import { waitForSystemSshForwardStop } from './system-ssh-forward-process'
+import { reserveBrowserTunnelOrcaListenerPort } from '../../../browser/network/tunnels/browser-network-tunnel-destination-policy'
 
 const STARTUP_TIMEOUT_MS = 10_000
 const PROBE_INTERVAL_MS = 50
@@ -29,6 +30,8 @@ export async function startSystemSshDynamicForwardProcess(
   if (signal?.aborted) {
     throw new Error('system_ssh_dynamic_forward_aborted')
   }
+  // The -D listener is an unauthenticated SOCKS proxy into the SSH target's network.
+  const releaseTunnelReservation = reserveBrowserTunnelOrcaListenerPort(localPort)
   const args = buildForwardProcessSshArgs(target, { ...options, nonInteractive: true })
   const destinationIndex = args.lastIndexOf('--')
   // Configured forwards may already be held by the main login; probe our -D listener instead of exiting on their collisions.
@@ -38,6 +41,7 @@ export async function startSystemSshDynamicForwardProcess(
     stdio: ['ignore', 'ignore', 'pipe'],
     windowsHide: true
   })
+  process.once('exit', releaseTunnelReservation)
   let stderr = ''
   const onStderr = (chunk: Buffer): void => {
     stderr = `${stderr}${chunk.toString('utf-8')}`.slice(-64 * 1024)
@@ -56,7 +60,11 @@ export async function startSystemSshDynamicForwardProcess(
   } catch (error) {
     process.stderr?.off('data', onStderr)
     signal?.removeEventListener('abort', onAbort)
-    await waitForSystemSshForwardStop(process)
+    try {
+      await waitForSystemSshForwardStop(process)
+    } finally {
+      releaseTunnelReservation()
+    }
     throw error
   }
   return {

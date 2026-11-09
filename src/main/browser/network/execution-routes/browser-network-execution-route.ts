@@ -8,6 +8,13 @@ import {
   connectThroughBrowserNetworkTunnelProxy,
   type BrowserNetworkTunnelDialer
 } from '../tunnels/browser-network-tunnel-proxy-connect'
+import {
+  auditBrowserTunnelDestinationBlocked,
+  browserTunnelTargetBlockReason,
+  BrowserTunnelDestinationBlockedError,
+  createBrowserTunnelGuardedLookup,
+  isBrowserTunnelPolicyDisabled
+} from '../tunnels/browser-network-tunnel-destination-policy'
 
 export type BrowserNetworkExecutionRoute = {
   key: string
@@ -114,13 +121,29 @@ export function openConnectedSocket(
   })
 }
 
+// Paired clients choose these destinations, so the host refuses metadata and its own Orca listeners.
 export function connectNativeBrowserNetworkTarget(
   target: BrowserNetworkTunnelOpen,
   env: Record<string, string | undefined> = process.env
 ): BrowserNetworkTunnelSocket {
-  return connectThroughBrowserNetworkTunnelProxy(
-    target,
-    selectBrowserNetworkTunnelProxy(target, readNetworkProxySettings(), env),
-    nativeDialer
-  )
+  const proxy = selectBrowserNetworkTunnelProxy(target, readNetworkProxySettings(), env)
+  if (isBrowserTunnelPolicyDisabled(env)) {
+    return connectThroughBrowserNetworkTunnelProxy(target, proxy, nativeDialer)
+  }
+  const reason = browserTunnelTargetBlockReason(target.host, target.port)
+  if (reason) {
+    auditBrowserTunnelDestinationBlocked(target.host, target.port, reason)
+    throw new BrowserTunnelDestinationBlockedError(reason)
+  }
+  return connectThroughBrowserNetworkTunnelProxy(target, proxy, {
+    ...nativeDialer,
+    connect: (destination) =>
+      connect({
+        ...destination,
+        allowHalfOpen: true,
+        lookup: createBrowserTunnelGuardedLookup(destination.port, (blocked) =>
+          auditBrowserTunnelDestinationBlocked(destination.host, destination.port, blocked)
+        )
+      })
+  })
 }
