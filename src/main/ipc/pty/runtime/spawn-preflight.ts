@@ -150,7 +150,6 @@ export async function prepareRuntimePtySpawn(
     resumeProviderSession: args.resumeProviderSession,
     resumeOrigin: args.resumeOrigin,
     connectionId: args.connectionId,
-    paneKey: ptySpawnPaneFromIds(args)?.paneKey,
     env: ctx.env,
     cwd: ctx.cwd,
     shellOverride: ctx.daemonShellOverride,

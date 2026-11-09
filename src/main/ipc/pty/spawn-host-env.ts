@@ -75,7 +75,6 @@ type PtySpawnHostEnvArgs = {
   resumeProviderSession: AgentProviderSessionMetadata | undefined
   resumeOrigin?: unknown
   connectionId?: string | null
-  paneKey?: string | null
   /** The lane's spawn env before Orca's host env. */
   env: Record<string, string> | undefined
   cwd: string | undefined
@@ -132,7 +131,6 @@ async function resolvePtySpawnHostEnvForAct(args: PtySpawnHostEnvArgs): Promise<
         env: args.env,
         providerSession: args.resumeProviderSession,
         resumeOrigin: args.resumeOrigin,
-        paneKey: args.paneKey,
         local: !args.connectionId && !args.expectedWslDistro && target.runtime !== 'wsl'
       })
   const command = claudeResume?.command ?? args.command

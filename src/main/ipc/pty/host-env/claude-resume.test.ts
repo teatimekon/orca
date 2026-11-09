@@ -1,50 +1,46 @@
-import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { AgentStatusIpcPayload } from '../../../../shared/agent-status-types'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV } from '../../../../shared/setup-agent-sequencing'
 import { resolveClaudeSavedResumeLaunch, type ClaudeResumeLaunchArgs } from './claude-resume'
 
-const rows = vi.hoisted(() => ({ current: [] as AgentStatusIpcPayload[] }))
-vi.mock('../../../agent-hooks/server', () => ({
-  agentHookServer: { getStatusSnapshot: () => rows.current }
-}))
-
 const SAVED = '11111111-1111-4111-8111-111111111111'
 const CONTINUED = '22222222-2222-4222-8222-222222222222'
-const OTHER_PANES = '33333333-3333-4333-8333-333333333333'
-const PANE = 'tab-1:leaf-1'
-const PANE_STARTED = 1_800_000_000_000
+const OTHER = '33333333-3333-4333-8333-333333333333'
 
+let configDir: string
 let projectDir: string
 
 beforeEach(() => {
-  projectDir = join(mkdtempSync(join(tmpdir(), 'claude-saved-resume-')), 'projects', '-work-repo')
+  configDir = mkdtempSync(join(tmpdir(), 'claude-saved-resume-'))
+  projectDir = join(configDir, 'projects', '-work-repo')
   mkdirSync(projectDir, { recursive: true })
 })
 
 afterEach(() => {
-  rmSync(join(projectDir, '..', '..'), { recursive: true, force: true })
-  rows.current = []
+  rmSync(configDir, { recursive: true, force: true })
 })
 
-function conversation(id: string, modifiedAt: number): void {
+function conversation(id: string): string {
   const transcriptPath = join(projectDir, `${id}.jsonl`)
   writeFileSync(
     transcriptPath,
     `${JSON.stringify({ type: 'user', sessionId: id, entrypoint: 'cli' })}\n`
   )
-  utimesSync(transcriptPath, modifiedAt / 1000, modifiedAt / 1000)
+  return transcriptPath
 }
 
-function row(paneKey: string, id: string): AgentStatusIpcPayload {
-  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the launch reads only these fields of a status row.
-  return {
-    paneKey,
-    stateStartedAt: PANE_STARTED,
-    providerSession: { key: 'session_id', id, transcriptPath: join(projectDir, `${id}.jsonl`) }
-  } as AgentStatusIpcPayload
+/** The state Claude keeps for a daemon job that took this pane's conversation. */
+function jobContinuedInto(id: string): string {
+  const linkScanPath = conversation(id)
+  const jobDir = join(configDir, 'jobs', SAVED.slice(0, 8))
+  mkdirSync(jobDir, { recursive: true })
+  writeFileSync(
+    join(jobDir, 'state.json'),
+    JSON.stringify({ sessionId: SAVED, resumeSessionId: id, linkScanPath })
+  )
+  return linkScanPath
 }
 
 function savedLaunch(overrides: Partial<ClaudeResumeLaunchArgs> = {}): ClaudeResumeLaunchArgs {
@@ -61,17 +57,14 @@ function savedLaunch(overrides: Partial<ClaudeResumeLaunchArgs> = {}): ClaudeRes
       effort: 'max'
     },
     resumeOrigin: 'saved',
-    paneKey: PANE,
     local: true,
     ...overrides
   }
 }
 
 describe('resolveClaudeSavedResumeLaunch', () => {
-  it('resumes the newest conversation since the pane began that no other pane holds', () => {
-    conversation(CONTINUED, PANE_STARTED + 1_000)
-    conversation(OTHER_PANES, PANE_STARTED + 2_000)
-    rows.current = [row(PANE, SAVED), row('tab-2:leaf-1', OTHER_PANES)]
+  it('resumes the conversation the saved session continued into as a daemon job', () => {
+    const transcriptPath = jobContinuedInto(CONTINUED)
 
     const launch = resolveClaudeSavedResumeLaunch(savedLaunch())
 
@@ -82,7 +75,7 @@ describe('resolveClaudeSavedResumeLaunch', () => {
       providerSession: {
         key: 'session_id',
         id: CONTINUED,
-        transcriptPath: join(projectDir, `${CONTINUED}.jsonl`),
+        transcriptPath,
         cwd: '/work/repo',
         effort: 'max'
       },
@@ -91,8 +84,7 @@ describe('resolveClaudeSavedResumeLaunch', () => {
   })
 
   it('launches Claude without --resume when nothing continued the saved session', () => {
-    conversation(OTHER_PANES, PANE_STARTED + 2_000)
-    rows.current = [row(PANE, SAVED), row('tab-2:leaf-1', OTHER_PANES)]
+    conversation(OTHER)
 
     const launch = resolveClaudeSavedResumeLaunch(savedLaunch())
 
@@ -103,12 +95,11 @@ describe('resolveClaudeSavedResumeLaunch', () => {
   })
 
   it('leaves a resume alone when its transcript exists, the user picked it, or it runs elsewhere', () => {
-    conversation(CONTINUED, PANE_STARTED + 1_000)
-    rows.current = [row(PANE, SAVED)]
+    jobContinuedInto(CONTINUED)
 
     expect(resolveClaudeSavedResumeLaunch(savedLaunch({ resumeOrigin: undefined }))).toBeNull()
     expect(resolveClaudeSavedResumeLaunch(savedLaunch({ local: false }))).toBeNull()
-    conversation(SAVED, PANE_STARTED)
+    conversation(SAVED)
     expect(resolveClaudeSavedResumeLaunch(savedLaunch())).toBeNull()
   })
 })

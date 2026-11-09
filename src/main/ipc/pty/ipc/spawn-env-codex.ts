@@ -17,7 +17,6 @@ export async function assemblePtyIpcSpawnCodexEnv(ctx: PtyIpcSpawnState): Promis
     resumeProviderSession: args.resumeProviderSession,
     resumeOrigin: args.resumeOrigin,
     connectionId: args.connectionId,
-    paneKey: ctx.reservationPaneKey,
     env: ctx.baseEnv,
     cwd: ctx.cwd,
     shellOverride: ctx.effectiveShellOverride,

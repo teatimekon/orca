@@ -151,7 +151,7 @@ export function isFile(filePath: string): boolean {
 }
 
 /** The first bytes of a transcript, enough for the records that name its session. */
-export function readTranscriptHead(transcriptPath: string): string | undefined {
+function readTranscriptHead(transcriptPath: string): string | undefined {
   try {
     const fd = openSync(transcriptPath, 'r')
     try {
