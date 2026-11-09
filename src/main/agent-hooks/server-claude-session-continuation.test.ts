@@ -160,3 +160,24 @@ describe('Claude session continued into a daemon job', () => {
     expect(row(server, GOOD_PANE)?.providerSession?.id).toBe(FORK)
   })
 })
+
+describe('Claude hook whose session_id differs from its transcript file', () => {
+  it('records the conversation the transcript file holds as the resumable session', async () => {
+    const server = await createServer()
+    const forkPath = transcript(FORK)
+
+    await prompt(server, PANE, OLD, forkPath)
+
+    expect(row(server)?.providerSession).toMatchObject({ id: FORK, transcriptPath: forkPath })
+  })
+
+  it('keeps the reported session_id when that session has a transcript of its own', async () => {
+    const server = await createServer()
+    transcript(OLD)
+    const forkPath = transcript(FORK)
+
+    await prompt(server, PANE, OLD, forkPath)
+
+    expect(row(server)?.providerSession).toMatchObject({ id: OLD, transcriptPath: forkPath })
+  })
+})

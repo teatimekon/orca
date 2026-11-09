@@ -8,6 +8,7 @@ import {
 import { readFirstString } from './interactive-tool'
 import type { HookListenerState } from './listener-state'
 import type { AgentHookEventPayload } from './listener-event'
+import { claudeSessionNamedByTranscript } from './claude-resume-target'
 import { isGrokSubagentEvent } from './providers/grok-tool-fields'
 import { isHermesRootSessionEvent, withHermesPaneSessionId } from './providers/hermes-events'
 import { readString } from './tool-input-preview'
@@ -69,10 +70,14 @@ function readPaneProviderSession(
   ) {
     return null
   }
-  const providerSession = extractAgentProviderSession(source, hookPayload)
-  if (!providerSession) {
+  const reported = extractAgentProviderSession(source, hookPayload)
+  if (!reported) {
     return null
   }
+  // Why: resume finds a conversation by its file's id, so a session_id with no file of its own
+  // must not become the pane's restore locator.
+  const providerSession =
+    (source === 'claude' ? claudeSessionNamedByTranscript(reported) : null) ?? reported
   if (source === 'antigravity') {
     const transcriptPath = readPathFromKeys(hookPayload, ['transcriptPath', 'transcript_path'])
     const origin = transcriptPath ? readFirstTranscriptRecord(transcriptPath) : undefined
