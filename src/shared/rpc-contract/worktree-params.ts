@@ -236,7 +236,10 @@ export const WorktreeRemove = WorktreeSelector.extend({
   // Waive failed-hook refusal explicitly and record it; independent of force and whether hooks run (#19334).
   allowFailedArchiveHook: OptionalBoolean,
   // Reply with Git's outcome instead of on acceptance; older hosts strip it and answer `removing: true` (#35135).
-  waitForBackgroundRemoval: OptionalBoolean
+  waitForBackgroundRemoval: OptionalBoolean,
+  // The caller showed that this also destroys the recipe environment Orca created for the workspace.
+  // Absent: today's removal, which leaves that environment running. Older hosts strip it.
+  destroyHost: z.literal(true).optional()
 })
 
 export const WorktreeForceDeleteBranch = WorktreeSelector.extend({

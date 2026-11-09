@@ -3,6 +3,7 @@ import {
   RECIPE_VM_REFUSAL_CODES,
   RecipeVmWakeUnavailableError
 } from '../../../shared/remote-runtime/recipe-vm-wake'
+import { RecipeWorkspaceRemovalError } from '../../../shared/recipe-host-removal'
 import { formatTerminalStartFailure } from '../../../shared/terminal/pty/lifecycle/terminal-start-failure'
 // Centralize the runtimeId envelope and error-code contracts that clients use for decisions and display.
 import { AGENT_LAUNCH_SURFACE_UNAVAILABLE_CODE } from '../../../shared/agent-launch/contracts/agent-launch-surface'
@@ -203,6 +204,10 @@ export function mapRuntimeError(id: string, meta: RpcEnvelopeMeta, error: unknow
   }
   if (error instanceof RecipeVmWakeUnavailableError) {
     return errorResponse(id, meta, error.code, message)
+  }
+  // The environment's own code (archive hook, PTY stop, selector) reaches the phone unchanged.
+  if (error instanceof RecipeWorkspaceRemovalError) {
+    return errorResponse(id, meta, error.code, message, error.data)
   }
   if (
     error instanceof BranchSwitchCollisionError ||

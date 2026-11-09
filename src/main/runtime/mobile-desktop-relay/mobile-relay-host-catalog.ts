@@ -1,3 +1,4 @@
+import type { RecipeEnvironmentDescription } from '../../../shared/recipe-host-removal'
 import {
   parseExecutionHostId,
   toRuntimeExecutionHostId,
@@ -19,6 +20,10 @@ import { SERVER_FETCH_TIMEOUT_MS } from './server-worktree-fetch'
 import { normalizePairedServerRow } from '../../../shared/sidebar-list/paired-server-rows'
 import type { MobileDesktopRelayHosts } from './mobile-desktop-relay-hosts'
 import { describeRelayHosts, relayHostFence } from './mobile-relay-host-descriptions'
+
+export type MobileRelayRecipeEnvironmentLookup = (
+  hostId: string
+) => ReadonlyMap<string, RecipeEnvironmentDescription>
 
 /** Sidebar live rows or per-phone-request fetches, always read as the desktop. */
 export type ServerWorktreeRows = {
@@ -50,6 +55,7 @@ export class MobileRelayHostCatalog {
       serverRows: ServerWorktreeRows
       hostLabelOverrides: () => ReadonlyMap<ExecutionHostId, string>
       getWorkspaceSession: (hostId: ExecutionHostId) => WorkspaceSessionState | null
+      recipeEnvironmentsFor?: MobileRelayRecipeEnvironmentLookup
       now?: () => number
     }
   ) {}
@@ -196,15 +202,31 @@ export class MobileRelayHostCatalog {
         )
       ].map(worktreeIdentityKey)
     )
+    const recipeEnvironments = this.options.recipeEnvironmentsFor?.(
+      toRuntimeExecutionHostId(host.environmentId)
+    )
     // Only desktop reads request background-removal support.
     return {
       worktrees: rows
         .filter((row) => row.removing !== true)
         .map((row) =>
-          stampDesktopSidebarView(row, host.environmentId, desktopDeviceIds, sessionActivity)
+          stampRecipeEnvironment(
+            stampDesktopSidebarView(row, host.environmentId, desktopDeviceIds, sessionActivity),
+            recipeEnvironments
+          )
         )
     }
   }
+}
+
+/** Only this desktop knows which workspaces live on VMs it created; the server's rows can't say. */
+function stampRecipeEnvironment(
+  row: MobileRelayServerWorktreeRow,
+  recipeEnvironments: ReadonlyMap<string, RecipeEnvironmentDescription> | undefined
+): MobileRelayServerWorktreeRow {
+  const environment =
+    typeof row.worktreeId === 'string' ? recipeEnvironments?.get(row.worktreeId) : undefined
+  return environment ? { ...row, recipeEnvironment: environment } : row
 }
 
 /** Bound waiting even while the call sits in the desktop queue, before its own timeout starts. */
