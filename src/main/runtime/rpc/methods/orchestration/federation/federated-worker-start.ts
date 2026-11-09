@@ -67,7 +67,8 @@ export async function startFederatedWorker(args: FederatedWorkerStartRequest): P
   assertWorkerLaunchPreferencesCreateTerminal(params)
   validateFederatedWorkerStartPlacement(params, createsWorktree)
   const requestedLaunch = createPendingWorkerLaunchReceipt({
-    agent: isTuiAgent(params.agent) ? params.agent : null,
+    // With --terminal, --agent only names the agent there; the server checks it.
+    agent: !params.terminal && isTuiAgent(params.agent) ? params.agent : null,
     model: params.model,
     effort: params.effort
   })
@@ -142,7 +143,7 @@ export async function startFederatedWorker(args: FederatedWorkerStartRequest): P
       repo: params.repo ?? null,
       baseBranch: params.baseBranch ?? null,
       terminal: params.terminal ?? null,
-      agent: params.agent ?? null,
+      agent: (!params.terminal && params.agent) || null,
       launch: requestedLaunch,
       timeoutMs: budgets.readinessTimeoutMs,
       setup: setupDecision,
