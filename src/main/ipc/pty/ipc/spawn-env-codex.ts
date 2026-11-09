@@ -1,6 +1,7 @@
 import { isNativeWindowsLocalPtySpawn } from '../../../runtime/terminal-model-query-authority'
 import { resolvePtySpawnHostEnv } from '../spawn-host-env'
 import type { PtyIpcSpawnState } from './spawn-state'
+import type { ClaudeResumeLaunch } from '../host-env/claude-resume'
 
 export async function assemblePtyIpcSpawnCodexEnv(ctx: PtyIpcSpawnState): Promise<void> {
   const args = ctx.args
@@ -14,6 +15,9 @@ export async function assemblePtyIpcSpawnCodexEnv(ctx: PtyIpcSpawnState): Promis
     launchAgent: args.launchAgent,
     command: args.command,
     resumeProviderSession: args.resumeProviderSession,
+    resumeOrigin: args.resumeOrigin,
+    connectionId: args.connectionId,
+    paneKey: ctx.reservationPaneKey,
     env: ctx.baseEnv,
     cwd: ctx.cwd,
     shellOverride: ctx.effectiveShellOverride,
@@ -39,6 +43,7 @@ export async function assemblePtyIpcSpawnCodexEnv(ctx: PtyIpcSpawnState): Promis
       agentCommand: hostEnv.launchCommand ?? ctx.effectiveLaunchConfig.agentCommand
     }
   }
+  applyClaudeResumeLaunch(ctx, hostEnv.claudeResume)
   ctx.launchCommand = hostEnv.launchCommand
   ctx.baseEnv = hostEnv.baseEnv
   ctx.env = hostEnv.env
@@ -47,4 +52,19 @@ export async function assemblePtyIpcSpawnCodexEnv(ctx: PtyIpcSpawnState): Promis
   ctx.skipCodexHomeEnv = hostEnv.skipCodexHomeEnv
   ctx.stripInheritedOrcaCodexHome = hostEnv.stripInheritedOrcaCodexHome
   ctx.spawnTiming.mark('host_env')
+}
+
+/** The spawn reports and seeds the session it actually resumes; a dropped one like Codex's. */
+function applyClaudeResumeLaunch(ctx: PtyIpcSpawnState, launch: ClaudeResumeLaunch | null): void {
+  if (!launch) {
+    return
+  }
+  ctx.args.resumeProviderSession = launch.providerSession
+  if (launch.droppedResumeArgv) {
+    ctx.codexResumeLaunch = {
+      ...ctx.codexResumeLaunch,
+      droppedResumeArgv: true,
+      notifyResumeUnavailable: true
+    }
+  }
 }

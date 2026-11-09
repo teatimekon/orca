@@ -35,6 +35,7 @@ import type {
 import { inheritOmpLaunchEnvironment } from './host-env/omp-launch-environment'
 import { promoteAgentTeamsShimPath } from './host-env/path'
 import type { GetSelectedCodexHomePath } from './host-env/types'
+import { resolveClaudeSavedResumeLaunch, type ClaudeResumeLaunch } from './host-env/claude-resume'
 import { clearProviderPtyState } from './provider/state-cleanup'
 
 export type PtySpawnCodexResumeDeps = {
@@ -56,6 +57,8 @@ export type PtySpawnCodexResumeDeps = {
 
 export type PtySpawnHostEnv = {
   codexResumeLaunch: CodexResumeLaunch
+  /** A saved Claude resume pointed at where its conversation is, or dropped; null when unchanged. */
+  claudeResume: ClaudeResumeLaunch | null
   launchCommand: string | undefined
   /** Environment before host injection; window commits report this snapshot. */
   baseEnv: Record<string, string> | undefined
@@ -70,6 +73,9 @@ type PtySpawnHostEnvArgs = {
   launchAgent: TuiAgent | undefined
   command: string | undefined
   resumeProviderSession: AgentProviderSessionMetadata | undefined
+  resumeOrigin?: unknown
+  connectionId?: string | null
+  paneKey?: string | null
   /** The lane's spawn env before Orca's host env. */
   env: Record<string, string> | undefined
   cwd: string | undefined
@@ -118,6 +124,18 @@ export async function resolvePtySpawnHostEnv(args: PtySpawnHostEnvArgs): Promise
 
 async function resolvePtySpawnHostEnvForAct(args: PtySpawnHostEnvArgs): Promise<PtySpawnHostEnv> {
   const { deps, codexSelectionTarget: target } = args
+  const claudeResume = args.preAdopted
+    ? null
+    : resolveClaudeSavedResumeLaunch({
+        launchAgent: args.launchAgent,
+        command: args.command,
+        env: args.env,
+        providerSession: args.resumeProviderSession,
+        resumeOrigin: args.resumeOrigin,
+        paneKey: args.paneKey,
+        local: !args.connectionId && !args.expectedWslDistro && target.runtime !== 'wsl'
+      })
+  const command = claudeResume?.command ?? args.command
   const codexResumePreparation = args.preAdopted
     ? null
     : deps.prepareCodexResumeHome({
@@ -129,13 +147,16 @@ async function resolvePtySpawnHostEnvForAct(args: PtySpawnHostEnvArgs): Promise<
         ...(args.resumeOnSelectedAccount ? { useSelectedAccount: true } : {})
       })
   const codexResumeLaunch = codexResumePreparation
-    ? await deps.resolveCodexResumeLaunch(args.command, codexResumePreparation)
-    : deps.noCodexResumeLaunch(args.preAdopted ? undefined : args.command)
+    ? await deps.resolveCodexResumeLaunch(command, codexResumePreparation)
+    : deps.noCodexResumeLaunch(args.preAdopted ? undefined : command)
   // Time provenance/hook repair, auth selection and env assembly separately to attribute their different costs.
   args.mark?.('codex_resume')
   const codexResumeHome = codexResumeLaunch.codexResumeHome
   const launchCommand = codexResumeLaunch.command
-  const baseEnv = deps.stripSequencedStartupResumeArgv(args.env, codexResumeLaunch)
+  const baseEnv = deps.stripSequencedStartupResumeArgv(
+    claudeResume?.env ?? args.env,
+    codexResumeLaunch
+  )
   const launchesCodex = args.launchAgent === 'codex'
   const selectLaunchCodexHome = async (): Promise<string | null> =>
     (await deps.getSelectedCodexHomePath?.(target, baseEnv, { launchesCodex })) ?? null
@@ -185,6 +206,7 @@ async function resolvePtySpawnHostEnvForAct(args: PtySpawnHostEnvArgs): Promise<
   const ptySettings = args.isDaemonHostSpawn ? deps.getSettings?.() : undefined
   const hostEnv: PtySpawnHostEnv = {
     codexResumeLaunch,
+    claudeResume,
     launchCommand,
     baseEnv,
     env: baseEnv,

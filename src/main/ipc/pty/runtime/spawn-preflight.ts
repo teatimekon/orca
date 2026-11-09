@@ -148,6 +148,9 @@ export async function prepareRuntimePtySpawn(
     launchAgent: args.launchAgent,
     command: args.command,
     resumeProviderSession: args.resumeProviderSession,
+    resumeOrigin: args.resumeOrigin,
+    connectionId: args.connectionId,
+    paneKey: ptySpawnPaneFromIds(args)?.paneKey,
     env: ctx.env,
     cwd: ctx.cwd,
     shellOverride: ctx.daemonShellOverride,
@@ -166,7 +169,12 @@ export async function prepareRuntimePtySpawn(
     provider: ctx.provider,
     deps: ctx.deps
   })
-  ctx.agentResumeUnavailable = hostEnv.codexResumeLaunch.notifyResumeUnavailable
+  const claudeResumeDropped = hostEnv.claudeResume?.droppedResumeArgv === true
+  if (hostEnv.claudeResume) {
+    args.resumeProviderSession = hostEnv.claudeResume.providerSession
+  }
+  ctx.agentResumeUnavailable =
+    hostEnv.codexResumeLaunch.notifyResumeUnavailable || claudeResumeDropped
   if (hostEnv.codexResumeLaunch.droppedResumeArgv && args.launchConfig) {
     args.launchConfig = {
       ...args.launchConfig,
@@ -174,8 +182,8 @@ export async function prepareRuntimePtySpawn(
     }
   }
   ctx.launchCommand = hostEnv.launchCommand
-  ctx.codexResumeArgvDropped = hostEnv.codexResumeLaunch.droppedResumeArgv
-  ctx.codexResumeUnavailable = hostEnv.codexResumeLaunch.notifyResumeUnavailable
+  ctx.codexResumeArgvDropped = hostEnv.codexResumeLaunch.droppedResumeArgv || claudeResumeDropped
+  ctx.codexResumeUnavailable = ctx.agentResumeUnavailable
   ctx.env = hostEnv.env
   ctx.selectedCodexHomePath = hostEnv.selectedCodexHomePath
   ctx.codexResumeHomeSelected = hostEnv.codexResumeHomeSelected
