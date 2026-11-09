@@ -10,8 +10,10 @@ vi.mock('../selectors', () => ({ getTerminalHandle: vi.fn() }))
 
 import { ORCHESTRATION_HANDLERS } from './orchestration'
 import { printResult } from '../format'
+import { parseArgs, validateCommandAndFlags } from '../args'
 
 import { RuntimeClient } from '../runtime-client'
+import { ORCHESTRATION_WORKER_COMMAND_SPECS } from '../specs/orchestration-worker-specs'
 
 const client = new RuntimeClient('/tmp/orca-worker-cli', 60_000, null, null)
 
@@ -63,5 +65,26 @@ describe('orchestration worker-start CLI contract', () => {
     )
 
     expect(process.exitCode).toBe(1)
+  })
+  it('accepts --terminal with --agent and sends both to the runtime', async () => {
+    const parsed = parseArgs([
+      'orchestration',
+      'worker-start',
+      '--spec',
+      'reuse',
+      '--terminal',
+      'term_worker',
+      '--agent',
+      'codex'
+    ])
+    expect(() => validateCommandAndFlags(ORCHESTRATION_WORKER_COMMAND_SPECS, parsed)).not.toThrow()
+    callMock.mockResolvedValue({
+      result: { taskId: 'task_1', dispatchId: 'ctx_1', state: 'ready', effects: [] }
+    })
+
+    await invokeWorkerStart(parsed.flags)
+
+    const start = callMock.mock.calls.find(([method]) => method === 'orchestration.workerStart')
+    expect(start?.[1]).toMatchObject({ terminal: 'term_worker', agent: 'codex' })
   })
 })
