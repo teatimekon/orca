@@ -29,7 +29,7 @@ export function resolveForkedSession(
   cwd: string | undefined
 ): AgentProviderSessionMetadata | null {
   const forkedPath = findForkedTranscript(transcriptPath, forkedSessionId)
-  if (!forkedPath || !forkHeadNamesSession(forkedPath, forkedSessionId)) {
+  if (!forkedPath || !transcriptHeadNamesSession(forkedPath, forkedSessionId)) {
     return null
   }
   return normalizeAgentProviderSession({
@@ -55,7 +55,7 @@ export function resolveAttachedJobSession(
   const forkedPath = isSiblingFile(transcriptPath, state.linkScanPath)
     ? state.linkScanPath
     : path.join(path.dirname(transcriptPath), `${currentId}.jsonl`)
-  if (!isFile(forkedPath) || !forkHeadNamesSession(forkedPath, currentId)) {
+  if (!isFile(forkedPath) || !transcriptHeadNamesSession(forkedPath, currentId)) {
     return null
   }
   const session = normalizeAgentProviderSession({
@@ -90,7 +90,7 @@ export function resolveClearedJobSession(
     !isClaudeSessionId(state.resumeSessionId) ||
     state.resumeSessionId === session.id ||
     !isSiblingFile(transcriptPath, state.linkScanPath) ||
-    !forkHeadNamesSession(state.linkScanPath, state.resumeSessionId)
+    !transcriptHeadNamesSession(state.linkScanPath, state.resumeSessionId)
   ) {
     return null
   }
@@ -142,7 +142,7 @@ function isSiblingFile(transcriptPath: string, candidate: unknown): candidate is
   )
 }
 
-function isFile(filePath: string): boolean {
+export function isFile(filePath: string): boolean {
   try {
     return statSync(filePath).isFile()
   } catch {
@@ -150,21 +150,24 @@ function isFile(filePath: string): boolean {
   }
 }
 
-/** The fork's own records must carry the new id; a stray file under that name proves nothing. */
-function forkHeadNamesSession(forkedPath: string, sessionId: string): boolean {
-  let head: string
+/** The first bytes of a transcript, enough for the records that name its session. */
+export function readTranscriptHead(transcriptPath: string): string | undefined {
   try {
-    const fd = openSync(forkedPath, 'r')
+    const fd = openSync(transcriptPath, 'r')
     try {
       const buffer = Buffer.alloc(FORK_HEAD_SCAN_BYTES)
       const read = readSync(fd, buffer, 0, FORK_HEAD_SCAN_BYTES, 0)
-      head = buffer.subarray(0, read).toString('utf8')
+      return buffer.subarray(0, read).toString('utf8')
     } finally {
       closeSync(fd)
     }
   } catch {
-    return false
+    return undefined
   }
+}
+
+/** The transcript's own records must carry this id; a stray file under that name proves nothing. */
+export function transcriptHeadNamesSession(transcriptPath: string, sessionId: string): boolean {
   // Why a substring: a huge first record would not parse inside the head window.
-  return head.includes(`"sessionId":"${sessionId}"`)
+  return readTranscriptHead(transcriptPath)?.includes(`"sessionId":"${sessionId}"`) === true
 }
