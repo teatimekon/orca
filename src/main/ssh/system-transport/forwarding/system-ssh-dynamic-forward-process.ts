@@ -30,8 +30,6 @@ export async function startSystemSshDynamicForwardProcess(
   if (signal?.aborted) {
     throw new Error('system_ssh_dynamic_forward_aborted')
   }
-  // The -D listener is an unauthenticated SOCKS proxy into the SSH target's network.
-  const releaseTunnelReservation = reserveBrowserTunnelOrcaListenerPort(localPort)
   const args = buildForwardProcessSshArgs(target, { ...options, nonInteractive: true })
   const destinationIndex = args.lastIndexOf('--')
   // Configured forwards may already be held by the main login; probe our -D listener instead of exiting on their collisions.
@@ -41,6 +39,8 @@ export async function startSystemSshDynamicForwardProcess(
     stdio: ['ignore', 'ignore', 'pipe'],
     windowsHide: true
   })
+  // The -D listener is an unauthenticated SOCKS proxy into the SSH target's network.
+  const releaseTunnelReservation = reserveBrowserTunnelOrcaListenerPort(localPort)
   process.once('exit', releaseTunnelReservation)
   let stderr = ''
   const onStderr = (chunk: Buffer): void => {

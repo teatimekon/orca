@@ -1,7 +1,11 @@
 import type { LookupAddress } from 'node:dns'
 import { createServer, type Socket } from 'node:net'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { connectNativeBrowserNetworkTarget } from '../execution-routes/browser-network-execution-route'
+import { BrowserNetworkDeferredSocket } from '../execution-routes/browser-network-deferred-socket'
+import {
+  connectNativeBrowserNetworkTarget,
+  guardRemoteBrowserNetworkConnect
+} from '../execution-routes/browser-network-execution-route'
 import {
   BrowserTunnelDestinationBlockedError,
   browserTunnelTargetBlockReason,
@@ -88,6 +92,35 @@ describe('browser tunnel destination policy', () => {
     )
     expect(blocked).toBeInstanceOf(BrowserTunnelDestinationBlockedError)
     expect(onBlocked).toHaveBeenCalledWith('link_local')
+
+    answers.splice(0)
+    const missing = await new Promise<unknown>((resolve) =>
+      lookup('missing.test', { all: true }, (error) => resolve(error))
+    )
+    expect(missing).not.toBeInstanceOf(BrowserTunnelDestinationBlockedError)
+    expect(missing).toMatchObject({ code: 'ENOTFOUND' })
+  })
+})
+
+describe('remote (SSH/WSL) browser tunnel routes', () => {
+  it("refuse the remote machine's metadata but keep its loopback and Orca-port-numbered servers", () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    cleanups.push(reserveBrowserTunnelOrcaListenerPort(6768))
+    const dialed: string[] = []
+    const connect = guardRemoteBrowserNetworkConnect((target) => {
+      dialed.push(`${target.host}:${target.port}`)
+      return new BrowserNetworkDeferredSocket()
+    }, {})
+
+    expect(() => connect({ host: '169.254.169.254', port: 80 })).toThrow(
+      BrowserTunnelDestinationBlockedError
+    )
+    expect(() => connect({ host: 'metadata.google.internal', port: 80 })).toThrow(
+      BrowserTunnelDestinationBlockedError
+    )
+    connect({ host: '127.0.0.1', port: 6768 })
+    connect({ host: 'localhost', port: 3000 })
+    expect(dialed).toEqual(['127.0.0.1:6768', 'localhost:3000'])
   })
 })
 

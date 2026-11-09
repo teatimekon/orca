@@ -91,19 +91,22 @@ export class RemoteBrowserSocksServer {
     if (this.listenPromise) {
       await this.listenPromise.catch(() => undefined)
     }
-    this.releaseTunnelReservation()
-    for (const socket of this.clients) {
-      socket.destroy()
-    }
-    this.clients.clear()
-    if (!this.server.listening) {
+    try {
+      for (const socket of this.clients) {
+        socket.destroy()
+      }
+      this.clients.clear()
+      if (!this.server.listening) {
+        this.state = 'closed'
+        return
+      }
+      await new Promise<void>((resolve, reject) => {
+        this.server.close((error) => (error ? reject(error) : resolve()))
+      })
       this.state = 'closed'
-      return
+    } finally {
+      this.releaseTunnelReservation()
     }
-    await new Promise<void>((resolve, reject) => {
-      this.server.close((error) => (error ? reject(error) : resolve()))
-    })
-    this.state = 'closed'
   }
 
   private accept(socket: Socket): void {

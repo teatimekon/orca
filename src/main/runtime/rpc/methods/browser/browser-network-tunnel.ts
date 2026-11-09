@@ -6,6 +6,7 @@ import {
 } from '../../../../browser/network/tunnels/browser-network-tunnel-stream-state'
 import {
   browserNetworkExecutionHostKey,
+  guardRemoteBrowserNetworkConnect,
   type BrowserNetworkExecutionRouteResolver
 } from '../../../../browser/network/execution-routes/browser-network-execution-route'
 import { resolveBrowserNetworkExecutionRoute } from '../../../../browser/network/execution-routes/browser-network-execution-route-dispatch'
@@ -196,7 +197,10 @@ export function createBrowserNetworkTunnelMethods(
         try {
           session = new BrowserNetworkTunnelSession({
             tunnelGeneration: route.tunnelGeneration,
-            connect: executionRoute.connect,
+            connect:
+              params.executionHost.kind === 'native'
+                ? executionRoute.connect
+                : guardRemoteBrowserNetworkConnect(executionRoute.connect),
             sendBinary: (bytes) => sendBinary(bytes) !== false,
             flowControl: windowV2
               ? BROWSER_NETWORK_TUNNEL_WINDOW_V2_FLOW_CONTROL

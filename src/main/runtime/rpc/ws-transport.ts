@@ -269,14 +269,18 @@ export class WebSocketTransport implements RpcTransport {
     const httpServer = this.httpServer
     this.wss = null
     this.httpServer = null
-    this.releaseTunnelReservation()
+    const releaseTunnelReservation = this.releaseTunnelReservation
     this.releaseTunnelReservation = () => {}
-    await stopNodeWebSocketTransport({
-      wss,
-      httpServer,
-      heartbeat: this.heartbeat,
-      heartbeatConnections: this.heartbeatConnections
-    })
+    try {
+      await stopNodeWebSocketTransport({
+        wss,
+        httpServer,
+        heartbeat: this.heartbeat,
+        heartbeatConnections: this.heartbeatConnections
+      })
+    } finally {
+      releaseTunnelReservation()
+    }
   }
 
   private handleConnection(ws: WebSocket): void {

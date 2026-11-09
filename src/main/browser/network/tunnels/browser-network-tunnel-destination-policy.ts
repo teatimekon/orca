@@ -1,6 +1,6 @@
 import { lookup as dnsLookup, type LookupAddress, type LookupOptions } from 'node:dns'
 import { BlockList, isIP } from 'node:net'
-import { networkInterfaces } from 'node:os'
+import { networkInterfaces, type NetworkInterfaceInfo } from 'node:os'
 
 /** Host-side escape hatch: `1` restores the unrestricted pre-policy behavior. */
 export const BROWSER_TUNNEL_ALLOW_ALL_DESTINATIONS_ENV =
@@ -21,7 +21,7 @@ export function browserTunnelDestinationFailureCode(error: unknown, fallback: st
     : fallback
 }
 
-// Link-local and cloud metadata never back a browsable page; mapped/NAT64/6to4 forms embed the same IPv4.
+// Link-local holds cloud metadata and is rarely browsed; mapped/NAT64/6to4 forms embed the same IPv4.
 const LINK_LOCAL_RULES: readonly BlockRule[] = [
   ['169.254.0.0', 16, 'ipv4'],
   ['::ffff:169.254.0.0', 112, 'ipv6'],
@@ -58,6 +58,36 @@ function buildBlockList(rules: readonly BlockRule[]): BlockList {
 // Built on first use so modules that only import a port reservation never construct BlockLists.
 let linkLocalAddresses: BlockList | null = null
 let selfAddresses: BlockList | null = null
+// Same refresh/throw-safety as runtime/rpc/on-link-prefixes.ts, which can't be imported where node:net is mocked.
+const OWN_ADDRESS_REFRESH_MS = 5_000
+let ownAddresses: { list: BlockList; readAt: number } | null = null
+
+function readOwnAddresses(now: number): BlockList {
+  if (!ownAddresses || now - ownAddresses.readAt >= OWN_ADDRESS_REFRESH_MS) {
+    let list: BlockList
+    try {
+      list = ownAddressList(networkInterfaces())
+    } catch {
+      list = new BlockList()
+    }
+    ownAddresses = { list, readAt: now }
+  }
+  return ownAddresses.list
+}
+
+function ownAddressList(interfaces: NodeJS.Dict<NetworkInterfaceInfo[]>): BlockList {
+  const list = new BlockList()
+  for (const entries of Object.values(interfaces)) {
+    for (const entry of entries ?? []) {
+      const bare = entry.address.split('%')[0]!
+      const family = isIP(bare)
+      if (family !== 0) {
+        list.addAddress(bare, family === 4 ? 'ipv4' : 'ipv6')
+      }
+    }
+  }
+  return list
+}
 
 const orcaListenerPorts = new Map<number, number>()
 
@@ -99,6 +129,24 @@ export function browserTunnelAddressBlockReason(
     return 'orca_listener'
   }
   return null
+}
+
+/** For routes that egress from another machine (SSH/WSL), where this host's listeners do not apply. */
+export function browserTunnelRemoteTargetBlockReason(
+  host: string
+): BrowserTunnelDestinationBlockReason | null {
+  const normalized = host.toLowerCase().replace(/\.$/, '')
+  if (METADATA_HOSTNAMES.has(normalized)) {
+    return 'link_local'
+  }
+  const family = isIP(host)
+  return family !== 0 &&
+    (linkLocalAddresses ??= buildBlockList(LINK_LOCAL_RULES)).check(
+      host,
+      family === 4 ? 'ipv4' : 'ipv6'
+    )
+    ? 'link_local'
+    : null
 }
 
 /** Checks what the client asked for; hostnames are re-checked after resolution on direct dials. */
@@ -150,10 +198,15 @@ export function createBrowserTunnelGuardedLookup(
         blockedReason ??= reason
         return reason === null
       })
+      if (allowed.length === 0 && blockedReason) {
+        onBlocked(blockedReason)
+        callback(new BrowserTunnelDestinationBlockedError(blockedReason), options.all ? [] : '')
+        return
+      }
       if (allowed.length === 0) {
-        const reason = blockedReason ?? 'link_local'
-        onBlocked(reason)
-        callback(new BrowserTunnelDestinationBlockedError(reason), options.all ? [] : '')
+        const notFound: NodeJS.ErrnoException = new Error(`getaddrinfo ENOTFOUND ${hostname}`)
+        notFound.code = 'ENOTFOUND'
+        callback(notFound, options.all ? [] : '')
         return
       }
       if (options.all) {
@@ -166,17 +219,10 @@ export function createBrowserTunnelGuardedLookup(
 }
 
 function isHostOwnAddress(address: string, type: 'ipv4' | 'ipv6'): boolean {
-  if ((selfAddresses ??= buildBlockList(SELF_RULES)).check(address, type)) {
-    return true
-  }
-  // Only reached for reserved ports, so enumerating interfaces stays off the common dial path.
-  const own = new BlockList()
-  for (const entries of Object.values(networkInterfaces())) {
-    for (const entry of entries ?? []) {
-      own.addAddress(entry.address.replace(/%.*$/, ''), entry.family === 'IPv4' ? 'ipv4' : 'ipv6')
-    }
-  }
-  return own.check(address, type)
+  return (
+    (selfAddresses ??= buildBlockList(SELF_RULES)).check(address, type) ||
+    readOwnAddresses(Date.now()).check(address, type)
+  )
 }
 
 const AUDIT_WINDOW_MS = 60_000
