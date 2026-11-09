@@ -52,3 +52,30 @@ export function dropAgentResumeArgvFromCommand(args: {
   }
   return { status: 'unrecognized' }
 }
+
+const CLAUDE_SESSION_LOCATOR = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** Point a Claude launch's `--resume <id>` at another session, or drop it (null) to start fresh.
+ *  Neither token needs quoting, so every shell's spelling is the token in an optional quote run;
+ *  null when the selector does not appear exactly once. */
+export function retargetClaudeResumeInCommand(
+  command: string,
+  fromId: string,
+  toId: string | null
+): string | null {
+  if (
+    !CLAUDE_SESSION_LOCATOR.test(fromId) ||
+    (toId !== null && !CLAUDE_SESSION_LOCATOR.test(toId))
+  ) {
+    return null
+  }
+  const selector = new RegExp(`(^|\\s)(["']*)--resume\\2(\\s+|=)(["']*)${fromId}\\4(?![\\w-])`, 'g')
+  if ((command.match(selector) ?? []).length !== 1) {
+    return null
+  }
+  return command.replace(
+    selector,
+    (_match, lead: string, flagQuote: string, gap: string, quote: string) =>
+      toId === null ? '' : `${lead}${flagQuote}--resume${flagQuote}${gap}${quote}${toId}${quote}`
+  )
+}
